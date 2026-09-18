@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ARCHIVIST // MTG — Coleção</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-primary-fixed": "#1c1b1d",
+            "inverse-on-surface": "#f0f1f2",
+            "on-primary-container": "#858386",
+            "surface-container-highest": "#e2e2e3",
+            "on-primary-fixed-variant": "#474649",
+            "on-secondary-fixed-variant": "#46464e",
+            "inverse-primary": "#c8c6c8",
+            "surface-container-high": "#e8e8e9",
+            "on-tertiary": "#ffffff",
+            "secondary-fixed": "#e3e1ec",
+            "on-surface-variant": "#47464a",
+            "tertiary-container": "#1b1b1e",
+            "surface-tint": "#5f5e60",
+            "primary-fixed": "#e5e1e4",
+            "background": "#f9f9fa",
+            "inverse-surface": "#2f3132",
+            "on-primary": "#ffffff",
+            "on-tertiary-fixed": "#1b1b1e",
+            "secondary": "#5d5e66",
+            "primary-container": "#1c1b1d",
+            "surface-container-lowest": "#ffffff",
+            "primary": "#000000",
+            "surface-bright": "#f9f9fa",
+            "on-tertiary-container": "#848387",
+            "error-container": "#ffdad6",
+            "surface-container-low": "#f3f3f4",
+            "primary-fixed-dim": "#c8c6c8",
+            "tertiary-fixed": "#e4e1e5",
+            "outline-variant": "#c8c5ca",
+            "surface-dim": "#dadadb",
+            "secondary-container": "#e3e1ec",
+            "on-secondary-fixed": "#1a1b22",
+            "secondary-fixed-dim": "#c6c5cf",
+            "on-secondary-container": "#63646c",
+            "tertiary": "#000000",
+            "on-surface": "#1a1c1d",
+            "on-error": "#ffffff",
+            "error": "#ba1a1a",
+            "tertiary-fixed-dim": "#c8c6c9",
+            "on-tertiary-fixed-variant": "#47464a",
+            "outline": "#78767b",
+            "on-error-container": "#93000a",
+            "on-background": "#1a1c1d",
+            "surface-variant": "#e2e2e3",
+            "on-secondary": "#ffffff",
+            "surface": "#f9f9fa",
+            "surface-container": "#eeeeef"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "margin": "1rem",
+            "space-xl": "1.5rem",
+            "gutter": "0.75rem",
+            "space-xs": "0.25rem",
+            "space-sm": "0.5rem",
+            "space-md": "0.75rem",
+            "space-lg": "1rem",
+            "space-2xl": "2rem",
+            "gutter-desktop": "1rem",
+            "margin-desktop": "1.5rem"
+          },
+          "fontFamily": {
+            "headline-xl": ["Geist"],
+            "body-md": ["Geist"],
+            "headline-sm": ["Geist"],
+            "body-sm": ["Geist"],
+            "label-md": ["JetBrains Mono"],
+            "code-num": ["JetBrains Mono"],
+            "headline-lg": ["Geist"],
+            "body-lg": ["Geist"],
+            "label-sm": ["JetBrains Mono"]
+          },
+          "fontSize": {
+            "headline-xl": ["28px", { "lineHeight": "34px", "letterSpacing": "-0.03em", "fontWeight": "600" }],
+            "body-md": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+            "headline-sm": ["15px", { "lineHeight": "20px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "code-num": ["13px", { "lineHeight": "16px", "fontWeight": "600" }],
+            "headline-lg": ["20px", { "lineHeight": "26px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+            "body-lg": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "label-sm": ["10px", { "lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "500" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+      font-size: 18px;
+      vertical-align: middle;
+      line-height: 1;
+    }
+    .stepper-btn:active {
+      transform: translateY(1px);
+    }
+    input[type="checkbox"] {
+      border-radius: 0px;
+      border: 1px solid #78767b;
+      accent-color: #000000;
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f9f9fa;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #c8c5ca;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #78767b;
+    }
+  </style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex flex-col font-body-md text-body-md antialiased selection:bg-primary selection:text-surface-container-lowest">
+<!-- TopNavBar (Shared Component JSON Conformance) -->
+<header class="fixed top-0 left-0 w-full z-50 flex items-center justify-between px-space-md h-12 bg-surface border-b border-outline-variant">
+<div class="flex items-center gap-6">
+<span class="text-headline-sm font-headline-sm tracking-tight text-primary uppercase font-bold select-none">
+        ARCHIVIST // MTG
+      </span>
+<nav class="flex items-center gap-5 pt-3">
+<a class="text-on-surface-variant hover:text-primary text-body-md pb-3 transition-colors" href="#">Decks</a>
+<a class="text-primary border-b-2 border-primary font-headline-sm text-body-md font-semibold pb-3" href="#">Coleção</a>
+<a class="text-on-surface-variant hover:text-primary text-body-md pb-3 transition-colors" href="#">Formatos</a>
+<a class="text-on-surface-variant hover:text-primary text-body-md pb-3 transition-colors" href="#">Estatísticas</a>
+</nav>
+</div>
+<!-- Search in Navbar -->
+<div class="hidden lg:flex items-center relative w-72">
+<span class="material-symbols-outlined absolute left-2 text-outline text-[16px]">search</span>
+<input class="w-full h-8 pl-7 pr-8 bg-surface-container-lowest border border-outline-variant text-body-sm font-body-sm focus:border-primary focus:ring-0 focus:outline-none placeholder:text-outline" placeholder="Busca global de cartas (⌘K)" type="text"/>
+<span class="absolute right-2 font-label-sm text-label-sm text-outline border border-outline-variant px-1 rounded-none">⌘K</span>
+</div>
+<!-- Trailing Actions & User -->
+<div class="flex items-center gap-3">
+<button class="h-8 px-3 bg-primary text-on-primary font-body-sm text-body-sm font-medium border border-primary hover:bg-neutral-800 transition-colors flex items-center gap-1 active:translate-y-px">
+<span class="material-symbols-outlined text-[16px]">add</span>
+<span>Novo Deck</span>
+</button>
+<button class="h-8 px-3 bg-surface-container-lowest text-primary font-body-sm text-body-sm font-medium border border-outline-variant hover:border-primary transition-colors flex items-center gap-1 active:translate-y-px">
+<span>Importar Lista</span>
+</button>
+<div class="h-4 w-px bg-outline-variant"></div>
+<div class="flex items-center gap-1 text-on-surface-variant">
+<button class="w-8 h-8 flex items-center justify-center hover:bg-surface-container hover:text-primary transition-colors active:translate-y-px" title="Terminal">
+<span class="material-symbols-outlined">terminal</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center hover:bg-surface-container hover:text-primary transition-colors active:translate-y-px" title="Filtros e Ajustes">
+<span class="material-symbols-outlined">tune</span>
+</button>
+<div class="flex items-center gap-1.5 pl-2">
+<span class="material-symbols-outlined text-[20px]">account_circle</span>
+<span class="font-label-md text-label-md text-primary font-medium">rodrigo</span>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:underline pl-1" href="#">Sair</a>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Container -->
+<main class="flex-1 mt-12 px-space-md py-space-md max-w-[1680px] w-full mx-auto space-y-3">
+<!-- Top Stats & Operations Header -->
+<section class="bg-surface-container-lowest border border-outline-variant p-space-md">
+<div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+<!-- Metrics Bento / 1px Strip -->
+<div class="grid grid-cols-2 sm:grid-cols-5 divide-x divide-outline-variant border border-outline-variant bg-surface flex-1">
+<div class="p-2.5 flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Total de Cartas</span>
+<div class="flex items-baseline gap-1 mt-0.5">
+<span class="font-code-num text-code-num text-headline-sm text-primary font-semibold">4.820</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">unidades</span>
+</div>
+</div>
+<div class="p-2.5 flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Únicas</span>
+<div class="flex items-baseline gap-1 mt-0.5">
+<span class="font-code-num text-code-num text-headline-sm text-primary font-semibold">2.140</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">nomes</span>
+</div>
+</div>
+<div class="p-2.5 flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Raras / Míticas</span>
+<div class="flex items-baseline gap-1 mt-0.5">
+<span class="font-code-num text-code-num text-headline-sm text-primary font-semibold">685</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">14,2%</span>
+</div>
+</div>
+<div class="p-2.5 flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Acabamento Foil</span>
+<div class="flex items-baseline gap-1 mt-0.5">
+<span class="font-code-num text-code-num text-headline-sm text-primary font-semibold">230</span>
+<span class="font-label-sm text-label-sm text-primary font-medium">★</span>
+</div>
+</div>
+<div class="p-2.5 flex flex-col col-span-2 sm:col-span-1">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Valor Estimado</span>
+<div class="flex items-baseline gap-1 mt-0.5">
+<span class="font-code-num text-code-num text-headline-sm text-primary font-bold">R$ 18.450,00</span>
+</div>
+</div>
+</div>
+<!-- Right Quick Operations -->
+<div class="flex items-center gap-2 shrink-0">
+<button class="h-9 px-3.5 bg-primary text-on-primary font-headline-sm text-body-md font-semibold border border-primary hover:bg-neutral-800 transition-colors flex items-center gap-1.5 active:translate-y-px">
+<span class="material-symbols-outlined text-[16px]">add_circle</span>
+<span>+ Adicionar Cartas</span>
+</button>
+<button class="h-9 px-3 bg-surface-container-lowest text-primary font-body-md text-body-md border border-outline-variant hover:border-primary transition-colors flex items-center gap-1.5 active:translate-y-px">
+<span class="material-symbols-outlined text-[16px]">upload_file</span>
+<span>Importar CSV / Binder</span>
+</button>
+<button class="h-9 px-3 bg-surface-container-lowest text-primary font-body-md text-body-md border border-outline-variant hover:border-primary transition-colors flex items-center gap-1.5 active:translate-y-px" title="Exportar coleção completa">
+<span class="material-symbols-outlined text-[16px]">download</span>
+<span>Exportar Acervo</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Query Builder & Advanced Filter Rail -->
+<section class="bg-surface-container-lowest border border-outline-variant p- space-sm space-y-2.5">
+<!-- Search row & Mode toggles -->
+<div class="flex flex-wrap items-center justify-between gap-3">
+<div class="flex-1 min-w-[320px] relative">
+<span class="material-symbols-outlined absolute left-2.5 top-2 text-outline text-[18px]">search</span>
+<input class="w-full h-8 pl-8 pr-20 bg-surface-container-lowest border border-outline-variant text-body-md font-body-md focus:border-primary focus:ring-0 focus:outline-none placeholder:text-outline" placeholder="Buscar por nome da carta, texto de regras, subtipo (ex: Vampiro), artista ou número de coletor..." type="text"/>
+<span class="absolute right-2 top-1.5 font-label-sm text-label-sm text-on-surface-variant bg-surface px-1.5 border border-outline-variant">Filtro Ativo</span>
+</div>
+<!-- View Switchers -->
+<div class="flex items-center border border-outline-variant p-0.5 bg-surface">
+<button class="px-3 py-1 font-label-sm text-label-sm bg-primary text-on-primary font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">table_rows</span>
+            Modo Tabela Densa
+          </button>
+<button class="px-3 py-1 font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">grid_view</span>
+            Modo Binder / Grid
+          </button>
+</div>
+</div>
+<!-- Quick Filter Tags & Matrix -->
+<div class="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-surface-container">
+<div class="flex flex-wrap items-center gap-2 text-label-sm font-label-sm">
+<!-- Colors -->
+<span class="text-on-surface-variant uppercase pr-1 font-semibold">Cores:</span>
+<div class="inline-flex border border-outline-variant divide-x divide-outline-variant">
+<button class="px-2 py-0.5 bg-surface hover:bg-surface-container-highest transition-colors font-bold text-primary">W</button>
+<button class="px-2 py-0.5 bg-surface hover:bg-surface-container-highest transition-colors font-bold text-primary">U</button>
+<button class="px-2 py-0.5 bg-primary text-on-primary font-bold">B</button>
+<button class="px-2 py-0.5 bg-primary text-on-primary font-bold">R</button>
+<button class="px-2 py-0.5 bg-surface hover:bg-surface-container-highest transition-colors font-bold text-primary">G</button>
+<button class="px-2 py-0.5 bg-surface hover:bg-surface-container-highest transition-colors font-bold text-primary">C</button>
+</div>
+<div class="h-3 w-px bg-outline-variant mx-1"></div>
+<!-- Rarity -->
+<span class="text-on-surface-variant uppercase pr-1 font-semibold">Raridade:</span>
+<button class="px-1.5 py-0.5 border border-outline-variant bg-surface hover:border-primary text-on-surface-variant">Comum</button>
+<button class="px-1.5 py-0.5 border border-outline-variant bg-surface hover:border-primary text-on-surface-variant">Incomum</button>
+<button class="px-1.5 py-0.5 border border-primary bg-primary text-on-primary font-semibold">Rara</button>
+<button class="px-1.5 py-0.5 border border-primary bg-primary text-on-primary font-semibold">Mítica</button>
+<div class="h-3 w-px bg-outline-variant mx-1"></div>
+<!-- Formats -->
+<span class="text-on-surface-variant uppercase pr-1 font-semibold">Formatos:</span>
+<button class="px-1.5 py-0.5 border border-primary bg-primary text-on-primary font-semibold">Commander</button>
+<button class="px-1.5 py-0.5 border border-outline-variant bg-surface hover:border-primary text-on-surface-variant">Modern</button>
+<button class="px-1.5 py-0.5 border border-outline-variant bg-surface hover:border-primary text-on-surface-variant">Pioneer</button>
+<button class="px-1.5 py-0.5 border border-outline-variant bg-surface hover:border-primary text-on-surface-variant">Pauper</button>
+<div class="h-3 w-px bg-outline-variant mx-1"></div>
+<!-- Sets Pill Selection -->
+<span class="text-on-surface-variant uppercase pr-1 font-semibold">Sets:</span>
+<span class="px-1.5 py-0.5 border border-outline-variant bg-surface text-primary">OTJ (320)</span>
+<span class="px-1.5 py-0.5 border border-outline-variant bg-surface text-primary">OTC (142)</span>
+<span class="px-1.5 py-0.5 border border-outline-variant bg-surface text-primary">MOM (288)</span>
+<button class="px-1.5 py-0.5 border border-dashed border-outline-variant text-on-surface-variant hover:text-primary hover:border-primary flex items-center gap-0.5">
+<span>+ Mais Sets</span>
+</button>
+</div>
+<button class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary underline ml-auto">Limpar filtros</button>
+</div>
+</section>
+<!-- Bulk Action Strip (Active Batch Bar) -->
+<div class="bg-primary text-on-primary px-space-md py-1.5 flex flex-wrap items-center justify-between text-body-sm font-body-sm">
+<div class="flex items-center gap-3">
+<label class="flex items-center gap-2 cursor-pointer select-none">
+<input checked="" class="w-4 h-4 bg-surface-container-lowest text-primary focus:ring-0 focus:ring-offset-0 border-white" type="checkbox"/>
+<span class="font-label-md text-label-md font-semibold">8 cartas selecionadas</span>
+</label>
+<span class="text-outline-variant">|</span>
+<span class="text-surface-container-high font-label-sm text-label-sm">Total no lote: 17 cópias físicas (R$ 412,50)</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-surface-variant font-label-sm text-label-sm mr-1">Ações em lote:</span>
+<button class="px-2.5 py-0.5 bg-surface-container-lowest text-primary font-label-sm text-label-sm font-semibold border border-surface-container-lowest hover:bg-surface-container transition-colors flex items-center gap-1 active:translate-y-px">
+<span class="material-symbols-outlined text-[14px]">style</span>
+          Adicionar a um Deck...
+        </button>
+<button class="px-2.5 py-0.5 bg-neutral-800 text-on-primary font-label-sm text-label-sm border border-neutral-700 hover:border-surface-container-lowest transition-colors flex items-center gap-1 active:translate-y-px">
+<span class="material-symbols-outlined text-[14px]">label</span>
+          Atribuir Tag / Pasta
+        </button>
+<button class="px-2.5 py-0.5 bg-neutral-800 text-on-primary font-label-sm text-label-sm border border-neutral-700 hover:border-surface-container-lowest transition-colors flex items-center gap-1 active:translate-y-px">
+<span class="material-symbols-outlined text-[14px]">verified</span>
+          Alterar Condição
+        </button>
+<button class="px-2 py-0.5 bg-error text-on-error font-label-sm text-label-sm hover:bg-red-700 transition-colors flex items-center gap-1 active:translate-y-px">
+<span class="material-symbols-outlined text-[14px]">delete</span>
+          Excluir
+        </button>
+</div>
+</div>
+<!-- High-Density Collection Table -->
+<div class="bg-surface-container-lowest border border-outline-variant overflow-x-auto shadow-sm">
+<table class="w-full text-left border-collapse font-body-sm text-body-sm">
+<thead>
+<tr class="bg-surface border-b border-outline-variant text-on-surface-variant font-label-sm text-label-sm select-none uppercase tracking-wider">
+<th class="py-2 px-3 w-8 text-center">
+<input checked="" class="w-3.5 h-3.5 cursor-pointer" type="checkbox"/>
+</th>
+<th class="py-2 px-2 w-28 text-center">Acervo</th>
+<th class="py-2 px-3 min-w-[140px]">Alocação em Decks</th>
+<th class="py-2 px-3 min-w-[260px]">Carta / Tradução</th>
+<th class="py-2 px-2 w-24">Set / Foil</th>
+<th class="py-2 px-3 min-w-[180px]">Tipo &amp; Subtipo</th>
+<th class="py-2 px-2 w-20 text-center">Condição</th>
+<th class="py-2 px-3 min-w-[160px]">Localização / Binder</th>
+<th class="py-2 px-3 w-28 text-right">Preço Médio</th>
+<th class="py-2 px-2 w-12 text-center">Ações</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container">
+<!-- Row 1: Olivia, Mobilized for War -->
+<tr class="hover:bg-surface transition-colors group">
+<td class="py-1.5 px-3 text-center">
+<input checked="" class="w-3.5 h-3.5" type="checkbox"/>
+</td>
+<td class="py-1.5 px-2">
+<div class="flex items-center justify-center gap-1">
+<button class="w-6 h-6 border border-outline-variant bg-surface hover:border-primary flex items-center justify-center font-label-md text-label-md stepper-btn">-</button>
+<span class="w-6 text-center font-code-num text-code-num font-semibold text-primary">3</span>
+<button class="w-6 h-6 border border-outline-variant bg-surface hover:border-primary flex items-center justify-center font-label-md text-label-md stepper-btn">+</button>
+</div>
+</td>
+<td class="py-1.5 px-3">
+<div class="flex flex-col gap-0.5">
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm text-primary font-medium">
+<span class="w-1.5 h-1.5 bg-primary"></span> 1x Olivia V3 (Commander)
+                </span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">2x Disponíveis livres</span>
+</div>
+</td>
+<td class="py-1.5 px-3">
+<div class="flex flex-col">
+<div class="flex items-center gap-2">
+<span class="font-headline-sm text-body-md font-semibold text-primary hover:underline cursor-pointer">Olivia, Mobilized for War</span>
+<span class="font-label-sm text-label-sm px-1 bg-surface-container text-on-surface border border-outline-variant">BR</span>
+</div>
+<span class="text-body-sm text-on-surface-variant italic">Olivia, Mobilizada para a Guerra</span>
+</div>
+</td>
+<td class="py-1.5 px-2 font-label-md text-label-md">
+<div class="flex items-center gap-1">
+<span class="font-semibold text-primary">SOI</span>
+<span class="text-on-surface-variant text-label-sm">#248</span>
+<span class="text-primary font-bold text-[13px] ml-0.5" title="Foil Card">★</span>
+</div>
+</td>
+<td class="py-1.5 px-3">
+<span class="text-on-surface">Criatura Lendária — Vampiro Guerreiro</span>
+</td>
+<td class="py-1.5 px-2 text-center">
+<span class="font-label-sm text-label-sm border border-primary px-1.5 py-0.2 bg-primary text-on-primary font-semibold">NM</span>
+</td>
+<td class="py-1.5 px-3">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-outline text-[16px]">folder</span>
+<span class="font-label-sm text-label-sm text-on-surface font-medium truncate max-w-[140px]">Fichário 1 — Comandantes</span>
+</div>
+</td>
+<td class="py-1.5 px-3 text-right font-code-num text-code-num font-semibold text-primary">
+              R$ 28,50
+            </td>
+<td class="py-1.5 px-2 text-center">
+<button class="w-6 h-6 flex items-center justify-center hover:bg-surface border border-transparent hover:border-outline-variant text-on-surface-variant hover:text-primary">
+<span class="material-symbols-outlined text-[16px]">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 2: Angelic Sell-Sword -->
+<tr class="hover:bg-surface transition-colors group">
+<td class="py-1.5 px-3 text-center">
+<input checked="" class="w-3.5 h-3.5" type="checkbox"/>
+</td>
+<td class="py-1.5 px-2">
+<div class="flex items-center justify-center gap-1">
+<button class="w-6 h-6 border border-outline-variant bg-surface hover:border-primary flex items-center justify-center font-label-md text-label-md stepper-btn">-</button>
+<span class="w-6 text-center font-code-num text-code-num font-semibold text-primary">1</span>
+<button class="w-6 h-6 border border-outline-variant bg-surface hover:border-primary flex items-center justify-center font-label-md text-label-md stepper-btn">+</button>
+</div>
+</td>
+<td class="py-1.5 px-3">
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm text-primary font-medium">
+<span class="w-1.5 h-1.5 bg-primary"></span> 1x Olivia V3 (Criaturas)
+              </span>
+</td>
+<td class="py-1.5 px-3">
+<div class="flex flex-col">
+<div class="flex items-center gap-2">
+<span class="font-headline-sm text-body-md font-semibold text-primary hover:underline cursor-pointer">Angelic Sell-Sword</span>
+<span class="font-label-sm text-label-sm px-1 bg-surface-container text-on-surface border border-outline-variant">W</span>
+</div>
+<span class="text-body-sm text-on-surface-variant italic">Mercenária Angelical</span>
+</div>
+</td>
+<td class="py-1.5 px-2 font-label-md text-label-md">
+<div class="flex items-center gap-1">
+<span class="font-semibold text-primary">OTC</span>
+<span class="text-on-surface-variant text-label-sm">#010</span>
+</div>
+</td>
+<td class="py-1.5 px-3">
+<span class="text-on-surface">Criatura — Anjo Soldado</span>
+</td>
+<td class="py-1.5 px-2 text-center">
+<span class="font-label-sm text-label-sm border border-outline-variant px-1.5 py-0.2 text-on-surface font-semibold">SP</span>
+</td>
+<td class="py-1.5 px-3">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-outline text-[16px]">inbox</span>
+<span class="font-label-sm text-label-sm text-on-surface font-medium truncate max-w-[140px]">Deckbox Olivia V3</span>
+</div>
+</td>
+<td class="py-1.5 px-3 text-right font-code-num text-code-num font-semibold text-primary">
+              R$ 4,20
+            </td>
+<td class="py-1.5 px-2 text-center">
+<button class="w-6 h-6 flex items-center justify-center hover:bg-surface border border-transparent hover:border-outline-variant text-on-surface-variant hover:text-primary">
+<span class="material-symbols-outlined text-[16px]">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 3: Vândalos de Angrath (Angrath's Marauders) -->
+<tr class="hover:bg-surface transition-colors group">
+<td class="py-1.5 px-3 text-center">
+<input checked="" class="w-3.5 h-3.5" type="checkbox"/>
+</td>
+<td class="py-1.5 px-2">
+<div class="flex items-center justify-center gap-1">
+<button class="w-6 h-6 border border-outline-variant bg-surface hover:border-primary flex items-center justify-center font-label-md text-label-md stepper-btn">-</button>
+<span class="w-6 text-center font-code-num text-code-num font-semibold text-primary">2</span>
+<button class="w-6 h-6 border border-outline-variant bg-surface hover:border-primary flex items-center justify-center font-label-md text-label-md stepper-btn">+</button>
+</div>
+</td>
+<td class="py-1.5 px-3">
+<div class="flex flex-col gap-0.5">
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm text-primary font-medium">
+<span class="w-1.5 h-1.5 bg-primary"></span> 1x Olivia V3
+                </span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">1x Disponível livre</span>
+</div>
+</td>
+<td class="py-1.5 px-3">
+<div class="flex flex-col">
+<div class="flex items-center gap-2">
+<span class="font-headline-sm text-body-md font-semibold text-primary hover:underline cursor-pointer">Angrath's Marauders</span>
+<span class="font-label-sm text-label-sm px-1 bg-surface-container text-on-surface border border-outline-variant">R</span>
+</div>
+<span class="text-body-sm text-on-surface-variant italic">Vândalos de Angrath</span>
+</div>
+</td>
+<td class="py-1.5 px-2 font-label-md text-label-md">
+<div class="flex items-center gap-1">
+<span class="font-semibold text-primary">OTC</span>
+<span class="text-on-surface-variant text-label-sm">#167</span>
+</div>
+</td>
+<td class="py-1.5 px-3">
+<span class="text-on-surface">Criatura — Humano Pirata</span>
+</td>
+<td class="py-1.5 px-2 text-center">
+<span class="font-label-sm text-label-sm border border-primary px-1.5 py-0.2 bg-primary text-on-primary font-semibold">NM</span>
+</td>
+<td class="py-1.5 px-3">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-outline text-[16px]">folder</span>
+<span class="font-label-sm text-label-sm text-on-surface font-medium truncate max-w-[140px]">Fichário 2 — Raras Vermelhas</span>
+</div>
+</td>
+<td class="py-1.5 px-3 text-right font-code-num text-code-num font-semibold text-primary">
+              R$ 3,10
+            </td>
+<td class="py-1.5 px-2 text-center">
+<button class="w-6 h-6 flex items-center justify-center hover:bg-surface border border-transparent hover:border-outline-variant text-on-surface-variant hover:text-primary">
+<span class="material-symbols-outlined text-[16px]">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 4: Arquissacerdotisa das Sombras (Archpriest of Shadows) -->
+<tr class="hover:bg-surface transition-colors group">
+<td class="py-1.5 px-3 text-center">
+<input checked="" class="w-3.5 h-3.5" type="checkbox"/>
+</td>
+<td class="py-1.5 px-2">
+<div class="flex items-center justify-center gap-1">
+<button class="w-6 h-6 border border-outline-variant bg-surface hover:border-primary flex items-center justify-center font-label-md text-label-md stepper-btn">-</button>
+<span class="w-6 text-center font-code-num text-code-num font-semibold text-primary">4</span>
+<button class="w-6 h-6 border border-outline-variant bg-surface hover:border-primary flex items-center justify-center font-label-md text-label-md stepper-btn">+</button>
+</div>
+</td>
+<td class="py-1.5 px-3">
+<div class="flex flex-col gap-0.5">
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm text-primary font-medium">
+<span class="w-1.5 h-1.5 bg-primary"></span> 1x Olivia V3
+                </span>
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm text-primary font-medium">
+<span class="w-1.5 h-1.5 bg-primary"></span> 1x Atraxa Reanimator
+                </span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">2x Disponíveis livres</span>
+</div>
+</td>
+<td class="py-1.5 px-3">
+<div class="flex flex-col">
+<div class="flex items-center gap-2">
+<span class="font-headline-sm text-body-md font-semibold text-primary hover:underline cursor-pointer">Archpriest of Shadows</span>
+<span class="font-label-sm text-label-sm px-1 bg-surface-container text-on-surface border border-outline-variant">B</span>
+</div>
+<span class="text-body-sm text-on-surface-variant italic">Arquissacerdotisa das Sombras</span>
+</div>
+</td>
+<td class="py-1.5 px-2 font-label-md text-label-md">
+<div class="flex items-center gap-1">
+<span class="font-semibold text-primary">MOM</span>
+<span class="text-on-surface-variant text-label-sm">#089</span>
+<span class="text-primary font-bold text-[13px] ml-0.5" title="Foil Card">★</span>
+</div>
+</td>
+<td class="py-1.5 px-3">
+<span class="text-on-surface">Criatura — Humano Clérigo</span>
+</td>
+<td class="py-1.5 px-2 text-center">
+<span class="font-label-sm text-label-sm border border-primary px-1.5 py-0.2 bg-primary text-on-primary font-semibold">NM</span>
+</td>
+<td class="py-1.5 px-3">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-outline text-[16px]">folder</span>
+<span class="font-label-sm text-label-sm text-on-surface font-medium truncate max-w-[140px]">Fichário 1 — Pretas Raras</span>
+</div>
+</td>
+<td class="py-1.5 px-3 text-right font-code-num text-code-num font-semibold text-primary">
+              R$ 7,90
+            </td>
+<td class="py-1.5 px-2 text-center">
+<button class="w-6 h-6 flex items-center justify-center hover:bg-surface border border-transparent hover:border-outline-variant text-on-surface-variant hover:text-primary">
+<span class="material-symbols-outlined text-[16px]">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 5: Breena, the Demagogue -->
+<tr class="hover:bg-surface transition-colors group">
+<td class="py-1.5 px-3 text-center">
+<input checked="" class="w-3.5 h-3.5" type="checkbox"/>
+</td>
+<td class="py-1.5 px-2">
+<div class="flex items-center justify-center gap-1">
+<button class="w-6 h-6 border border-outline-variant bg-surface hover:border-primary flex items-center justify-center font-label-md text-label-md stepper-btn">-</button>
+<span class="w-6 text-center font-code-num text-code-num font-semibold text-primary">1</span>
+<button class="w-6 h-6 border border-outline-variant bg-surface hover:border-primary flex items-center justify-center font-label-md text-label-md stepper-btn">+</button>
+</div>
+</td>
+<td class="py-1.5 px-3">
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm text-primary font-medium">
+<span class="w-1.5 h-1.5 bg-primary"></span> 1x Olivia V3 (Político)
+              </span>
+</td>
+<td class="py-1.5 px-3">
+<div class="flex flex-col">
+<div class="flex items-center gap-2">
+<span class="font-headline-sm text-body-md font-semibold text-primary hover:underline cursor-pointer">Breena, the Demagogue</span>
+<span class="font-label-sm text-label-sm px-1 bg-surface-container text-on-surface border border-outline-variant">WB</span>
+</div>
+<span class="text-body-sm text-on-surface-variant italic">Brenna, a Demagoga</span>
+</div>
+</td>
+<td class="py-1.5 px-2 font-label-md text-label-md">
+<div class="flex items-center gap-1">
+<span class="font-semibold text-primary">SOC</span>
+<span class="text-on-surface-variant text-label-sm">#001</span>
+<span class="text-primary font-bold text-[13px] ml-0.5" title="Etched Foil">★</span>
+</div>
+</td>
+<td class="py-1.5 px-3">
+<span class="text-on-surface">Criatura Lendária — Ave Bruxo</span>
+</td>
+<td class="py-1.5 px-2 text-center">
+<span class="font-label-sm text-label-sm border border-primary px-1.5 py-0.2 bg-primary text-on-primary font-semibold">NM</span>
+</td>
+<td class="py-1.5 px-3">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-outline text-[16px]">folder</span>
+<span class="font-label-sm text-label-sm text-on-surface font-medium truncate max-w-[140px]">Fichário 1 — Comandantes</span>
+</div>
+</td>
+<td class="py-1.5 px-3 text-right font-code-num text-code-num font-semibold text-primary">
+              R$ 19,00
+            </td>
+<td class="py-1.5 px-2 text-center">
+<button class="w-6 h-6 flex items-center justify-center hover:bg-surface border border-transparent hover:border-outline-variant text-on-surface-variant hover:text-primary">
+<span class="material-symbols-outlined text-[16px]">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 6: Capitã Lannery Tormenta (Captain Lannery Storm) -->
+<tr class="hover:bg-surface transition-colors group">
+<td class="py-1.5 px-3 text-center">
+<input checked="" class="w-3.5 h-3.5" type="checkbox"/>
+</td>
+<td class="py-1.5 px-2">
+<div class="flex items-center justify-center gap-1">
+<button class="w-6 h-6 border border-outline-variant bg-surface hover:border-primary flex items-center justify-center font-label-md text-label-md stepper-btn">-</button>
+<span class="w-6 text-center font-code-num text-code-num font-semibold text-primary">3</span>
+<button class="w-6 h-6 border border-outline-variant bg-surface hover:border-primary flex items-center justify-center font-label-md text-label-md stepper-btn">+</button>
+</div>
+</td>
+<td class="py-1.5 px-3">
+<div class="flex flex-col gap-0.5">
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm text-primary font-medium">
+<span class="w-1.5 h-1.5 bg-primary"></span> 1x Olivia V3
+                </span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">2x Disponíveis livres</span>
+</div>
+</td>
+<td class="py-1.5 px-3">
+<div class="flex flex-col">
+<div class="flex items-center gap-2">
+<span class="font-headline-sm text-body-md font-semibold text-primary hover:underline cursor-pointer">Captain Lannery Storm</span>
+<span class="font-label-sm text-label-sm px-1 bg-surface-container text-on-surface border border-outline-variant">R</span>
+</div>
+<span class="text-body-sm text-on-surface-variant italic">Capitã Lannery Tormenta</span>
+</div>
+</td>
+<td class="py-1.5 px-2 font-label-md text-label-md">
+<div class="flex items-center gap-1">
+<span class="font-semibold text-primary">OTC</span>
+<span class="text-on-surface-variant text-label-sm">#171</span>
+</div>
+</td>
+<td class="py-1.5 px-3">
+<span class="text-on-surface">Criatura Lendária — Humano Pirata</span>
+</td>
+<td class="py-1.5 px-2 text-center">
+<span class="font-label-sm text-label-sm border border-outline-variant px-1.5 py-0.2 text-on-surface font-semibold">SP</span>
+</td>
+<td class="py-1.5 px-3">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-outline text-[16px]">folder</span>
+<span class="font-label-sm text-label-sm text-on-surface font-medium truncate max-w-[140px]">Fichário 2 — Tesouros</span>
+</div>
+</td>
+<td class="py-1.5 px-3 text-right font-code-num text-code-num font-semibold text-primary">
+              R$ 2,50
+            </td>
+<td class="py-1.5 px-2 text-center">
+<button class="w-6 h-6 flex items-center justify-center hover:bg-surface border border-transparent hover:border-outline-variant text-on-surface-variant hover:text-primary">
+<span class="material-symbols-outlined text-[16px]">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 7: Sol Ring -->
+<tr class="hover:bg-surface transition-colors group">
+<td class="py-1.5 px-3 text-center">
+<input checked="" class="w-3.5 h-3.5" type="checkbox"/>
+</td>
+<td class="py-1.5 px-2">
+<div class="flex items-center justify-center gap-1">
+<button class="w-6 h-6 border border-outline-variant bg-surface hover:border-primary flex items-center justify-center font-label-md text-label-md stepper-btn">-</button>
+<span class="w-6 text-center font-code-num text-code-num font-semibold text-primary">8</span>
+<button class="w-6 h-6 border border-outline-variant bg-surface hover:border-primary flex items-center justify-center font-label-md text-label-md stepper-btn">+</button>
+</div>
+</td>
+<td class="py-1.5 px-3">
+<div class="flex flex-col gap-0.5">
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm text-primary font-medium">
+<span class="w-1.5 h-1.5 bg-primary"></span> 5x em Decks Ativos
+                </span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">3x Disponíveis livres</span>
+</div>
+</td>
+<td class="py-1.5 px-3">
+<div class="flex flex-col">
+<div class="flex items-center gap-2">
+<span class="font-headline-sm text-body-md font-semibold text-primary hover:underline cursor-pointer">Sol Ring</span>
+<span class="font-label-sm text-label-sm px-1 bg-surface-container text-on-surface border border-outline-variant">C</span>
+</div>
+<span class="text-body-sm text-on-surface-variant italic">Anel Solar</span>
+</div>
+</td>
+<td class="py-1.5 px-2 font-label-md text-label-md">
+<div class="flex items-center gap-1">
+<span class="font-semibold text-primary">CMM</span>
+<span class="text-on-surface-variant text-label-sm">#413</span>
+</div>
+</td>
+<td class="py-1.5 px-3">
+<span class="text-on-surface">Artefato — Pedra de Mana</span>
+</td>
+<td class="py-1.5 px-2 text-center">
+<span class="font-label-sm text-label-sm border border-primary px-1.5 py-0.2 bg-primary text-on-primary font-semibold">NM</span>
+</td>
+<td class="py-1.5 px-3">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-outline text-[16px]">archive</span>
+<span class="font-label-sm text-label-sm text-on-surface font-medium truncate max-w-[140px]">Caixa Staples Comuns</span>
+</div>
+</td>
+<td class="py-1.5 px-3 text-right font-code-num text-code-num font-semibold text-primary">
+              R$ 8,00
+            </td>
+<td class="py-1.5 px-2 text-center">
+<button class="w-6 h-6 flex items-center justify-center hover:bg-surface border border-transparent hover:border-outline-variant text-on-surface-variant hover:text-primary">
+<span class="material-symbols-outlined text-[16px]">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 8: Demonic Tutor -->
+<tr class="hover:bg-surface transition-colors group">
+<td class="py-1.5 px-3 text-center">
+<input checked="" class="w-3.5 h-3.5" type="checkbox"/>
+</td>
+<td class="py-1.5 px-2">
+<div class="flex items-center justify-center gap-1">
+<button class="w-6 h-6 border border-outline-variant bg-surface hover:border-primary flex items-center justify-center font-label-md text-label-md stepper-btn">-</button>
+<span class="w-6 text-center font-code-num text-code-num font-semibold text-primary">1</span>
+<button class="w-6 h-6 border border-outline-variant bg-surface hover:border-primary flex items-center justify-center font-label-md text-label-md stepper-btn">+</button>
+</div>
+</td>
+<td class="py-1.5 px-3">
+<span class="font-label-sm text-label-sm text-on-surface-variant italic">Não alocado em deck</span>
+</td>
+<td class="py-1.5 px-3">
+<div class="flex flex-col">
+<div class="flex items-center gap-2">
+<span class="font-headline-sm text-body-md font-semibold text-primary hover:underline cursor-pointer">Demonic Tutor</span>
+<span class="font-label-sm text-label-sm px-1 bg-surface-container text-on-surface border border-outline-variant">B</span>
+</div>
+<span class="text-body-sm text-on-surface-variant italic">Tutor Demoníaco</span>
+</div>
+</td>
+<td class="py-1.5 px-2 font-label-md text-label-md">
+<div class="flex items-center gap-1">
+<span class="font-semibold text-primary">STA</span>
+<span class="text-on-surface-variant text-label-sm">#027</span>
+<span class="text-primary font-bold text-[13px] ml-0.5" title="Foil Etched">★</span>
+</div>
+</td>
+<td class="py-1.5 px-3">
+<span class="text-on-surface">Feitiço — Tutor</span>
+</td>
+<td class="py-1.5 px-2 text-center">
+<span class="font-label-sm text-label-sm border border-primary px-1.5 py-0.2 bg-primary text-on-primary font-semibold">NM</span>
+</td>
+<td class="py-1.5 px-3">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-outline text-[16px]">folder_special</span>
+<span class="font-label-sm text-label-sm text-primary font-semibold truncate max-w-[140px]">Cofre / Raras Valiosas</span>
+</div>
+</td>
+<td class="py-1.5 px-3 text-right font-code-num text-code-num font-semibold text-primary">
+              R$ 215,00
+            </td>
+<td class="py-1.5 px-2 text-center">
+<button class="w-6 h-6 flex items-center justify-center hover:bg-surface border border-transparent hover:border-outline-variant text-on-surface-variant hover:text-primary">
+<span class="material-symbols-outlined text-[16px]">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Technical Status & Pagination Footer -->
+<div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 text-on-surface-variant font-label-sm text-label-sm">
+<div class="flex items-center gap-4">
+<span class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-emerald-600 inline-block"></span>
+<span>Índice Scryfall Sync v24.4 (4.820 cartas indexadas em 12ms)</span>
+</span>
+<span class="hidden md:inline">|</span>
+<span class="hidden md:inline">Base de dados local persistida no navegador (IndexedDB)</span>
+</div>
+<!-- Pagination Nav -->
+<div class="flex items-center gap-1">
+<span class="mr-2 text-primary font-medium">Exibindo 1–50 de 4.820</span>
+<button class="w-7 h-7 border border-outline-variant bg-surface flex items-center justify-center hover:border-primary disabled:opacity-40" disabled="">
+<span class="material-symbols-outlined text-[14px]">first_page</span>
+</button>
+<button class="w-7 h-7 border border-outline-variant bg-surface flex items-center justify-center hover:border-primary disabled:opacity-40" disabled="">
+<span class="material-symbols-outlined text-[14px]">chevron_left</span>
+</button>
+<span class="px-2 py-0.5 bg-primary text-on-primary font-semibold">1</span>
+<button class="px-2 py-0.5 border border-outline-variant hover:border-primary">2</button>
+<button class="px-2 py-0.5 border border-outline-variant hover:border-primary">3</button>
+<span class="px-1 text-outline">...</span>
+<button class="px-2 py-0.5 border border-outline-variant hover:border-primary">97</button>
+<button class="w-7 h-7 border border-outline-variant bg-surface flex items-center justify-center hover:border-primary">
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+</button>
+<button class="w-7 h-7 border border-outline-variant bg-surface flex items-center justify-center hover:border-primary">
+<span class="material-symbols-outlined text-[14px]">last_page</span>
+</button>
+</div>
+</div>
+</main>
+<script>
+    // Minimal interactivity for steppers and visual checks
+    document.querySelectorAll('.stepper-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const parent = btn.parentElement;
+        const numSpan = parent.querySelector('.font-code-num');
+        let val = parseInt(numSpan.textContent, 10);
+        if (btn.textContent.trim() === '+') {
+          numSpan.textContent = val + 1;
+        } else if (btn.textContent.trim() === '-' && val > 0) {
+          numSpan.textContent = val - 1;
+        }
+      });
+    });
+  </script>
+</body></html>

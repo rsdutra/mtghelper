@@ -1,0 +1,38 @@
+---
+description: Todo código novo deve referenciar uma feature ou user story
+alwaysApply: true
+---
+
+# Rastreabilidade de features
+
+Antes de escrever ou alterar código de produto, vincule o trabalho a uma feature em `docs/features/`.
+
+## Obrigatório
+
+1. O pedido deve citar `F-XXX` e, se possível, `US-XXX`.
+2. Se o prompt **não** citar feature/user story:
+   - Pergunte qual feature existente usar, **ou**
+   - Pergunte se deve **criar** uma feature nova em `docs/features/` antes de codar.
+3. Não implemente feature nova só no código. Crie/atualize o spec e o índice `docs/features/README.md`.
+4. Em resumos de trabalho, cite os IDs (`F-004` / `US-004-05`).
+
+## Exceções (não precisam de feature)
+
+- Correção de typo, formatação ou lint sem mudança de comportamento.
+- Ajustes estritamente mecânicos de build/CI sem regra de negócio.
+- Atualização da própria documentação de features/regras.
+
+## Referência rápida
+
+Índice: `docs/features/README.md`
+
+| ID | Tema |
+|---|---|
+| F-001 | Busca individual |
+| F-002 | Busca por lista |
+| F-003 | Auth |
+| F-004 | Decks + canvas |
+| F-005 | Coleção |
+| F-006 | Catálogo local |
+| F-007 | Escaneamento OCR |
+| F-008 | Canvas de deck |

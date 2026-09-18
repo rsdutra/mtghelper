@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ARCHIVIST // MTG - Busca</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-primary-fixed": "#1c1b1d",
+            "inverse-on-surface": "#f0f1f2",
+            "on-primary-container": "#858386",
+            "surface-container-highest": "#e2e2e3",
+            "on-primary-fixed-variant": "#474649",
+            "on-secondary-fixed-variant": "#46464e",
+            "inverse-primary": "#c8c6c8",
+            "surface-container-high": "#e8e8e9",
+            "on-tertiary": "#ffffff",
+            "secondary-fixed": "#e3e1ec",
+            "on-surface-variant": "#47464a",
+            "tertiary-container": "#1b1b1e",
+            "surface-tint": "#5f5e60",
+            "primary-fixed": "#e5e1e4",
+            "background": "#f9f9fa",
+            "inverse-surface": "#2f3132",
+            "on-primary": "#ffffff",
+            "on-tertiary-fixed": "#1b1b1e",
+            "secondary": "#5d5e66",
+            "primary-container": "#1c1b1d",
+            "surface-container-lowest": "#ffffff",
+            "primary": "#000000",
+            "surface-bright": "#f9f9fa",
+            "on-tertiary-container": "#848387",
+            "error-container": "#ffdad6",
+            "surface-container-low": "#f3f3f4",
+            "primary-fixed-dim": "#c8c6c8",
+            "tertiary-fixed": "#e4e1e5",
+            "outline-variant": "#c8c5ca",
+            "surface-dim": "#dadadb",
+            "secondary-container": "#e3e1ec",
+            "on-secondary-fixed": "#1a1b22",
+            "secondary-fixed-dim": "#c6c5cf",
+            "on-secondary-container": "#63646c",
+            "tertiary": "#000000",
+            "on-surface": "#1a1c1d",
+            "on-error": "#ffffff",
+            "error": "#ba1a1a",
+            "tertiary-fixed-dim": "#c8c6c9",
+            "on-tertiary-fixed-variant": "#47464a",
+            "outline": "#78767b",
+            "on-error-container": "#93000a",
+            "on-background": "#1a1c1d",
+            "surface-variant": "#e2e2e3",
+            "on-secondary": "#ffffff",
+            "surface": "#f9f9fa",
+            "surface-container": "#eeeeef"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "margin": "1rem",
+            "space-xl": "1.5rem",
+            "gutter": "0.75rem",
+            "space-xs": "0.25rem",
+            "space-sm": "0.5rem",
+            "space-md": "0.75rem",
+            "space-lg": "1rem",
+            "space-2xl": "2rem",
+            "gutter-desktop": "1rem",
+            "margin-desktop": "1.5rem"
+          },
+          "fontFamily": {
+            "headline-xl": ["Geist"],
+            "body-md": ["Geist"],
+            "headline-sm": ["Geist"],
+            "body-sm": ["Geist"],
+            "label-md": ["JetBrains Mono"],
+            "code-num": ["JetBrains Mono"],
+            "headline-lg": ["Geist"],
+            "body-lg": ["Geist"],
+            "label-sm": ["JetBrains Mono"]
+          },
+          "fontSize": {
+            "headline-xl": ["28px", { "lineHeight": "34px", "letterSpacing": "-0.03em", "fontWeight": "600" }],
+            "body-md": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+            "headline-sm": ["15px", { "lineHeight": "20px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "code-num": ["13px", { "lineHeight": "16px", "fontWeight": "600" }],
+            "headline-lg": ["20px", { "lineHeight": "26px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+            "body-lg": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "label-sm": ["10px", { "lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "500" }]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 350, 'GRAD' 0, 'opsz' 20;
+      font-size: 18px;
+      line-height: 1;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    ::selection {
+      background: #000000;
+      color: #ffffff;
+    }
+    /* Custom scrollbar for dense data lists */
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f9f9fa;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #c8c5ca;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #78767b;
+    }
+  </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md text-body-md antialiased min-h-screen flex flex-col selection:bg-primary selection:text-on-primary">
+<!-- TOP APP BAR (Shared Components: TopNavBar) -->
+<header class="fixed top-0 left-0 w-full z-50 flex items-center justify-between px-space-md h-12 bg-surface border-b border-outline-variant">
+<!-- Left Cluster: Product Anchor & Search Context -->
+<div class="flex items-center space-x-6">
+<a class="text-headline-sm font-headline-sm tracking-tight text-primary uppercase font-bold flex items-center gap-2" href="#">
+<span class="w-2.5 h-2.5 bg-primary inline-block"></span>
+        ARCHIVIST // MTG
+      </a>
+<!-- Navigation links directly following Shared Components schema -->
+<nav class="hidden md:flex items-center space-x-6 h-12 pt-3">
+<a class="text-primary border-b-2 border-primary font-headline-sm text-body-md font-semibold pb-3" href="#">Busca</a>
+<a class="text-on-surface-variant hover:text-primary text-body-md pb-3 transition-colors" href="#">Decks</a>
+<a class="text-on-surface-variant hover:text-primary text-body-md pb-3 transition-colors" href="#">Coleção</a>
+<a class="text-on-surface-variant hover:text-primary text-body-md pb-3 transition-colors" href="#">Formatos</a>
+<a class="text-on-surface-variant hover:text-primary text-body-md pb-3 transition-colors" href="#">Estatísticas</a>
+</nav>
+</div>
+<!-- Right Cluster: Utility Tools & User Identity -->
+<div class="flex items-center space-x-3">
+<button class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 text-label-sm font-label-sm border border-outline-variant bg-surface-container-lowest text-primary hover:border-primary transition-colors">
+<span class="material-symbols-outlined text-[14px]">terminal</span>
+<span>Importar Lista</span>
+</button>
+<button class="inline-flex items-center gap-1.5 px-3 py-1 text-label-sm font-label-sm bg-primary text-on-primary hover:bg-neutral-800 transition-colors">
+<span class="material-symbols-outlined text-[14px]">add</span>
+<span>Novo Deck</span>
+</button>
+<div class="h-4 w-px bg-outline-variant mx-1"></div>
+<!-- User Profile & Action -->
+<div class="flex items-center gap-2 pl-1">
+<div class="flex items-center gap-1.5 text-label-sm font-label-sm text-on-surface">
+<span class="material-symbols-outlined text-neutral-700">account_circle</span>
+<span class="font-medium">rodrigo</span>
+</div>
+<button class="text-label-sm font-label-sm text-on-surface-variant hover:text-primary underline underline-offset-4 decoration-outline-variant">
+          Sair
+        </button>
+</div>
+</div>
+</header>
+<!-- MAIN WORKSPACE -->
+<main class="flex-1 w-full max-w-5xl mx-auto pt-20 pb-16 px-4 md:px-6">
+<!-- HERO SEARCH CONTEXT -->
+<div class="mb-8 text-left">
+<div class="flex items-baseline justify-between border-b border-outline-variant pb-2.5">
+<div>
+<h1 class="text-headline-xl font-headline-xl text-primary tracking-tight">Busca</h1>
+<p class="text-body-sm font-body-sm text-on-surface-variant mt-0.5">
+            Sugestões instantâneas a partir de 2 caracteres, em português e inglês. Base local e Scryfall integrada.
+          </p>
+</div>
+<div class="flex items-center gap-2 text-label-sm font-label-sm text-on-surface-variant">
+<span class="inline-flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-primary inline-block"></span>
+            SYNCED: LOCAL + SCRYFALL
+          </span>
+<span class="text-outline-variant">/</span>
+<span class="font-code-num text-code-num">28.412 CARTAS</span>
+</div>
+</div>
+</div>
+<!-- PRIMARY INTERACTIVE SEARCH BAR (TIER 1 SURFACE) -->
+<div class="relative w-full mb-8">
+<div class="flex items-center border border-primary bg-surface-container-lowest focus-within:ring-1 focus-within:ring-primary transition-all">
+<div class="pl-3.5 pr-2 text-primary flex items-center justify-center">
+<span class="material-symbols-outlined">search</span>
+</div>
+<input autofocus="" class="w-full h-11 bg-transparent border-0 text-body-lg font-body-lg text-primary placeholder:text-outline focus:ring-0 focus:outline-none" id="main-card-search" placeholder="Buscar carta por nome em português, inglês ou texto de regras..." type="text" value="Light"/>
+<!-- Action Cluster inside input -->
+<div class="flex items-center gap-1.5 pr-2.5">
+<button class="p-1 text-on-surface-variant hover:text-primary transition-colors" title="Limpar busca">
+<span class="material-symbols-outlined text-[16px]">close</span>
+</button>
+<button class="p-1 text-on-surface-variant hover:text-primary transition-colors flex items-center" title="Escanear com Câmera">
+<span class="material-symbols-outlined text-[17px]">photo_camera</span>
+</button>
+<div class="h-4 w-px bg-surface-container-high mx-0.5"></div>
+<kbd class="px-1.5 py-0.5 text-label-sm font-label-sm bg-surface-container text-on-surface-variant border border-outline-variant">⌘K</kbd>
+</div>
+</div>
+<!-- AUTOCOMPLETE DROPDOWN RESULTS (TIER 2 OVERLAY) -->
+<div class="absolute left-0 right-0 top-full mt-1 bg-surface-container-lowest border border-primary shadow-[2px_2px_0px_0px_rgba(9,9,11,0.08)] z-40" id="search-autocomplete-dropdown">
+<!-- Result Row Header -->
+<div class="flex items-center justify-between px-3 py-1.5 bg-surface-container-low border-b border-outline-variant text-label-sm font-label-sm text-on-surface-variant">
+<span>SUGESTÕES RELEVANTES (4)</span>
+<span>ENTER PARA SELECIONAR • ↑↓ NAVEGAR</span>
+</div>
+<!-- Suggestion Rows -->
+<div class="divide-y divide-surface-container-high">
+<!-- Row 1: Lightning Bolt -->
+<div class="flex items-center justify-between px-3 py-2 hover:bg-surface-container cursor-pointer group transition-colors">
+<div class="flex items-center gap-3">
+<div class="w-5 h-5 flex items-center justify-center border border-primary bg-primary text-on-primary text-label-sm font-code-num">
+                R
+              </div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-headline-sm text-body-md text-primary group-hover:underline">Lightning Bolt</span>
+<span class="text-body-sm font-body-sm text-on-surface-variant">(Raio)</span>
+<span class="text-label-sm font-label-sm border border-outline-variant px-1 text-on-surface-variant">2ED • #161</span>
+</div>
+<div class="text-body-sm font-body-sm text-on-surface-variant">Mágica Instantânea • Causa 3 pontos de dano a qualquer alvo.</div>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="text-code-num font-code-num text-body-sm text-primary">R$ 14,20</span>
+<button class="px-2 py-1 text-label-sm font-label-sm bg-surface-container-lowest border border-outline-variant hover:border-primary text-primary">
+                + Deck
+              </button>
+</div>
+</div>
+<!-- Row 2: Sol Ring -->
+<div class="flex items-center justify-between px-3 py-2 hover:bg-surface-container cursor-pointer group transition-colors">
+<div class="flex items-center gap-3">
+<div class="w-5 h-5 flex items-center justify-center border border-outline text-on-surface text-label-sm font-code-num">
+                1
+              </div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-headline-sm text-body-md text-primary group-hover:underline">Sol Ring</span>
+<span class="text-body-sm font-body-sm text-on-surface-variant">(Anel Solar)</span>
+<span class="text-label-sm font-label-sm border border-outline-variant px-1 text-on-surface-variant">C21 • #263</span>
+</div>
+<div class="text-body-sm font-body-sm text-on-surface-variant">Artefato • {T}: Adiciona {C}{C}.</div>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="text-code-num font-code-num text-body-sm text-primary">R$ 8,50</span>
+<button class="px-2 py-1 text-label-sm font-label-sm bg-surface-container-lowest border border-outline-variant hover:border-primary text-primary">
+                + Deck
+              </button>
+</div>
+</div>
+<!-- Row 3: Demonic Tutor -->
+<div class="flex items-center justify-between px-3 py-2 hover:bg-surface-container cursor-pointer group transition-colors">
+<div class="flex items-center gap-3">
+<div class="w-5 h-5 flex items-center justify-center border border-primary bg-primary text-on-primary text-label-sm font-code-num">
+                1B
+              </div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-headline-sm text-body-md text-primary group-hover:underline">Demonic Tutor</span>
+<span class="text-body-sm font-body-sm text-on-surface-variant">(Tutor Demoníaco)</span>
+<span class="text-label-sm font-label-sm border border-outline-variant px-1 text-on-surface-variant">UMA • #093</span>
+</div>
+<div class="text-body-sm font-body-sm text-on-surface-variant">Feitiço • Procure em seu grimório por uma carta e coloque-a em sua mão.</div>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="text-code-num font-code-num text-body-sm text-primary">R$ 195,00</span>
+<button class="px-2 py-1 text-label-sm font-label-sm bg-surface-container-lowest border border-outline-variant hover:border-primary text-primary">
+                + Deck
+              </button>
+</div>
+</div>
+<!-- Row 4: Violência Gratuita -->
+<div class="flex items-center justify-between px-3 py-2 hover:bg-surface-container cursor-pointer group transition-colors">
+<div class="flex items-center gap-3">
+<div class="w-5 h-5 flex items-center justify-center border border-primary bg-primary text-on-primary text-label-sm font-code-num">
+                2RR
+              </div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-headline-sm text-body-md text-primary group-hover:underline">Gratuitous Violence</span>
+<span class="text-body-sm font-body-sm text-on-surface-variant">(Violência Gratuita)</span>
+<span class="text-label-sm font-label-sm border border-outline-variant px-1 text-on-surface-variant">ONS • #212</span>
+</div>
+<div class="text-body-sm font-body-sm text-on-surface-variant">Encantamento • Se uma criatura que você controla for causar dano a uma criatura ou jogador...</div>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="text-code-num font-code-num text-body-sm text-primary">R$ 22,90</span>
+<button class="px-2 py-1 text-label-sm font-label-sm bg-surface-container-lowest border border-outline-variant hover:border-primary text-primary">
+                + Deck
+              </button>
+</div>
+</div>
+</div>
+<!-- Footer link of dropdown -->
+<div class="px-3 py-1.5 bg-surface-container border-t border-outline-variant flex items-center justify-between text-label-sm font-label-sm">
+<span class="text-on-surface-variant">Dica: Use syntax como <code class="text-primary font-code-num">t:creature c:red cmc&lt;=3</code></span>
+<a class="text-primary underline font-medium" href="#">Ver todos os 38 resultados →</a>
+</div>
+</div>
+</div>
+<!-- BATCH IMPORT / BULK LIST WORKBENCH (COLLAPSIBLE / TOGGLEABLE) -->
+<div class="mb-8 border border-outline-variant bg-surface-container-lowest">
+<!-- Section Accordion Trigger Bar -->
+<div class="flex items-center justify-between px-4 py-2.5 bg-surface border-b border-outline-variant">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">view_list</span>
+<span class="text-headline-sm font-headline-sm text-primary">Lista / Entrada em Lote</span>
+<span class="text-label-sm font-label-sm text-on-surface-variant border border-outline-variant px-1.5 py-0.2 bg-surface-container-lowest">Multi-card Parser</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-label-sm font-label-sm text-on-surface-variant">Formato aceito: [Qtd] [Nome da Carta]</span>
+</div>
+</div>
+<!-- Batch Textarea Area -->
+<div class="p-4">
+<label class="block text-label-sm font-label-sm text-on-surface-variant mb-1.5" for="batch-deck-textarea">
+          Cole sua lista de deck ou catálogo abaixo para resolução automática:
+        </label>
+<div class="relative">
+<textarea class="w-full bg-surface-container-lowest border border-outline-variant focus:border-primary focus:ring-0 p-3 font-label-md text-label-md leading-5 text-primary resize-y font-mono tracking-wide" id="batch-deck-textarea" placeholder="1 Lightning Bolt
+4 Violência Gratuita
+1 Sol Ring
+1 Demonic Tutor" rows="6">1 Lightning Bolt
+4 Violência Gratuita
+1 Sol Ring
+1 Demonic Tutor
+2 Counterspell</textarea>
+</div>
+<!-- Action Bar Below Textarea -->
+<div class="mt-3 flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-surface-container-high">
+<!-- Left Action cluster -->
+<div class="flex items-center gap-2">
+<button class="px-3.5 py-1.5 bg-primary text-on-primary text-label-md font-label-md hover:bg-neutral-800 transition-colors flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[15px]">input</span>
+<span>Importar lista</span>
+</button>
+<label class="px-3 py-1.5 border border-outline-variant bg-surface-container-lowest text-primary text-label-md font-label-md hover:border-primary hover:bg-surface-container cursor-pointer transition-colors flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[15px]">upload_file</span>
+<span>Arquivo .txt/.csv</span>
+<input accept=".txt,.csv" class="hidden" type="file"/>
+</label>
+<button class="px-3 py-1.5 border border-outline-variant bg-surface-container-lowest text-on-surface-variant hover:text-primary hover:border-primary text-label-md font-label-md transition-colors flex items-center gap-1" onclick="document.getElementById('batch-deck-textarea').value=''">
+<span class="material-symbols-outlined text-[15px]">delete_sweep</span>
+<span>Limpar</span>
+</button>
+</div>
+<!-- Right Status indicator -->
+<div class="text-label-sm font-label-sm text-on-surface-variant flex items-center gap-3">
+<span>5 Linhas detectadas</span>
+<span class="text-outline-variant">|</span>
+<span class="text-primary font-semibold">9 Cartas totais</span>
+</div>
+</div>
+</div>
+</div>
+<!-- MONOCHROME FILTER PILLS & RECENT ACTIVITY DOCK -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+<!-- Main Content / Search Results Table (8 Cols) -->
+<div class="lg:col-span-8 space-y-4">
+<!-- Filter Strip -->
+<div class="flex flex-wrap items-center justify-between border border-outline-variant bg-surface-container-lowest p-2.5 gap-2">
+<!-- Mana Color Badges -->
+<div class="flex items-center gap-1">
+<span class="text-label-sm font-label-sm text-on-surface-variant mr-1">Cor:</span>
+<button class="w-6 h-6 border border-primary bg-primary text-on-primary text-label-sm font-code-num" title="Branco">W</button>
+<button class="w-6 h-6 border border-outline-variant hover:border-primary text-primary text-label-sm font-code-num" title="Azul">U</button>
+<button class="w-6 h-6 border border-outline-variant hover:border-primary text-primary text-label-sm font-code-num" title="Preto">B</button>
+<button class="w-6 h-6 border border-primary bg-primary text-on-primary text-label-sm font-code-num" title="Vermelho">R</button>
+<button class="w-6 h-6 border border-outline-variant hover:border-primary text-primary text-label-sm font-code-num" title="Verde">G</button>
+<button class="w-6 h-6 border border-outline-variant hover:border-primary text-primary text-label-sm font-code-num" title="Incolor">C</button>
+</div>
+<!-- Type filter badges -->
+<div class="flex items-center gap-1">
+<button class="px-2 py-0.5 border border-primary bg-primary text-on-primary text-label-sm font-label-sm">Todas</button>
+<button class="px-2 py-0.5 border border-outline-variant hover:border-primary text-on-surface-variant text-label-sm font-label-sm">Instantânea</button>
+<button class="px-2 py-0.5 border border-outline-variant hover:border-primary text-on-surface-variant text-label-sm font-label-sm">Criatura</button>
+<button class="px-2 py-0.5 border border-outline-variant hover:border-primary text-on-surface-variant text-label-sm font-label-sm">Artefato</button>
+</div>
+</div>
+<!-- High Density Decklist Data Table -->
+<div class="border border-outline-variant bg-surface-container-lowest overflow-hidden">
+<div class="flex items-center justify-between px-3 py-2 bg-surface border-b border-outline-variant text-label-sm font-label-sm text-on-surface-variant">
+<div class="flex items-center gap-4">
+<span class="w-6 text-center">QTD</span>
+<span>CARTA / EXPANSÃO</span>
+</div>
+<div class="flex items-center gap-6">
+<span>MANA</span>
+<span>TIPO</span>
+<span>VALOR</span>
+<span class="w-14 text-right">AÇÃO</span>
+</div>
+</div>
+<!-- Table Row 1 -->
+<div class="flex items-center justify-between px-3 py-2 border-b border-surface-container-high hover:bg-surface-container transition-colors group">
+<div class="flex items-center gap-4">
+<div class="flex items-center border border-outline-variant bg-surface-container-lowest">
+<button class="w-5 h-5 flex items-center justify-center font-code-num text-[11px] hover:bg-surface-container">-</button>
+<span class="w-6 text-center font-code-num text-label-sm text-primary">1</span>
+<button class="w-5 h-5 flex items-center justify-center font-code-num text-[11px] hover:bg-surface-container">+</button>
+</div>
+<div>
+<span class="font-headline-sm text-body-md text-primary">Lightning Bolt</span>
+<div class="flex items-center gap-2 text-label-sm font-label-sm text-on-surface-variant">
+<span>Raio</span>
+<span class="text-outline-variant">•</span>
+<span class="font-code-num">2ED #161</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<span class="font-code-num text-label-sm font-semibold border border-primary px-1">R</span>
+<span class="text-body-sm font-body-sm text-on-surface-variant">Mágica Instantânea</span>
+<span class="font-code-num text-code-num text-primary">R$ 14,20</span>
+<div class="w-14 flex justify-end gap-1">
+<button class="p-1 border border-outline-variant hover:border-primary text-primary" title="Visualizar">
+<span class="material-symbols-outlined text-[14px]">visibility</span>
+</button>
+<button class="p-1 border border-outline-variant hover:border-primary hover:text-error text-on-surface-variant" title="Remover">
+<span class="material-symbols-outlined text-[14px]">close</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Table Row 2 -->
+<div class="flex items-center justify-between px-3 py-2 border-b border-surface-container-high hover:bg-surface-container transition-colors group">
+<div class="flex items-center gap-4">
+<div class="flex items-center border border-outline-variant bg-surface-container-lowest">
+<button class="w-5 h-5 flex items-center justify-center font-code-num text-[11px] hover:bg-surface-container">-</button>
+<span class="w-6 text-center font-code-num text-label-sm text-primary">4</span>
+<button class="w-5 h-5 flex items-center justify-center font-code-num text-[11px] hover:bg-surface-container">+</button>
+</div>
+<div>
+<span class="font-headline-sm text-body-md text-primary">Gratuitous Violence</span>
+<div class="flex items-center gap-2 text-label-sm font-label-sm text-on-surface-variant">
+<span>Violência Gratuita</span>
+<span class="text-outline-variant">•</span>
+<span class="font-code-num">ONS #212</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<span class="font-code-num text-label-sm font-semibold border border-outline-variant px-1">2RR</span>
+<span class="text-body-sm font-body-sm text-on-surface-variant">Encantamento</span>
+<span class="font-code-num text-code-num text-primary">R$ 91,60</span>
+<div class="w-14 flex justify-end gap-1">
+<button class="p-1 border border-outline-variant hover:border-primary text-primary" title="Visualizar">
+<span class="material-symbols-outlined text-[14px]">visibility</span>
+</button>
+<button class="p-1 border border-outline-variant hover:border-primary hover:text-error text-on-surface-variant" title="Remover">
+<span class="material-symbols-outlined text-[14px]">close</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Table Row 3 -->
+<div class="flex items-center justify-between px-3 py-2 hover:bg-surface-container transition-colors group">
+<div class="flex items-center gap-4">
+<div class="flex items-center border border-outline-variant bg-surface-container-lowest">
+<button class="w-5 h-5 flex items-center justify-center font-code-num text-[11px] hover:bg-surface-container">-</button>
+<span class="w-6 text-center font-code-num text-label-sm text-primary">1</span>
+<button class="w-5 h-5 flex items-center justify-center font-code-num text-[11px] hover:bg-surface-container">+</button>
+</div>
+<div>
+<span class="font-headline-sm text-body-md text-primary">Sol Ring</span>
+<div class="flex items-center gap-2 text-label-sm font-label-sm text-on-surface-variant">
+<span>Anel Solar</span>
+<span class="text-outline-variant">•</span>
+<span class="font-code-num">C21 #263</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<span class="font-code-num text-label-sm font-semibold border border-outline-variant px-1">1</span>
+<span class="text-body-sm font-body-sm text-on-surface-variant">Artefato</span>
+<span class="font-code-num text-code-num text-primary">R$ 8,50</span>
+<div class="w-14 flex justify-end gap-1">
+<button class="p-1 border border-outline-variant hover:border-primary text-primary" title="Visualizar">
+<span class="material-symbols-outlined text-[14px]">visibility</span>
+</button>
+<button class="p-1 border border-outline-variant hover:border-primary hover:text-error text-on-surface-variant" title="Remover">
+<span class="material-symbols-outlined text-[14px]">close</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Pagination / Summary line -->
+<div class="flex items-center justify-between text-label-sm font-label-sm text-on-surface-variant pt-1 px-1">
+<span>Mostrando 3 de 3 cartas resolvidas</span>
+<div class="flex items-center gap-4">
+<span>Subtotal estimado: <strong class="text-primary font-code-num">R$ 114,30</strong></span>
+<button class="text-primary hover:underline font-medium">Exportar para Deck →</button>
+</div>
+</div>
+</div>
+<!-- Right Utility Panel (4 Cols Bento) -->
+<div class="lg:col-span-4 space-y-4">
+<!-- Format Legality Summary Card -->
+<div class="border border-outline-variant bg-surface-container-lowest p-4">
+<div class="flex items-center justify-between border-b border-outline-variant pb-2 mb-3">
+<span class="text-headline-sm font-headline-sm text-primary">Legalidade da Busca</span>
+<span class="material-symbols-outlined text-on-surface-variant">gavel</span>
+</div>
+<div class="grid grid-cols-2 gap-2 text-label-sm font-label-sm">
+<div class="flex items-center justify-between p-1.5 border border-surface-container-high bg-surface">
+<span>Commander</span>
+<span class="text-primary font-semibold">LEGAL</span>
+</div>
+<div class="flex items-center justify-between p-1.5 border border-surface-container-high bg-surface">
+<span>Modern</span>
+<span class="text-primary font-semibold">LEGAL</span>
+</div>
+<div class="flex items-center justify-between p-1.5 border border-surface-container-high bg-surface">
+<span>Pioneer</span>
+<span class="text-on-surface-variant">ILEGAL</span>
+</div>
+<div class="flex items-center justify-between p-1.5 border border-surface-container-high bg-surface">
+<span>Pauper</span>
+<span class="text-primary font-semibold">LEGAL</span>
+</div>
+</div>
+</div>
+<!-- Quick Syntax Help Bento Box -->
+<div class="border border-outline-variant bg-surface-container-lowest p-4">
+<span class="text-headline-sm font-headline-sm text-primary block mb-2">Comandos Rápidos Scryfall</span>
+<p class="text-body-sm font-body-sm text-on-surface-variant mb-3">
+            Você pode digitar operadores diretamente na barra de busca principal:
+          </p>
+<div class="space-y-1.5 text-label-sm font-label-sm">
+<div class="flex items-center justify-between p-1 bg-surface-container">
+<code class="font-code-num text-primary">t:instant c:r</code>
+<span class="text-on-surface-variant">Instantâneas vermelhas</span>
+</div>
+<div class="flex items-center justify-between p-1 bg-surface-container">
+<code class="font-code-num text-primary">o:"draw a card"</code>
+<span class="text-on-surface-variant">Texto de regras exato</span>
+</div>
+<div class="flex items-center justify-between p-1 bg-surface-container">
+<code class="font-code-num text-primary">cmc&lt;=2 f:modern</code>
+<span class="text-on-surface-variant">Custo baixo em Modern</span>
+</div>
+</div>
+</div>
+<!-- System Architecture Footnote -->
+<div class="border border-dashed border-outline-variant p-3 text-label-sm font-label-sm text-on-surface-variant space-y-1">
+<div class="flex items-center gap-1.5 text-primary">
+<span class="material-symbols-outlined text-[15px]">database</span>
+<span class="font-medium">Cache Local: Versão 2024.11-R1</span>
+</div>
+<p>Índice local priorizado para consultas instantâneas offline e em torneios competitivos.</p>
+</div>
+</div>
+</div>
+</main>
+<!-- BOTTOM STATUS DOCK (Monochrome Swiss Footer) -->
+<footer class="mt-auto border-t border-outline-variant bg-surface-container-lowest py-3 px-6 text-label-sm font-label-sm text-on-surface-variant">
+<div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+<div class="flex items-center gap-3">
+<span class="text-primary font-bold tracking-wider">ARCHIVIST // MTG</span>
+<span>•</span>
+<span>INDEXADOR DE ALTA FREQUÊNCIA</span>
+</div>
+<div class="flex items-center gap-4">
+<span>STATUS: OPERACIONAL</span>
+<span>LATÊNCIA: 12ms</span>
+<span class="text-primary font-medium">HOTKEY: ⌘K</span>
+</div>
+</div>
+</footer>
+<!-- MICRO-INTERACTION SCRIPT -->
+<script>
+    // Simple toggle / focus listener for high-speed feel
+    const searchInput = document.getElementById('main-card-search');
+    const autocompleteBox = document.getElementById('search-autocomplete-dropdown');
+
+    // Global shortcut Command+K / Ctrl+K
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        searchInput.focus();
+        searchInput.select();
+      }
+    });
+
+    // Close autocomplete on click outside
+    document.addEventListener('click', (e) => {
+      if (!searchInput.contains(e.target) && !autocompleteBox.contains(e.target)) {
+        autocompleteBox.style.display = 'none';
+      } else {
+        autocompleteBox.style.display = 'block';
+      }
+    });
+  </script>
+</body></html>

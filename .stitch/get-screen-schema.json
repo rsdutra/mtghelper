@@ -1,0 +1,14 @@
+{
+    "description":  "Request message for GetScreen.",
+    "properties":  {
+                       "name":  {
+                                    "description":  "Required. Identifier. The resource name of the screen to retrieve. Format: `projects/{project}/screens/{screen}` Example: `projects/4044680601076201931/screens/98b50e2ddc9943efb387052637738f61`",
+                                    "type":  "string",
+                                    "x-google-identifier":  true
+                                }
+                   },
+    "required":  [
+                     "name"
+                 ],
+    "type":  "object"
+}

@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ARCHIVIST // MTG - Olivia V3 Canvas</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-primary-fixed": "#1c1b1d",
+            "inverse-on-surface": "#f0f1f2",
+            "on-primary-container": "#858386",
+            "surface-container-highest": "#e2e2e3",
+            "on-primary-fixed-variant": "#474649",
+            "on-secondary-fixed-variant": "#46464e",
+            "inverse-primary": "#c8c6c8",
+            "surface-container-high": "#e8e8e9",
+            "on-tertiary": "#ffffff",
+            "secondary-fixed": "#e3e1ec",
+            "on-surface-variant": "#47464a",
+            "tertiary-container": "#1b1b1e",
+            "surface-tint": "#5f5e60",
+            "primary-fixed": "#e5e1e4",
+            "background": "#f9f9fa",
+            "inverse-surface": "#2f3132",
+            "on-primary": "#ffffff",
+            "on-tertiary-fixed": "#1b1b1e",
+            "secondary": "#5d5e66",
+            "primary-container": "#1c1b1d",
+            "surface-container-lowest": "#ffffff",
+            "primary": "#000000",
+            "surface-bright": "#f9f9fa",
+            "on-tertiary-container": "#848387",
+            "error-container": "#ffdad6",
+            "surface-container-low": "#f3f3f4",
+            "primary-fixed-dim": "#c8c6c8",
+            "tertiary-fixed": "#e4e1e5",
+            "outline-variant": "#c8c5ca",
+            "surface-dim": "#dadadb",
+            "secondary-container": "#e3e1ec",
+            "on-secondary-fixed": "#1a1b22",
+            "secondary-fixed-dim": "#c6c5cf",
+            "on-secondary-container": "#63646c",
+            "tertiary": "#000000",
+            "on-surface": "#1a1c1d",
+            "on-error": "#ffffff",
+            "error": "#ba1a1a",
+            "tertiary-fixed-dim": "#c8c6c9",
+            "on-tertiary-fixed-variant": "#47464a",
+            "outline": "#78767b",
+            "on-error-container": "#93000a",
+            "on-background": "#1a1c1d",
+            "surface-variant": "#e2e2e3",
+            "on-secondary": "#ffffff",
+            "surface": "#f9f9fa",
+            "surface-container": "#eeeeef"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "margin": "1rem",
+            "space-xl": "1.5rem",
+            "gutter": "0.75rem",
+            "space-xs": "0.25rem",
+            "space-sm": "0.5rem",
+            "space-md": "0.75rem",
+            "space-lg": "1rem",
+            "space-2xl": "2rem",
+            "gutter-desktop": "1rem",
+            "margin-desktop": "1.5rem"
+          },
+          "fontFamily": {
+            "headline-xl": ["Geist", "sans-serif"],
+            "body-md": ["Geist", "sans-serif"],
+            "headline-sm": ["Geist", "sans-serif"],
+            "body-sm": ["Geist", "sans-serif"],
+            "label-md": ["JetBrains Mono", "monospace"],
+            "code-num": ["JetBrains Mono", "monospace"],
+            "headline-lg": ["Geist", "sans-serif"],
+            "body-lg": ["Geist", "sans-serif"],
+            "label-sm": ["JetBrains Mono", "monospace"]
+          },
+          "fontSize": {
+            "headline-xl": ["28px", { "lineHeight": "34px", "letterSpacing": "-0.03em", "fontWeight": "600" }],
+            "body-md": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+            "headline-sm": ["15px", { "lineHeight": "20px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "code-num": ["13px", { "lineHeight": "16px", "fontWeight": "600" }],
+            "headline-lg": ["20px", { "lineHeight": "26px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+            "body-lg": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "label-sm": ["10px", { "lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "500" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .canvas-grid {
+      background-size: 24px 24px;
+      background-image: radial-gradient(circle, #d4d4d8 1px, transparent 1px);
+    }
+    .card-stack:hover {
+      transform: translateY(-2px);
+      transition: transform 0.15s ease-out;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f4f4f5;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #a1a1aa;
+      border-radius: 2px;
+    }
+  </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md antialiased overflow-x-hidden select-none">
+<!-- TOP APP BAR (Shared Component JSON Blueprint) -->
+<header class="fixed top-0 left-0 w-full z-50 flex items-center justify-between px-space-md h-12 bg-surface border-b border-outline-variant">
+<div class="flex items-center gap-6">
+<div class="text-headline-sm font-headline-sm tracking-tight text-primary uppercase font-bold flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 bg-primary inline-block"></span>
+        ARCHIVIST // MTG
+      </div>
+<!-- Primary Navigation Links -->
+<nav class="hidden md:flex items-center gap-6 pt-3">
+<!-- Exact match intent: Decks active -->
+<a class="text-primary border-b-2 border-primary font-headline-sm text-body-md font-semibold pb-3" href="#">Decks</a>
+<a class="text-on-surface-variant hover:text-primary text-body-md pb-3 transition-colors" href="#">Coleção</a>
+<a class="text-on-surface-variant hover:text-primary text-body-md pb-3 transition-colors" href="#">Formatos</a>
+<a class="text-on-surface-variant hover:text-primary text-body-md pb-3 transition-colors" href="#">Estatísticas</a>
+</nav>
+</div>
+<!-- Right Controls -->
+<div class="flex items-center gap-3">
+<button class="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 text-label-md font-label-md bg-surface border border-outline-variant text-primary hover:border-primary hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-[16px]">file_upload</span>
+        Importar Lista
+      </button>
+<button class="inline-flex items-center gap-1 px-3 py-1 text-label-md font-label-md bg-primary text-on-primary border border-primary hover:bg-primary-container transition-colors">
+<span class="material-symbols-outlined text-[16px]">add</span>
+        Novo Deck
+      </button>
+<div class="h-4 w-px bg-outline-variant mx-1"></div>
+<div class="flex items-center gap-1 text-on-surface-variant">
+<button class="p-1.5 hover:text-primary hover:bg-surface-container rounded-sm transition-colors" title="Console">
+<span class="material-symbols-outlined text-[18px]">terminal</span>
+</button>
+<button class="p-1.5 hover:text-primary hover:bg-surface-container rounded-sm transition-colors" title="Ajustes">
+<span class="material-symbols-outlined text-[18px]">tune</span>
+</button>
+<button class="p-1.5 hover:text-primary hover:bg-surface-container rounded-sm transition-colors" title="Perfil">
+<span class="material-symbols-outlined text-[18px]">account_circle</span>
+</button>
+</div>
+</div>
+</header>
+<!-- SUB-TOOLBAR: Deck Status, View Switchers, Canvas Controls -->
+<div class="fixed top-12 left-0 w-full z-40 h-11 bg-surface-container-lowest border-b border-outline-variant flex items-center justify-between px-space-md">
+<div class="flex items-center gap-4">
+<!-- View Toggle Mode: [ Lista ] [ Canvas ] -->
+<div class="flex items-center border border-primary p-0.5 bg-surface-container-lowest">
+<button class="px-3 py-0.5 text-label-sm font-label-sm text-primary hover:bg-surface-container transition-colors">
+          Lista
+        </button>
+<button class="px-3 py-0.5 text-label-sm font-label-sm bg-primary text-on-primary font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">view_quilt</span>
+          Canvas
+        </button>
+</div>
+<!-- Deck Details -->
+<div class="flex items-center gap-2">
+<span class="font-headline-sm text-headline-sm text-primary font-bold">Olivia V3</span>
+<span class="px-1.5 py-0.5 text-label-sm font-label-sm border border-primary text-primary tracking-wider uppercase font-semibold">
+          COMMANDER · 100 CARTAS
+        </span>
+</div>
+<!-- Canvas Spatial Controls -->
+<div class="hidden lg:flex items-center gap-1 border border-outline-variant px-1 py-0.5 ml-2">
+<button class="w-5 h-5 flex items-center justify-center text-label-sm font-label-sm hover:bg-surface-container transition-colors">−</button>
+<span class="px-2 text-label-sm font-label-sm border-x border-outline-variant font-code-num text-primary">100%</span>
+<button class="w-5 h-5 flex items-center justify-center text-label-sm font-label-sm hover:bg-surface-container transition-colors">+</button>
+<button class="ml-1 px-1.5 py-0.5 text-label-sm font-label-sm hover:bg-surface-container text-on-surface-variant flex items-center gap-0.5" title="Ajustar ao Canvas">
+<span class="material-symbols-outlined text-[13px]">fit_screen</span>
+          Ajustar à tela
+        </button>
+</div>
+</div>
+<!-- Right-aligned Actions and Status -->
+<div class="flex items-center gap-4">
+<label class="flex items-center gap-1.5 cursor-pointer text-body-sm font-body-sm text-primary">
+<input checked="" class="w-3.5 h-3.5 rounded-none text-primary focus:ring-0 border-outline cursor-pointer accent-black" type="checkbox"/>
+<span class="font-medium">Agrupar por tipo</span>
+</label>
+<span class="hidden sm:inline text-label-sm font-label-sm text-on-surface-variant border-l border-outline-variant pl-3">
+        Salvo 11/09/2026, 08:57:53
+      </span>
+<button class="px-4 py-1 text-label-md font-label-md bg-surface border border-primary text-primary hover:bg-primary hover:text-on-primary font-semibold transition-colors duration-150">
+        Salvar
+      </button>
+</div>
+</div>
+<!-- MAIN CANVAS STAGING AREA -->
+<main class="pt-24 pb-20 px-space-lg min-h-screen canvas-grid overflow-x-auto custom-scrollbar">
+<div class="min-w-[1380px] flex flex-col gap-8">
+<!-- BOARD ROW 1: PRIMARY DECK TYPE COLUMNS (3Zone MTG Engine) -->
+<div class="flex items-start gap-4">
+<!-- COLUMN 1: CRIATURAS (33) -->
+<section class="w-[260px] flex-shrink-0 bg-surface-container-lowest border border-outline-variant shadow-sm flex flex-col">
+<div class="px-2.5 py-2 border-b border-outline-variant flex items-center justify-between bg-surface-container-low">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">swords</span>
+<h2 class="text-headline-sm font-headline-sm text-primary font-bold">Criaturas</h2>
+</div>
+<span class="text-label-sm font-label-sm px-1.5 py-0.2 bg-primary text-on-primary">33</span>
+</div>
+<div class="p-2 flex flex-col gap-1.5 max-h-[640px] overflow-y-auto custom-scrollbar">
+<!-- Card Items in Dense Stacking -->
+<div class="card-stack group border border-outline-variant hover:border-primary bg-surface transition-all">
+<div class="relative h-28 overflow-hidden bg-primary">
+<img class="w-full h-full object-cover object-top opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-transform duration-200" data-alt="Dark fantasy MTG artwork depicting Olivia Voldaren, an elegant aristocratic vampire lord floating above a gothic ballroom, painted in deep crimson, charcoal blacks, and stark ivory highlights, sharp linework, high fantasy card illustration style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBVqEy8fCEfYqWmuLmgbj_Q0rBGii4P8FzBHt2mxbC--zKKF8ZpdqB2qtncc8FZC3plR6Qh5DAGXJ4DcS803zGgipiF5Id_p-dIYC7y926XAFnS_ZatW-xKN2R71wPeCgCfJZ1kw6vnOCTNiZoxzsVlYqxNj_3PjZ6qrN3kQBK5f9pq9BWzXW2nIMyq0wsxcR2FmKL2IuRw6vVdkExsva0A7xUpJSnIT77H6J-kK_FeG9bj7u0JmpjFuQ"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/90 via-transparent to-transparent"></div>
+<div class="absolute top-1.5 right-1.5 px-1 bg-surface-container-lowest text-primary text-label-sm font-code-num font-bold border border-primary">
+                  1BR
+                </div>
+<div class="absolute bottom-1 left-2 text-on-primary">
+<div class="text-body-sm font-headline-sm font-bold truncate">Olivia, Mobilized for War</div>
+<div class="text-label-sm font-label-sm opacity-80">3/3 · Lendária Vampiro</div>
+</div>
+</div>
+<div class="p-1.5 flex items-center justify-between text-label-sm bg-surface-container-lowest border-t border-outline-variant">
+<span class="font-code-num text-on-surface-variant">#042 · M20</span>
+<div class="flex items-center gap-1 font-label-sm">
+<button class="w-4 h-4 text-center border border-outline-variant hover:bg-surface-container">1</button>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="card-stack group border border-outline-variant hover:border-primary bg-surface transition-all">
+<div class="relative h-20 overflow-hidden bg-primary">
+<img class="w-full h-full object-cover object-center opacity-85 group-hover:opacity-100 transition-opacity" data-alt="Fantasy digital card illustration of a fierce vampire nighthawk perched on gothic stone battlements, spreading black feathered wings against an overcast stormy moonlit sky, brutalist high-contrast composition with monochrome tones." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBoDPldHwaelcJTH-EbMiRmwgvBrJ0FoSoG_oJu-M4dEMnjYdjyXTdwYwyEvJihsqzD9b9yxRxIwswz11bFd2goY-tE2xw1-5SwTRAVY1pr3Hwyt_lJavJyradnJKdBjR-vxr8cLloxBPtVxLL0FhwEmumuxtVkschQFaDX9xv7qQREjHst7STVBdkgVO4oCrTCu_TvHhewikzsmVPANXO9uw_GYWjQzQzsJKfTiZFXCJnhkyjWY8RSBQ"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/90 via-transparent to-transparent"></div>
+<div class="absolute top-1.5 right-1.5 px-1 bg-surface-container-lowest text-primary text-label-sm font-code-num font-bold border border-primary">
+                  1BB
+                </div>
+<div class="absolute bottom-1 left-2 text-on-primary">
+<div class="text-body-sm font-headline-sm font-bold truncate">Vampire Nighthawk</div>
+<div class="text-label-sm font-label-sm opacity-80">2/3 · Voar, Toque Mortífero</div>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="card-stack group border border-outline-variant hover:border-primary bg-surface transition-all">
+<div class="relative h-20 overflow-hidden bg-primary">
+<img class="w-full h-full object-cover object-center opacity-85 group-hover:opacity-100 transition-opacity" data-alt="Digital MTG fantasy card art of a terrifying shadow demon emerging from ancient cracked tombstones under pale cold daylight, strict monochrome aesthetic, sharp angular line art, visceral atmospheric lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBAdhQM6MLsQ2IX3jyDyyN6XzgZZKCt1wuGFB5bEJVT_AVImY0hqCYIoVtt0_FJMta8cwXYQCbI9t7sV2BWXUT7tzOWyO2-IZYaNE6HlEba5BYAuPQBXOOu-akK1srFebKlXTFlFiCPhIjxyMuaRP6OHyWwrFIvlIrbvWxcHKQDw9UZeugY8gJinFl3K1Y6iJJAXWza-5jBd6I4FjbunCj2VVWhJX9VhJgbnVZcyJoYbTjwbn5c7531yA"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/90 via-transparent to-transparent"></div>
+<div class="absolute top-1.5 right-1.5 px-1 bg-surface-container-lowest text-primary text-label-sm font-code-num font-bold border border-primary">
+                  2B
+                </div>
+<div class="absolute bottom-1 left-2 text-on-primary">
+<div class="text-body-sm font-headline-sm font-bold truncate">Bloodghast</div>
+<div class="text-label-sm font-label-sm opacity-80">2/1 · Espírito Vampiro</div>
+</div>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="card-stack group border border-outline-variant hover:border-primary bg-surface transition-all">
+<div class="relative h-20 overflow-hidden bg-primary">
+<img class="w-full h-full object-cover object-center opacity-85 group-hover:opacity-100 transition-opacity" data-alt="Intricate fantasy illustration of a brooding vampire noble duel-wielding curved rapier swords in a dark stone crypt, clean black and white ink style with fine architectural etching, dramatic chiaroscuro." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCxpOTBj5OIafzpkHw7izWLPWUez4ml-Wvg94dTEaaKoUEMluqRYSlRdmJleFJO8tcFWKhuygOveq1HvCI50EUvUnE4XK2mqES0ZDAEG-aKyf25PflxpdE2Noiysx_zDcwDuPIZ1CYTHTSU7_GFs1Sc2R7nN4bL8Y1vqTtIK4phs-rtZGJPYb1xJmyz-Ry7JyCq-unNRvwqigTVxRfx41nhmenaJEoB_ObIvGgZFyPDL1KBxDDNCWDMFQ"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/90 via-transparent to-transparent"></div>
+<div class="absolute top-1.5 right-1.5 px-1 bg-surface-container-lowest text-primary text-label-sm font-code-num font-bold border border-primary">
+                  1R
+                </div>
+<div class="absolute bottom-1 left-2 text-on-primary">
+<div class="text-body-sm font-headline-sm font-bold truncate">Stromkirk Noble</div>
+<div class="text-label-sm font-label-sm opacity-80">1/1 · Vampiro Guerreiro</div>
+</div>
+</div>
+</div>
+<!-- Additional card collapsed indicator -->
+<div class="py-2 text-center border border-dashed border-outline-variant hover:border-primary bg-surface cursor-pointer text-label-sm font-label-sm text-on-surface-variant">
+              + 29 Criaturas ocultas (Clique para expandir)
+            </div>
+</div>
+</section>
+<!-- COLUMN 2: INSTANTÂNEOS (12) -->
+<section class="w-[260px] flex-shrink-0 bg-surface-container-lowest border border-outline-variant shadow-sm flex flex-col">
+<div class="px-2.5 py-2 border-b border-outline-variant flex items-center justify-between bg-surface-container-low">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">bolt</span>
+<h2 class="text-headline-sm font-headline-sm text-primary font-bold">Instantâneos</h2>
+</div>
+<span class="text-label-sm font-label-sm px-1.5 py-0.2 bg-primary text-on-primary">12</span>
+</div>
+<div class="p-2 flex flex-col gap-1.5 max-h-[640px] overflow-y-auto custom-scrollbar">
+<!-- Card 1 -->
+<div class="card-stack group border border-outline-variant hover:border-primary bg-surface transition-all">
+<div class="relative h-20 overflow-hidden bg-primary">
+<img class="w-full h-full object-cover object-center opacity-85 group-hover:opacity-100 transition-opacity" data-alt="High-impact magical spell card art of jagged electrical lightning bolts tearing through an ominous stormy midnight horizon, intense high-voltage arc flashes in pure white against deep charcoal sky." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAtW1Z8rO-RnJtA60gUNyppUqFMolaubfBkrBxgEJUCHW7ayCDx_CmzaIRuJADRDVPflriTCSV4c3NesJKZKWXSduaD0wBBEFaDxGG0S4AGrTKVYcTZXwWHa9RL1Qe6zGv6NxCkMkU2p5qkmy3wtCnJGcR-K3RiBBICysQ4-b0Os3UVYDVuVESYUTgJhbu37ZzmtFggR4GhqeofgCd4IJSafvB4uVhe_1tczXcAePgHKd-W1UFx4Kn92w"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/90 via-transparent to-transparent"></div>
+<div class="absolute top-1.5 right-1.5 px-1 bg-surface-container-lowest text-primary text-label-sm font-code-num font-bold border border-primary">
+                  R
+                </div>
+<div class="absolute bottom-1 left-2 text-on-primary">
+<div class="text-body-sm font-headline-sm font-bold truncate">Lightning Bolt</div>
+<div class="text-label-sm font-label-sm opacity-80">Causa 3 de dano</div>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="card-stack group border border-outline-variant hover:border-primary bg-surface transition-all">
+<div class="relative h-20 overflow-hidden bg-primary">
+<img class="w-full h-full object-cover object-center opacity-85 group-hover:opacity-100 transition-opacity" data-alt="Fantasy MTG spell card showing a dark ritual sacrifice, shadowy hooded figures gathered around a runic stone altar radiating pitch-black ethereal smoke, high contrast ink wash illustration style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD4grJ90EtgTDaCjIEBDTn865BF_ZvdXlmJhL5ncPkPxrP4Y_Z6Y6YZovLQKupdUUUinbhUDEYBGsErhylJptQM0Aoce28o_51NqRYewLjLcytlQRj084hWw9w5zqKRty-CUEBGLCRYg6A1X5sBb9oYhXZYlt_yRaSfRn4ohZNgE-kSghFGzJw7lCFjJoo-Cg-poCLyP53hNtPpHiHTdkBhquZKw5tQTflgMjrCrqjY4amu7Rc-UA6Gqg"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/90 via-transparent to-transparent"></div>
+<div class="absolute top-1.5 right-1.5 px-1 bg-surface-container-lowest text-primary text-label-sm font-code-num font-bold border border-primary">
+                  B
+                </div>
+<div class="absolute bottom-1 left-2 text-on-primary">
+<div class="text-body-sm font-headline-sm font-bold truncate">Dark Ritual</div>
+<div class="text-label-sm font-label-sm opacity-80">Adiciona BBB à reserva</div>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="card-stack group border border-outline-variant hover:border-primary bg-surface transition-all">
+<div class="relative h-20 overflow-hidden bg-primary">
+<img class="w-full h-full object-cover object-center opacity-85 group-hover:opacity-100 transition-opacity" data-alt="Minimalist dark spell card art depicting a crumbling wooden stake disintegrating a monstrous silhouette into black ash, dramatic edge lighting, Swiss precision graphic composition." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCfswYPfjSqJiZRVpuwldVJhJZ6o83ls6crvv5RXxPx0PX3gIoLi1h8aGFFNpQwB8G-qGyJKPquUaKkbsNZVfQVN0uhE3-GvACY2qcXPyifONmgDgheawDjf8NeZsQ3yWPyy0K1Amv1o4M9G67lvNw6nbtccByQDdRQPHscas3hx40kKOZKKNXgj1jzSmGilJxeWp7IEZhTG6EzH0OahNRhnYJ8wUW_YirXo3iRgBWGjOTiyEZmNVOCMg"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/90 via-transparent to-transparent"></div>
+<div class="absolute top-1.5 right-1.5 px-1 bg-surface-container-lowest text-primary text-label-sm font-code-num font-bold border border-primary">
+                  1B
+                </div>
+<div class="absolute bottom-1 left-2 text-on-primary">
+<div class="text-body-sm font-headline-sm font-bold truncate">Terminate</div>
+<div class="text-label-sm font-label-sm opacity-80">Destrua a criatura alvo</div>
+</div>
+</div>
+</div>
+<div class="py-2 text-center border border-dashed border-outline-variant hover:border-primary bg-surface cursor-pointer text-label-sm font-label-sm text-on-surface-variant">
+              + 9 Instantâneos
+            </div>
+</div>
+</section>
+<!-- COLUMN 3: FEITIÇOS (14) -->
+<section class="w-[260px] flex-shrink-0 bg-surface-container-lowest border border-outline-variant shadow-sm flex flex-col">
+<div class="px-2.5 py-2 border-b border-outline-variant flex items-center justify-between bg-surface-container-low">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">auto_fix_high</span>
+<h2 class="text-headline-sm font-headline-sm text-primary font-bold">Feitiços</h2>
+</div>
+<span class="text-label-sm font-label-sm px-1.5 py-0.2 bg-primary text-on-primary">14</span>
+</div>
+<div class="p-2 flex flex-col gap-1.5 max-h-[640px] overflow-y-auto custom-scrollbar">
+<!-- Card 1 -->
+<div class="card-stack group border border-outline-variant hover:border-primary bg-surface transition-all">
+<div class="relative h-20 overflow-hidden bg-primary">
+<img class="w-full h-full object-cover object-center opacity-85 group-hover:opacity-100 transition-opacity" data-alt="Apocalyptic board wipe sorcery MTG art featuring a colossal ring of hellfire and molten magma consuming an expansive ancient battlefield, dark fantasy painted style with high contrast embers and deep obsidian smoke." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDWPDhUwNQqZLVUZ4eynfoCYap_GfhaZO50DMp6fnnvXMdPCz99-_gTR0HTiLG4V8LyD9oLlcyFe9bxjXA5nmPW4K_gRDOT99-JtLXEoDNdzUO-8MMQkIvMm7uhNPl1zFXHfLdUQfmncuQK7dH4TFCrOW6s0RaXzCwffUMhndJSF53D0CMQs59J4irLPQ-AUQgZn7sE-Oa7qCAk1dBhw1TpZq-FWwNHlY8wbKRA1agMBNCb6834-kqvsg"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/90 via-transparent to-transparent"></div>
+<div class="absolute top-1.5 right-1.5 px-1 bg-surface-container-lowest text-primary text-label-sm font-code-num font-bold border border-primary">
+                  2BB
+                </div>
+<div class="absolute bottom-1 left-2 text-on-primary">
+<div class="text-body-sm font-headline-sm font-bold truncate">Damnation</div>
+<div class="text-label-sm font-label-sm opacity-80">Destrua todas as criaturas</div>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="card-stack group border border-outline-variant hover:border-primary bg-surface transition-all">
+<div class="relative h-20 overflow-hidden bg-primary">
+<img class="w-full h-full object-cover object-center opacity-85 group-hover:opacity-100 transition-opacity" data-alt="Mystical sorcery illustration of skeletal arms emerging from muddy grave soil holding a glowing ancient tome, gothic horror fantasy art with crisp geometric framing." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAtA6caikOnnJCPz8PIfCPosRZAGIZMG50Ax4lyFricW7K-luYlmcbwtCkILLhBSzEwj3QNLT_OyhVIs9fCPZJC3Hl1ytMr-bFHVLGL4f0SsLTJyvXJNTPfl9sWfqZNy9JwWK709-JWUkjnURYskHrQZYMePSf_8-4-zADH6bpo4etHBPj64CRMVyA2ZhuwCKlVOiGpYKcZizYSRCP0lsn46a6nvvyOmMuw_R6HoPQRVKwkmmlTu5Xbbw"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/90 via-transparent to-transparent"></div>
+<div class="absolute top-1.5 right-1.5 px-1 bg-surface-container-lowest text-primary text-label-sm font-code-num font-bold border border-primary">
+                  1B
+                </div>
+<div class="absolute bottom-1 left-2 text-on-primary">
+<div class="text-body-sm font-headline-sm font-bold truncate">Demonic Tutor</div>
+<div class="text-label-sm font-label-sm opacity-80">Procure uma carta no grimório</div>
+</div>
+</div>
+</div>
+<div class="py-2 text-center border border-dashed border-outline-variant hover:border-primary bg-surface cursor-pointer text-label-sm font-label-sm text-on-surface-variant">
+              + 12 Feitiços
+            </div>
+</div>
+</section>
+<!-- COLUMN 4: ENCANTAMENTOS E ARTEFATOS (16) -->
+<section class="w-[280px] flex-shrink-0 bg-surface-container-lowest border border-outline-variant shadow-sm flex flex-col">
+<div class="px-2.5 py-2 border-b border-outline-variant flex items-center justify-between bg-surface-container-low">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">token</span>
+<h2 class="text-headline-sm font-headline-sm text-primary font-bold truncate">Encantamentos &amp; Artefatos</h2>
+</div>
+<span class="text-label-sm font-label-sm px-1.5 py-0.2 bg-primary text-on-primary">16</span>
+</div>
+<div class="p-2 flex flex-col gap-1.5 max-h-[640px] overflow-y-auto custom-scrollbar">
+<!-- Card 1 -->
+<div class="card-stack group border border-outline-variant hover:border-primary bg-surface transition-all">
+<div class="relative h-20 overflow-hidden bg-primary">
+<img class="w-full h-full object-cover object-center opacity-85 group-hover:opacity-100 transition-opacity" data-alt="Ancient relic MTG artifact artwork of a glowing crystalline solar ring hovering gracefully over a geometric marble pedestal, clean architectural minimalism, pure white beams radiating outwards." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD9iR7IjmvyULv8bHZE7suVouva4ckEdAjX1Y7nzos5UShwwydXckLB_XaniOU_wmTX1YQIs9ep79-KFdZXmJb8Nn15tGIz5jGVSQr8CCFdd7PHbSBUrXZinbxQOizK1g4g3bmj3r1oPf6o9HC0A5V8YG2DmjufHX3vVDPw40sTqzm7R55I25LEHl2_JxvS4pehRkcJfSsot8S6V_zT_Lu1B1wJB3yyNpQuRF3LsPq2l_YCBbpJibeUtA"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/90 via-transparent to-transparent"></div>
+<div class="absolute top-1.5 right-1.5 px-1 bg-surface-container-lowest text-primary text-label-sm font-code-num font-bold border border-primary">
+                  1
+                </div>
+<div class="absolute bottom-1 left-2 text-on-primary">
+<div class="text-body-sm font-headline-sm font-bold truncate">Sol Ring</div>
+<div class="text-label-sm font-label-sm opacity-80">Artefato · {T}: Adiciona {C}{C}</div>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="card-stack group border border-outline-variant hover:border-primary bg-surface transition-all">
+<div class="relative h-20 overflow-hidden bg-primary">
+<img class="w-full h-full object-cover object-center opacity-85 group-hover:opacity-100 transition-opacity" data-alt="Gothic enchantment MTG illustration of a blood-filled ornate silver chalice inscribed with demonic runes, resting on a lace altar cloth with dripping crimson drops, sharp technical aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuChhqjrDMHLxWVXnp9dd6dITMjclY73yfG2FlaieHdOA_JtS8UX3ebZroNgFIkt81WO7_SD2JTgZe40gmOPKiJB7H6N5RDLo9DdFZH1lYSYJkUuQsDRtzvVTfc2oZDJnq_cYfDHhZUrNBEwWWlyUhoxZCg3uTt-jvAViQoza-SIhirgtx7JxOOlpWBGjlrgoU6EHLwpNOpurK38Sga0HVrjLLKtDj8JTX0QmgUOqh3XG4EqYplTk4upZw"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/90 via-transparent to-transparent"></div>
+<div class="absolute top-1.5 right-1.5 px-1 bg-surface-container-lowest text-primary text-label-sm font-code-num font-bold border border-primary">
+                  1BB
+                </div>
+<div class="absolute bottom-1 left-2 text-on-primary">
+<div class="text-body-sm font-headline-sm font-bold truncate">Phyrexian Arena</div>
+<div class="text-label-sm font-label-sm opacity-80">Encantamento · Compre 1 carta</div>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="card-stack group border border-outline-variant hover:border-primary bg-surface transition-all">
+<div class="relative h-20 overflow-hidden bg-primary">
+<img class="w-full h-full object-cover object-center opacity-85 group-hover:opacity-100 transition-opacity" data-alt="Ornate dark talisman artifact MTG artwork featuring a skull-shaped black onyx amulet bordered in platinum wire filigree, high precision photorealistic fantasy render." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDMBnjyRXTBjfxK5-7KrCfYRdgpWQHouVcyl-mnehcYXWe3Py7A7nEFdXMdZndZJ5poxLXSPoHbKFfpr_Itno6bGZajequ7VX93ZT_ZYzn_KY6_W481jsEOWjlt6us9hT6vJ-0Bh6R1rNS5qVRq_TWPblnZG7IJDhdIE8S0ZmDJlCW5tNFwV0--7wq1C3cqouXENtXMB0ES8-p1zgBoSS2iKgsNlm82LjjOL8_BJKB2Bfh2yB90uhkx_w"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/90 via-transparent to-transparent"></div>
+<div class="absolute top-1.5 right-1.5 px-1 bg-surface-container-lowest text-primary text-label-sm font-code-num font-bold border border-primary">
+                  2
+                </div>
+<div class="absolute bottom-1 left-2 text-on-primary">
+<div class="text-body-sm font-headline-sm font-bold truncate">Arcane Signet</div>
+<div class="text-label-sm font-label-sm opacity-80">Artefato · Gera mana da identidade</div>
+</div>
+</div>
+</div>
+<div class="py-2 text-center border border-dashed border-outline-variant hover:border-primary bg-surface cursor-pointer text-label-sm font-label-sm text-on-surface-variant">
+              + 13 Encantamentos e Artefatos
+            </div>
+</div>
+</section>
+<!-- COLUMN 5: TERRENOS (36) -->
+<section class="w-[260px] flex-shrink-0 bg-surface-container-lowest border border-outline-variant shadow-sm flex flex-col">
+<div class="px-2.5 py-2 border-b border-outline-variant flex items-center justify-between bg-surface-container-low">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">landscape</span>
+<h2 class="text-headline-sm font-headline-sm text-primary font-bold">Terrenos</h2>
+</div>
+<span class="text-label-sm font-label-sm px-1.5 py-0.2 bg-primary text-on-primary">36</span>
+</div>
+<div class="p-2 flex flex-col gap-1.5 max-h-[640px] overflow-y-auto custom-scrollbar">
+<!-- Card 1 -->
+<div class="card-stack group border border-outline-variant hover:border-primary bg-surface transition-all">
+<div class="relative h-20 overflow-hidden bg-primary">
+<img class="w-full h-full object-cover object-center opacity-85 group-hover:opacity-100 transition-opacity" data-alt="Atmospheric MTG land illustration of a grim desolate swamp shrouded in heavy pale mist with dead twisted willow trees and still black reflective waters, moody minimalist lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuADqhF6QxXiiMonkhPdHCyoI70vqSW85YvqbRQI9da7RxXyE5PD6Jlm5YZjU6d3O9ea9VEHtDZ9CN_are8jDniKTezqfQ_wFKOlaBfKKl5c42OuGStjg9mZfmaOBWaKCK9q_U-BMBX7jl8mZVVGtShRT9IMbtQXcDToNhltlEqqarOZ8jPAGWJ4i22lLUI-jdJOkU1kHZ8k8VEQdQ88IuociyWzzpEYnpKsMw6bLxJ81UJLTYVepY-CPQ"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/90 via-transparent to-transparent"></div>
+<div class="absolute top-1.5 right-1.5 px-1 bg-surface-container-lowest text-primary text-label-sm font-code-num font-bold border border-primary">
+                  L
+                </div>
+<div class="absolute bottom-1 left-2 text-on-primary">
+<div class="text-body-sm font-headline-sm font-bold truncate">Pântano Nevado</div>
+<div class="text-label-sm font-label-sm opacity-80">Terreno Básico Nevado (×12)</div>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="card-stack group border border-outline-variant hover:border-primary bg-surface transition-all">
+<div class="relative h-20 overflow-hidden bg-primary">
+<img class="w-full h-full object-cover object-center opacity-85 group-hover:opacity-100 transition-opacity" data-alt="Dramatic volcanic mountain peak piercing dark storm clouds, glowing fissures of molten lava flowing down sharp obsidian cliffs, dark fantasy land card aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAFzgeZV97Ssxc982L0F_m9V0FkKBr_LEgq2anPyeQGUa4cfslsb8AeXYKIBjBjYmLsKSZN6zKLJqaYJBVFuSQojgortfzhF9bIyzIIfdhcTWkqpAPMJWFlU1tgUq5h3prW_ZbDDbo5sr96nASSyGHshIL8Xf2IcHeOg1XWkMv2yXxOFpSzNl11FwG3iAsXnrYdSret_BF0q_wtumH7hRxOq6ZzGWslc4AGcEDOHthM-mqRp_zMgYfhwQ"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/90 via-transparent to-transparent"></div>
+<div class="absolute top-1.5 right-1.5 px-1 bg-surface-container-lowest text-primary text-label-sm font-code-num font-bold border border-primary">
+                  L
+                </div>
+<div class="absolute bottom-1 left-2 text-on-primary">
+<div class="text-body-sm font-headline-sm font-bold truncate">Montanha Nevada</div>
+<div class="text-label-sm font-label-sm opacity-80">Terreno Básico Nevado (×10)</div>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="card-stack group border border-outline-variant hover:border-primary bg-surface transition-all">
+<div class="relative h-20 overflow-hidden bg-primary">
+<img class="w-full h-full object-cover object-center opacity-85 group-hover:opacity-100 transition-opacity" data-alt="Architectural gothic MTG dual land artwork showing a gothic graveyard filled with mausoleums and dark bleeding stone monuments under blood red moonlight, high detail landscape." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCoPMfB8NYAWWMrB10NnR3PfadDsLkCfUMyxZDnTAejtEpH4erOFhzSDUmNTmo07Xxg4ZiimIuDH8SfLrNATEBnchuMcP0hdPQuwMqlKyyNUWtEPj4lo9fkTKuxZ-4VDEC-PnkVtQNoba7hFFIXk6ye0aHcpQgrzKPM7nSLi0fOn9RtmAj_NwSn6bllmnQiUyXTJF4wS51jTfusAeHJc0d-qmBLW7GXREwKp5Kocv-cpZRRrk1QmS1xMw"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/90 via-transparent to-transparent"></div>
+<div class="absolute top-1.5 right-1.5 px-1 bg-surface-container-lowest text-primary text-label-sm font-code-num font-bold border border-primary">
+                  L
+                </div>
+<div class="absolute bottom-1 left-2 text-on-primary">
+<div class="text-body-sm font-headline-sm font-bold truncate">Blood Crypt</div>
+<div class="text-label-sm font-label-sm opacity-80">Terreno · Pântano Montanha</div>
+</div>
+</div>
+</div>
+<div class="py-2 text-center border border-dashed border-outline-variant hover:border-primary bg-surface cursor-pointer text-label-sm font-label-sm text-on-surface-variant">
+              + 14 Terrenos Utilitários
+            </div>
+</div>
+</section>
+</div>
+<!-- BOARD ROW 2: DEDICATED STAGING & TESTING ZONES (Sai vs Upgrade as seen in reference) -->
+<div class="flex items-start gap-6 border-t-2 border-outline-variant pt-6">
+<!-- STAGING ZONE: SAI (Cards marked for removal / substitution) -->
+<div class="w-[300px] flex-shrink-0 bg-surface-container-lowest border-2 border-primary p-3 relative">
+<div class="flex items-center justify-between pb-2 mb-3 border-b border-outline-variant">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 bg-error inline-block"></span>
+<h3 class="text-headline-sm font-headline-sm font-bold text-primary">Sai</h3>
+<span class="text-label-sm font-label-sm text-on-surface-variant">(1 selecionada)</span>
+</div>
+<span class="text-label-sm font-label-sm px-1.5 py-0.5 border border-primary text-primary font-code-num">DEL</span>
+</div>
+<!-- Active Selected Card with Blue/Black Bounding Box Highlight -->
+<div class="relative p-1 border-2 border-primary bg-surface-container-low shadow-[3px_3px_0px_0px_#000000]">
+<!-- Resize Handles simulation (Swiss UI Blueprint) -->
+<div class="absolute -top-1 -left-1 w-2 h-2 bg-primary"></div>
+<div class="absolute -top-1 -right-1 w-2 h-2 bg-primary"></div>
+<div class="absolute -bottom-1 -left-1 w-2 h-2 bg-primary"></div>
+<div class="absolute -bottom-1 -right-1 w-2 h-2 bg-primary"></div>
+<div class="relative h-44 overflow-hidden border border-outline">
+<img class="w-full h-full object-cover object-center" data-alt="MTG card illustration of Herald of Secret Streams, a merfolk wizard with flowing crystalline fins commanding luminescent blue tidal water currents in an underwater sanctuary, classical fantasy oil painting style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAwVN6L93-rvr5EWnb2KHNBAbgLVcRQR9sJiH2-aSDfi5rQv7kEAPu7lq6xQVnD4gcpGKueMuI1B6BFMoUcLk_MrbsuYQGW4lwuy8USfqwN07Fo9nKYS9FU5qFJCd9qLc5nDYNRxJiSsLWgCmt62NecMCDSWGuTMllJkWEfWWW0a2eOzcjlV_ksIiHETUUB0adFSrgpOs2cioE0Jxjx7Ip731jHiEaHiTzHPauJaQSxKo9FZUZ6FKDO4g"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/95 via-transparent to-transparent"></div>
+<div class="absolute top-1.5 right-1.5 px-1.5 py-0.5 bg-surface-container-lowest text-primary text-label-sm font-code-num font-bold border border-primary">
+                3U
+              </div>
+<div class="absolute bottom-2 left-2 right-2 text-on-primary">
+<div class="text-body-md font-headline-sm font-bold">Herald of Secret Streams</div>
+<div class="text-label-sm font-label-sm opacity-80">Criaturas com marcadores não podem ser bloqueadas</div>
+</div>
+</div>
+<div class="mt-2 flex items-center justify-between px-1">
+<span class="text-label-sm font-label-sm text-error font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">remove_circle_outline</span>
+                Remover do Deck
+              </span>
+<span class="text-label-sm font-label-sm font-code-num text-on-surface-variant">Cut #1</span>
+</div>
+</div>
+</div>
+<!-- STAGING ZONE: UPGRADE (Candidate cards to swap in) -->
+<div class="flex-1 bg-surface-container-lowest border border-outline-variant p-3">
+<div class="flex items-center justify-between pb-2 mb-3 border-b border-outline-variant">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 bg-primary inline-block"></span>
+<h3 class="text-headline-sm font-headline-sm font-bold text-primary">Upgrade</h3>
+<span class="text-label-sm font-label-sm text-on-surface-variant">(8 cartas em teste)</span>
+</div>
+<div class="flex items-center gap-2">
+<button class="px-2 py-0.5 text-label-sm font-label-sm border border-outline-variant hover:border-primary text-primary flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">add</span> Adicionar Card de Teste
+              </button>
+</div>
+</div>
+<!-- Horizontal Grid of Candidate Cards -->
+<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+<!-- Upgrade Item 1 -->
+<div class="border border-outline-variant hover:border-primary bg-surface p-1 transition-all group">
+<div class="relative h-28 overflow-hidden bg-primary mb-1">
+<img class="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform" data-alt="Dark fantasy MTG creature card artwork of an armored demonic overlord clutching a glowing black blade amidst burning gothic ruins, precise high-contrast monochrome digital rendering." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDxoOqmVHrtA9Rhq5dpLjfrePI_SvxWybM1WVxYXLsVwN_tTGyngaxatFo8y8DMVIHMbxKnXAChKmSeD6pEbCHm-cE9f7MKSb49zycLoFQpTOYrcfIjJ6gaA0hCqrf5966EpEp6gMBmCVFwHDPvIBm5DWjypNvx9S9uFrvZegIC8pUEc4bKijiU_Ry0r5dBSEwfBwkEvcUGcEY9MzG7aQOfN-ASF_Wdq6-28NyxpuasA5amujwv7GPOg"/>
+<div class="absolute top-1 right-1 px-1 bg-surface-container-lowest text-primary text-label-sm font-code-num font-bold">2BB</div>
+</div>
+<div class="text-body-sm font-headline-sm font-bold truncate">Florian, Voldaren Scion</div>
+<div class="flex items-center justify-between mt-1 text-label-sm font-label-sm text-on-surface-variant">
+<span>Vampiro</span>
+<button class="hover:text-primary font-semibold text-primary underline">Swap In</button>
+</div>
+</div>
+<!-- Upgrade Item 2 -->
+<div class="border border-outline-variant hover:border-primary bg-surface p-1 transition-all group">
+<div class="relative h-28 overflow-hidden bg-primary mb-1">
+<img class="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform" data-alt="Fantasy card artwork of a lethal female vampire assassin poised on a high gargoyle spire under heavy rainfall, stark chiaroscuro lighting, intricate line work." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCCnPPr7x4MiRX349jg4koYZeGj2rC_berSltu8MjQgIoOLDXuMsi-XyLbRneh0pn4Wd3EnNPgoNjL6gAcPyFf6jzUmKaGXr1eMVLMDkLthKoZHrmSB8pYc71So_8Eb2TzSpeEXACC10pPPDrGbE8SsbEIUOvNCpjnH8qn5zhzFoAvPdtje4uVjE9pTlM-vRodjllM-VV0p2W2w6XC1-kdBMn7DM_fDiUzkSmDPNV5T_WeTmEjb12mzKw"/>
+<div class="absolute top-1 right-1 px-1 bg-surface-container-lowest text-primary text-label-sm font-code-num font-bold">1BR</div>
+</div>
+<div class="text-body-sm font-headline-sm font-bold truncate">Anje Maid of Dishonor</div>
+<div class="flex items-center justify-between mt-1 text-label-sm font-label-sm text-on-surface-variant">
+<span>Vampiro</span>
+<button class="hover:text-primary font-semibold text-primary underline">Swap In</button>
+</div>
+</div>
+<!-- Upgrade Item 3 -->
+<div class="border border-outline-variant hover:border-primary bg-surface p-1 transition-all group">
+<div class="relative h-28 overflow-hidden bg-primary mb-1">
+<img class="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform" data-alt="MTG artifact card art depicting a razor-sharp sacrificial dagger forged of dark volcanic glass with blood-red runic carvings along its fuller, minimalist dark studio lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDiHNdr868j1d-3smwX2Bl0NJSVL--pq6tBl9lEm5xBF_SKdi2q2QznSwxsl4UKd6g5o6l-HRCnihb1jXSz7DH0QLJGS-fWJBTPozuRnvjbxV4m0zXZl7U5O6wkHWcCrQO9OoqBVPKNAyEbm3VFQ3Snk9_VVIKBilvx4VnrHeAQAbUUuKfNKQgBCVfoWBcOza6FScX65-zxgglta5Els1vsenSYPkoHU2-Y-TsldlG_7YJhA3PZaQbeDQ"/>
+<div class="absolute top-1 right-1 px-1 bg-surface-container-lowest text-primary text-label-sm font-code-num font-bold">2</div>
+</div>
+<div class="text-body-sm font-headline-sm font-bold truncate">Blade of the Bloodchief</div>
+<div class="flex items-center justify-between mt-1 text-label-sm font-label-sm text-on-surface-variant">
+<span>Equipamento</span>
+<button class="hover:text-primary font-semibold text-primary underline">Swap In</button>
+</div>
+</div>
+<!-- Upgrade Item 4 -->
+<div class="border border-outline-variant hover:border-primary bg-surface p-1 transition-all group">
+<div class="relative h-28 overflow-hidden bg-primary mb-1">
+<img class="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform" data-alt="High fantasy card illustration of an enchanted vampire ballroom banquet with opulent crystal chandeliers and shadowy figures drinking from golden goblets, fine art oil painting look." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDUKhMvgCFwCVdeYtEm2d2z0cqxbciqUmA2gAOlcjBCtDFIhVKL-0kUhDbqoAyPOTNL3bD-SQ61sNQYJkKakNp4bcXHi-zpieN_0cO0Gv3a7bSRxDATI06NUiMnsG8BJhO4F78LVzuZu-0O3MQAHWz3O_ixmWI6nSPFu3aVcKnRzAb8ajf5e6i9seNCg4JdHQtQH_9AOhcVyKhlHj3Nl-N8ufPf2Ie4uV0FRm7l5OYHZVufnlL0Fx-FuA"/>
+<div class="absolute top-1 right-1 px-1 bg-surface-container-lowest text-primary text-label-sm font-code-num font-bold">3B</div>
+</div>
+<div class="text-body-sm font-headline-sm font-bold truncate">Sanguine Bond</div>
+<div class="flex items-center justify-between mt-1 text-label-sm font-label-sm text-on-surface-variant">
+<span>Encantamento</span>
+<button class="hover:text-primary font-semibold text-primary underline">Swap In</button>
+</div>
+</div>
+<!-- Upgrade Item 5 -->
+<div class="border border-outline-variant hover:border-primary bg-surface p-1 transition-all group">
+<div class="relative h-28 overflow-hidden bg-primary mb-1">
+<img class="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform" data-alt="MTG card illustration showing a fiery dragon whelp flying over blackened scorched crags, intense orange firelight against dark midnight sky, sharp detailed fantasy art." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAgJ5BzZcNlQscCi2avzXw7GI6SOVvASZqX8nKk2KKLixapUxdnk3tGQ1DKlzJaQuLr6iEqTZf7-S8mYxW0sLmZMBF1HoIWYEcmOw1eVJ-npX8y6azDVqSf3cUPo1awPUdooObQ3FF8HX1d1FeCYHr2XVmsC6WvIuN8ZoJFqA_tsSmoiChbJtRwrZF515wKrtF3rm_sxyNKlnZKi0o2fy0sa2walRVZ3x6jB5rbs3m4IS-Q4B8oR20WYg"/>
+<div class="absolute top-1 right-1 px-1 bg-surface-container-lowest text-primary text-label-sm font-code-num font-bold">1R</div>
+</div>
+<div class="text-body-sm font-headline-sm font-bold truncate">Dragon's Rage Channeler</div>
+<div class="flex items-center justify-between mt-1 text-label-sm font-label-sm text-on-surface-variant">
+<span>Humano Xamã</span>
+<button class="hover:text-primary font-semibold text-primary underline">Swap In</button>
+</div>
+</div>
+<!-- Upgrade Item 6 (Ghost slot for drag and drop) -->
+<div class="border-2 border-dashed border-outline-variant flex flex-col items-center justify-center p-4 hover:border-primary cursor-pointer text-center bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-[24px] text-on-surface-variant mb-1">add_circle_outline</span>
+<span class="text-label-sm font-label-sm text-on-surface-variant">Arraste carta aqui</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- FLOATING MINIMALIST QUICK SEARCH BUTTON (Buscar ⌘F / ⌘K) -->
+<aside class="fixed bottom-6 right-6 z-40">
+<button class="px-4 py-2 bg-surface-container-lowest text-primary font-headline-sm text-headline-sm font-bold border-2 border-primary shadow-[4px_4px_0px_0px_#000000] hover:bg-primary hover:text-on-primary transition-all flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">search</span>
+<span>Buscar</span>
+<kbd class="text-label-sm font-label-sm border border-current px-1.5 py-0.2 ml-1">⌘F</kbd>
+</button>
+</aside>
+<!-- BOTTOM STATUS DOCK (Information Architecture Helper) -->
+<footer class="fixed bottom-0 left-0 w-full h-7 bg-surface-container border-t border-outline-variant px-space-md flex items-center justify-between text-label-sm font-label-sm text-on-surface-variant z-30">
+<div class="flex items-center gap-4">
+<span class="flex items-center gap-1">
+<span class="w-1.5 h-1.5 bg-primary rounded-full"></span>
+        Status: Sincronizado
+      </span>
+<span>Curva Média: 2.38</span>
+<span>Custo Total Estimado: R$ 1.420,00</span>
+</div>
+<div class="flex items-center gap-3">
+<span>Modo: Canvas Livre</span>
+<span>Zoom: 100%</span>
+<span class="font-code-num">v3.4.1</span>
+</div>
+</footer>
+</body></html>

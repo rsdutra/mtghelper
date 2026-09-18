@@ -1,0 +1,144 @@
+﻿{
+    "projectId":  "15205195196080306830",
+    "title":  "Minimalist MTG Manager",
+    "deviceType":  "DESKTOP",
+    "Last Sync Time":  "2026-09-11T17:36:45.2933187Z",
+    "brand":  "ARCHIVIST // MTG",
+    "screens":  {
+                    "9536435150df48ee8c5b41929b69761f":  {
+                                                             "id":  "9536435150df48ee8c5b41929b69761f",
+                                                             "label":  "Detalhes do Deck - Olivia V3",
+                                                             "slug":  "deck-detail",
+                                                             "route":  "/decks/[id]",
+                                                             "sourceScreen":  "projects/15205195196080306830/screens/9536435150df48ee8c5b41929b69761f",
+                                                             "width":  "2560",
+                                                             "height":  "2048",
+                                                             "deviceType":  "DESKTOP",
+                                                             "canvasPosition":  {
+                                                                                    "y":  null,
+                                                                                    "x":  6016
+                                                                                },
+                                                             "hasHtml":  true
+                                                         },
+                    "11969258940668374720":  {
+                                                 "id":  "11969258940668374720",
+                                                 "label":  "image.png",
+                                                 "slug":  "ref-1",
+                                                 "route":  null,
+                                                 "sourceScreen":  "projects/15205195196080306830/screens/11969258940668374720",
+                                                 "width":  "1908",
+                                                 "height":  "962",
+                                                 "deviceType":  null,
+                                                 "canvasPosition":  {
+                                                                        "y":  null,
+                                                                        "x":  1728
+                                                                    },
+                                                 "hasHtml":  false
+                                             },
+                    "11969258940668372420":  {
+                                                 "id":  "11969258940668372420",
+                                                 "label":  "image.png",
+                                                 "slug":  "ref-2",
+                                                 "route":  null,
+                                                 "sourceScreen":  "projects/15205195196080306830/screens/11969258940668372420",
+                                                 "width":  "1902",
+                                                 "height":  "966",
+                                                 "deviceType":  null,
+                                                 "canvasPosition":  {
+                                                                        "y":  null,
+                                                                        "x":  576
+                                                                    },
+                                                 "hasHtml":  false
+                                             },
+                    "11969258940668373318":  {
+                                                 "id":  "11969258940668373318",
+                                                 "label":  "image.png",
+                                                 "slug":  "ref-3",
+                                                 "route":  null,
+                                                 "sourceScreen":  "projects/15205195196080306830/screens/11969258940668373318",
+                                                 "width":  "1896",
+                                                 "height":  "1016",
+                                                 "deviceType":  null,
+                                                 "canvasPosition":  {
+                                                                        "y":  null,
+                                                                        "x":  null
+                                                                    },
+                                                 "hasHtml":  false
+                                             },
+                    "c811065947fa4e4f95b8edf4630f6fc6":  {
+                                                             "id":  "c811065947fa4e4f95b8edf4630f6fc6",
+                                                             "label":  "Decks - Gerenciamento",
+                                                             "slug":  "decks",
+                                                             "route":  "/decks",
+                                                             "sourceScreen":  "projects/15205195196080306830/screens/c811065947fa4e4f95b8edf4630f6fc6",
+                                                             "width":  "2560",
+                                                             "height":  "2048",
+                                                             "deviceType":  "DESKTOP",
+                                                             "canvasPosition":  {
+                                                                                    "y":  null,
+                                                                                    "x":  4672
+                                                                                },
+                                                             "hasHtml":  true
+                                                         },
+                    "60ddb13356b2411eaefe9d7d24f082d6":  {
+                                                             "id":  "60ddb13356b2411eaefe9d7d24f082d6",
+                                                             "label":  "Canvas - Edição de Deck",
+                                                             "slug":  "canvas",
+                                                             "route":  "/decks/[id] (canvas mode)",
+                                                             "sourceScreen":  "projects/15205195196080306830/screens/60ddb13356b2411eaefe9d7d24f082d6",
+                                                             "width":  "2560",
+                                                             "height":  "2054",
+                                                             "deviceType":  "DESKTOP",
+                                                             "canvasPosition":  {
+                                                                                    "y":  null,
+                                                                                    "x":  7360
+                                                                                },
+                                                             "hasHtml":  true
+                                                         },
+                    "11969258940668371522":  {
+                                                 "id":  "11969258940668371522",
+                                                 "label":  "image.png",
+                                                 "slug":  "ref-4",
+                                                 "route":  null,
+                                                 "sourceScreen":  "projects/15205195196080306830/screens/11969258940668371522",
+                                                 "width":  "1833",
+                                                 "height":  "1027",
+                                                 "deviceType":  null,
+                                                 "canvasPosition":  {
+                                                                        "y":  null,
+                                                                        "x":  1152
+                                                                    },
+                                                 "hasHtml":  false
+                                             },
+                    "114ba2512847460ba6d1dc35a4a35d40":  {
+                                                             "id":  "114ba2512847460ba6d1dc35a4a35d40",
+                                                             "label":  "Coleção - Gerenciamento de Acervo",
+                                                             "slug":  "colecao",
+                                                             "route":  "/colecao",
+                                                             "sourceScreen":  "projects/15205195196080306830/screens/114ba2512847460ba6d1dc35a4a35d40",
+                                                             "width":  "2560",
+                                                             "height":  "2048",
+                                                             "deviceType":  "DESKTOP",
+                                                             "canvasPosition":  {
+                                                                                    "y":  null,
+                                                                                    "x":  8704
+                                                                                },
+                                                             "hasHtml":  true
+                                                         },
+                    "cbcda840cafa40c5adbc2a81c5fb7d38":  {
+                                                             "id":  "cbcda840cafa40c5adbc2a81c5fb7d38",
+                                                             "label":  "Busca - MTG Helper",
+                                                             "slug":  "busca",
+                                                             "route":  "/buscar",
+                                                             "sourceScreen":  "projects/15205195196080306830/screens/cbcda840cafa40c5adbc2a81c5fb7d38",
+                                                             "width":  "2560",
+                                                             "height":  "2254",
+                                                             "deviceType":  "DESKTOP",
+                                                             "canvasPosition":  {
+                                                                                    "y":  null,
+                                                                                    "x":  3328
+                                                                                },
+                                                             "hasHtml":  true
+                                                         }
+                }
+}

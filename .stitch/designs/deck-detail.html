@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ARCHIVIST // MTG — Olivia V3</title>
+<!-- Google Fonts: Geist & JetBrains Mono -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&amp;family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;1,400&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-primary-fixed": "#1c1b1d",
+            "inverse-on-surface": "#f0f1f2",
+            "on-primary-container": "#858386",
+            "surface-container-highest": "#e2e2e3",
+            "on-primary-fixed-variant": "#474649",
+            "on-secondary-fixed-variant": "#46464e",
+            "inverse-primary": "#c8c6c8",
+            "surface-container-high": "#e8e8e9",
+            "on-tertiary": "#ffffff",
+            "secondary-fixed": "#e3e1ec",
+            "on-surface-variant": "#47464a",
+            "tertiary-container": "#1b1b1e",
+            "surface-tint": "#5f5e60",
+            "primary-fixed": "#e5e1e4",
+            "background": "#f9f9fa",
+            "inverse-surface": "#2f3132",
+            "on-primary": "#ffffff",
+            "on-tertiary-fixed": "#1b1b1e",
+            "secondary": "#5d5e66",
+            "primary-container": "#1c1b1d",
+            "surface-container-lowest": "#ffffff",
+            "primary": "#000000",
+            "surface-bright": "#f9f9fa",
+            "on-tertiary-container": "#848387",
+            "error-container": "#ffdad6",
+            "surface-container-low": "#f3f3f4",
+            "primary-fixed-dim": "#c8c6c8",
+            "tertiary-fixed": "#e4e1e5",
+            "outline-variant": "#c8c5ca",
+            "surface-dim": "#dadadb",
+            "secondary-container": "#e3e1ec",
+            "on-secondary-fixed": "#1a1b22",
+            "secondary-fixed-dim": "#c6c5cf",
+            "on-secondary-container": "#63646c",
+            "tertiary": "#000000",
+            "on-surface": "#1a1c1d",
+            "on-error": "#ffffff",
+            "error": "#ba1a1a",
+            "tertiary-fixed-dim": "#c8c6c9",
+            "on-tertiary-fixed-variant": "#47464a",
+            "outline": "#78767b",
+            "on-error-container": "#93000a",
+            "on-background": "#1a1c1d",
+            "surface-variant": "#e2e2e3",
+            "on-secondary": "#ffffff",
+            "surface": "#f9f9fa",
+            "surface-container": "#eeeeef"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "margin": "1rem",
+            "space-xl": "1.5rem",
+            "gutter": "0.75rem",
+            "space-xs": "0.25rem",
+            "space-sm": "0.5rem",
+            "space-md": "0.75rem",
+            "space-lg": "1rem",
+            "space-2xl": "2rem",
+            "gutter-desktop": "1rem",
+            "margin-desktop": "1.5rem"
+          },
+          "fontFamily": {
+            "headline-xl": ["Geist"],
+            "body-md": ["Geist"],
+            "headline-sm": ["Geist"],
+            "body-sm": ["Geist"],
+            "label-md": ["JetBrains Mono"],
+            "code-num": ["JetBrains Mono"],
+            "headline-lg": ["Geist"],
+            "body-lg": ["Geist"],
+            "label-sm": ["JetBrains Mono"]
+          },
+          "fontSize": {
+            "headline-xl": ["28px", { "lineHeight": "34px", "letterSpacing": "-0.03em", "fontWeight": "600" }],
+            "body-md": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+            "headline-sm": ["15px", { "lineHeight": "20px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "code-num": ["13px", { "lineHeight": "16px", "fontWeight": "600" }],
+            "headline-lg": ["20px", { "lineHeight": "26px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+            "body-lg": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "label-sm": ["10px", { "lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "500" }]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1;
+    }
+    /* Custom subtle scrollbar */
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f9f9fa;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #c8c5ca;
+    }
+  </style>
+</head>
+<body class="bg-background text-on-surface font-body-md text-body-md antialiased min-h-screen selection:bg-primary selection:text-on-primary">
+<!-- TOPNAVBAR (Shared Component execution) -->
+<header class="fixed top-0 left-0 w-full z-50 flex items-center justify-between px-space-md h-12 bg-surface border-b border-outline-variant">
+<div class="flex items-center space-x-6">
+<span class="text-headline-sm font-headline-sm tracking-tight text-primary uppercase font-bold cursor-pointer">
+        ARCHIVIST // MTG
+      </span>
+<nav class="hidden md:flex items-center space-x-6 h-12 pt-3">
+<a class="text-on-surface-variant hover:text-primary text-body-md pb-3 transition-colors" href="#">Busca</a>
+<a class="text-primary border-b-2 border-primary font-headline-sm text-body-md font-semibold pb-3" href="#">Decks</a>
+<a class="text-on-surface-variant hover:text-primary text-body-md pb-3 transition-colors" href="#">Coleção</a>
+<a class="text-on-surface-variant hover:text-primary text-body-md pb-3 transition-colors" href="#">Formatos</a>
+<a class="text-on-surface-variant hover:text-primary text-body-md pb-3 transition-colors" href="#">Estatísticas</a>
+</nav>
+</div>
+<div class="flex items-center space-x-3">
+<div class="flex items-center space-x-2 text-label-md font-label-md">
+<span class="text-on-surface font-medium">rodrigo</span>
+<span class="text-outline">/</span>
+<button class="text-on-surface-variant hover:text-primary underline text-label-sm font-label-sm transition-colors">Sair</button>
+</div>
+<div class="h-4 w-px bg-outline-variant"></div>
+<div class="flex items-center space-x-1">
+<button class="p-1 hover:bg-surface-container text-on-surface transition-colors rounded" data-icon="terminal" title="Terminal">
+<span class="material-symbols-outlined text-[18px]">terminal</span>
+</button>
+<button class="p-1 hover:bg-surface-container text-on-surface transition-colors rounded" data-icon="tune" title="Ajustes">
+<span class="material-symbols-outlined text-[18px]">tune</span>
+</button>
+<button class="p-1 hover:bg-surface-container text-on-surface transition-colors rounded" data-icon="account_circle" title="Conta">
+<span class="material-symbols-outlined text-[18px]">account_circle</span>
+</button>
+</div>
+</div>
+</header>
+<!-- MAIN WRAPPER: Responsive Three-Zone Layout -->
+<main class="pt-16 pb-12 max-w-[1720px] mx-auto px-4 lg:px-6">
+<!-- SUBHEADER / DECK CONTROLS -->
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 mb-4 border-b border-outline-variant">
+<!-- Left: Deck Title, Format Dropdown, Save Button, Status -->
+<div class="flex flex-wrap items-center gap-2 sm:gap-3">
+<div class="relative">
+<input class="h-9 px-3 bg-surface-container-lowest border border-outline-variant text-on-surface font-headline-sm text-headline-sm focus:border-primary focus:ring-0 rounded w-52 sm:w-64 tracking-tight" placeholder="Nome do Deck" type="text" value="Olivia V3"/>
+</div>
+<div class="relative">
+<select class="h-9 pl-3 pr-8 bg-surface-container-lowest border border-outline-variant text-on-surface font-body-md text-body-md focus:border-primary focus:ring-0 rounded appearance-none cursor-pointer">
+<option selected="" value="commander">Commander (EDH)</option>
+<option value="modern">Modern</option>
+<option value="pauper">Pauper</option>
+<option value="pioneer">Pioneer</option>
+<option value="legacy">Legacy</option>
+</select>
+<span class="material-symbols-outlined absolute right-2 top-2.5 pointer-events-none text-outline text-[16px]" data-icon="expand_more">expand_more</span>
+</div>
+<button class="h-9 px-4 bg-surface-container-lowest border border-outline-variant hover:border-primary text-primary font-label-md text-label-md transition-colors active:translate-y-px rounded flex items-center gap-1.5">
+<span>Salvar</span>
+</button>
+<span class="text-label-sm font-label-sm text-on-surface-variant ml-1 hidden sm:inline">
+          Salvo hoje, 09:42
+        </span>
+</div>
+<!-- Right: View Toggle (Lista / Canvas) -->
+<div class="flex items-center gap-2 self-start lg:self-auto">
+<div class="inline-flex border border-outline-variant p-0.5 rounded bg-surface-container-lowest">
+<button class="px-4 py-1.5 bg-primary text-on-primary font-label-md text-label-md rounded font-semibold transition-all">
+            Lista
+          </button>
+<button class="px-4 py-1.5 bg-transparent hover:bg-surface-container text-on-surface font-label-md text-label-md rounded transition-all">
+            Canvas
+          </button>
+</div>
+</div>
+</div>
+<!-- UTILITY BAR & GROUPING TOGGLE -->
+<div class="flex flex-col sm:flex-row sm:items-baseline justify-between mb-4 gap-2">
+<div class="flex items-center space-x-2">
+<label class="flex items-center space-x-2 cursor-pointer select-none">
+<input checked="" class="w-3.5 h-3.5 border-outline-variant text-primary focus:ring-0 rounded" type="checkbox"/>
+<span class="font-body-md text-body-md font-semibold text-on-surface">Agrupar por tipo</span>
+</label>
+<span class="text-label-sm font-label-sm text-on-surface-variant hidden md:inline ml-2">
+          Na lista, aplica-se só a "No deck". No canvas, cria sessões por tipo (sem apagar cartas ao desligar).
+        </span>
+</div>
+<div class="text-label-sm font-label-sm text-on-surface-variant">
+<span>Total: <strong>100</strong> cartas (<strong>93</strong> no deck / <strong>7</strong> pendentes)</span>
+</div>
+</div>
+<!-- MAIN DUAL-ZONE CONTAINER -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+<!-- ZONE 1: PRIMARY DECKLIST TABLE (8 Cols on Desktop) -->
+<section class="lg:col-span-8 bg-surface-container-lowest border border-outline-variant rounded p-0 overflow-hidden shadow-none">
+<!-- SECTION TITLE BAR -->
+<div class="flex items-center justify-between px-4 py-2.5 bg-surface-container border-b border-outline-variant">
+<div class="flex items-center space-x-2">
+<span class="font-label-md text-label-md font-bold text-primary tracking-wide">NO DECK</span>
+<span class="text-label-sm font-label-sm bg-surface-container-high px-1.5 py-0.5 rounded text-on-surface font-semibold">(93)</span>
+</div>
+<div class="flex items-center space-x-3 text-label-sm font-label-sm text-on-surface-variant">
+<span>CMC Médio: <strong>2.84</strong></span>
+<span>Est. Preço: <strong>R$ 1.420,00</strong></span>
+</div>
+</div>
+<!-- ACCORDION 1: CRIATURAS (EXPANDED) -->
+<div class="border-b border-outline-variant">
+<!-- Accordion Header -->
+<div class="flex items-center justify-between px-4 py-2 bg-surface cursor-pointer select-none hover:bg-surface-container-low transition-colors border-b border-surface-variant">
+<div class="flex items-center space-x-2">
+<span class="material-symbols-outlined text-[16px] text-primary" data-icon="arrow_drop_down">arrow_drop_down</span>
+<span class="font-headline-sm text-headline-sm font-bold text-primary">Criaturas</span>
+</div>
+<span class="text-label-sm font-label-sm font-semibold text-on-surface-variant">33</span>
+</div>
+<!-- Card Rows Table -->
+<div class="divide-y divide-surface-container">
+<!-- Row 1: Angelic Sell-Sword -->
+<article class="flex flex-col sm:flex-row sm:items-center justify-between px-4 py-2 hover:bg-surface-bright transition-colors group">
+<div class="flex items-center space-x-3 mb-2 sm:mb-0 min-w-0">
+<div class="w-1.5 h-1.5 rounded-full bg-primary opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="truncate">
+<div class="font-body-md text-body-md font-semibold text-primary hover:underline cursor-pointer">
+                    Angelic Sell-Sword
+                  </div>
+<div class="flex items-center space-x-2 font-label-sm text-label-sm text-on-surface-variant">
+<span class="border border-outline-variant px-1 rounded">OTC</span>
+<span>3W · Anjo Guerreiro</span>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between sm:justify-end space-x-3 text-label-sm font-label-sm">
+<!-- Counter Stepper -->
+<div class="flex items-center border border-outline-variant rounded bg-surface-container-lowest overflow-hidden">
+<button class="w-6 h-6 flex items-center justify-center hover:bg-surface-container text-primary font-code-num active:translate-y-px transition-colors">-</button>
+<span class="w-6 text-center font-code-num text-code-num text-primary">1</span>
+<button class="w-6 h-6 flex items-center justify-center hover:bg-surface-container text-primary font-code-num active:translate-y-px transition-colors">+</button>
+</div>
+<!-- Delete Button -->
+<button class="w-6 h-6 flex items-center justify-center border border-outline-variant hover:border-error hover:bg-error hover:text-on-error text-outline transition-colors rounded" data-icon="delete" title="Excluir">
+<span class="material-symbols-outlined text-[15px]">delete</span>
+</button>
+<!-- Checkbox 'No deck' -->
+<label class="flex items-center space-x-1.5 cursor-pointer ml-1">
+<input checked="" class="w-3.5 h-3.5 border-outline-variant text-primary focus:ring-0 rounded" type="checkbox"/>
+<span class="text-label-sm font-label-sm text-on-surface">No deck</span>
+</label>
+<!-- Tag Seção Link -->
+<button class="text-on-surface-variant hover:text-primary underline text-label-sm font-label-sm">Tag seção</button>
+</div>
+</article>
+<!-- Row 2: Vândalos de Angrath -->
+<article class="flex flex-col sm:flex-row sm:items-center justify-between px-4 py-2 hover:bg-surface-bright transition-colors group">
+<div class="flex items-center space-x-3 mb-2 sm:mb-0 min-w-0">
+<div class="w-1.5 h-1.5 rounded-full bg-primary opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="truncate">
+<div class="font-body-md text-body-md font-semibold text-primary hover:underline cursor-pointer">
+                    Vândalos de Angrath
+                  </div>
+<div class="flex items-center space-x-2 font-label-sm text-label-sm text-on-surface-variant">
+<span>Angrath's Marauders</span>
+<span class="border border-outline-variant px-1 rounded">OTC</span>
+<span>5RR</span>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between sm:justify-end space-x-3 text-label-sm font-label-sm">
+<div class="flex items-center border border-outline-variant rounded bg-surface-container-lowest overflow-hidden">
+<button class="w-6 h-6 flex items-center justify-center hover:bg-surface-container text-primary font-code-num active:translate-y-px transition-colors">-</button>
+<span class="w-6 text-center font-code-num text-code-num text-primary">1</span>
+<button class="w-6 h-6 flex items-center justify-center hover:bg-surface-container text-primary font-code-num active:translate-y-px transition-colors">+</button>
+</div>
+<button class="w-6 h-6 flex items-center justify-center border border-outline-variant hover:border-error hover:bg-error hover:text-on-error text-outline transition-colors rounded" data-icon="delete" title="Excluir">
+<span class="material-symbols-outlined text-[15px]">delete</span>
+</button>
+<label class="flex items-center space-x-1.5 cursor-pointer ml-1">
+<input checked="" class="w-3.5 h-3.5 border-outline-variant text-primary focus:ring-0 rounded" type="checkbox"/>
+<span class="text-label-sm font-label-sm text-on-surface">No deck</span>
+</label>
+<button class="text-on-surface-variant hover:text-primary underline text-label-sm font-label-sm">Tag seção</button>
+</div>
+</article>
+<!-- Row 3: Arquissacerdotisa das Sombras -->
+<article class="flex flex-col sm:flex-row sm:items-center justify-between px-4 py-2 hover:bg-surface-bright transition-colors group">
+<div class="flex items-center space-x-3 mb-2 sm:mb-0 min-w-0">
+<div class="w-1.5 h-1.5 rounded-full bg-primary opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="truncate">
+<div class="font-body-md text-body-md font-semibold text-primary hover:underline cursor-pointer">
+                    Arquissacerdotisa das Sombras
+                  </div>
+<div class="flex items-center space-x-2 font-label-sm text-label-sm text-on-surface-variant">
+<span>Archpriest of Shadows</span>
+<span class="border border-outline-variant px-1 rounded">MOM</span>
+<span>3BB</span>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between sm:justify-end space-x-3 text-label-sm font-label-sm">
+<div class="flex items-center border border-outline-variant rounded bg-surface-container-lowest overflow-hidden">
+<button class="w-6 h-6 flex items-center justify-center hover:bg-surface-container text-primary font-code-num active:translate-y-px transition-colors">-</button>
+<span class="w-6 text-center font-code-num text-code-num text-primary">1</span>
+<button class="w-6 h-6 flex items-center justify-center hover:bg-surface-container text-primary font-code-num active:translate-y-px transition-colors">+</button>
+</div>
+<button class="w-6 h-6 flex items-center justify-center border border-outline-variant hover:border-error hover:bg-error hover:text-on-error text-outline transition-colors rounded" data-icon="delete" title="Excluir">
+<span class="material-symbols-outlined text-[15px]">delete</span>
+</button>
+<label class="flex items-center space-x-1.5 cursor-pointer ml-1">
+<input checked="" class="w-3.5 h-3.5 border-outline-variant text-primary focus:ring-0 rounded" type="checkbox"/>
+<span class="text-label-sm font-label-sm text-on-surface">No deck</span>
+</label>
+<button class="text-on-surface-variant hover:text-primary underline text-label-sm font-label-sm">Tag seção</button>
+</div>
+</article>
+<!-- Row 4: Brenna, a Demagoga -->
+<article class="flex flex-col sm:flex-row sm:items-center justify-between px-4 py-2 hover:bg-surface-bright transition-colors group">
+<div class="flex items-center space-x-3 mb-2 sm:mb-0 min-w-0">
+<div class="w-1.5 h-1.5 rounded-full bg-primary opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="truncate">
+<div class="font-body-md text-body-md font-semibold text-primary hover:underline cursor-pointer">
+                    Brenna, a Demagoga
+                  </div>
+<div class="flex items-center space-x-2 font-label-sm text-label-sm text-on-surface-variant">
+<span>Breena, the Demagogue</span>
+<span class="border border-outline-variant px-1 rounded">SOC</span>
+<span>1WB</span>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between sm:justify-end space-x-3 text-label-sm font-label-sm">
+<div class="flex items-center border border-outline-variant rounded bg-surface-container-lowest overflow-hidden">
+<button class="w-6 h-6 flex items-center justify-center hover:bg-surface-container text-primary font-code-num active:translate-y-px transition-colors">-</button>
+<span class="w-6 text-center font-code-num text-code-num text-primary">1</span>
+<button class="w-6 h-6 flex items-center justify-center hover:bg-surface-container text-primary font-code-num active:translate-y-px transition-colors">+</button>
+</div>
+<button class="w-6 h-6 flex items-center justify-center border border-outline-variant hover:border-error hover:bg-error hover:text-on-error text-outline transition-colors rounded" data-icon="delete" title="Excluir">
+<span class="material-symbols-outlined text-[15px]">delete</span>
+</button>
+<label class="flex items-center space-x-1.5 cursor-pointer ml-1">
+<input checked="" class="w-3.5 h-3.5 border-outline-variant text-primary focus:ring-0 rounded" type="checkbox"/>
+<span class="text-label-sm font-label-sm text-on-surface">No deck</span>
+</label>
+<button class="text-on-surface-variant hover:text-primary underline text-label-sm font-label-sm">Tag seção</button>
+</div>
+</article>
+<!-- Row 5: Capitã Lannery Tormenta -->
+<article class="flex flex-col sm:flex-row sm:items-center justify-between px-4 py-2 hover:bg-surface-bright transition-colors group">
+<div class="flex items-center space-x-3 mb-2 sm:mb-0 min-w-0">
+<div class="w-1.5 h-1.5 rounded-full bg-primary opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="truncate">
+<div class="font-body-md text-body-md font-semibold text-primary hover:underline cursor-pointer">
+                    Capitã Lannery Tormenta
+                  </div>
+<div class="flex items-center space-x-2 font-label-sm text-label-sm text-on-surface-variant">
+<span>Captain Lannery Storm</span>
+<span class="border border-outline-variant px-1 rounded">OTC</span>
+<span>2R</span>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between sm:justify-end space-x-3 text-label-sm font-label-sm">
+<div class="flex items-center border border-outline-variant rounded bg-surface-container-lowest overflow-hidden">
+<button class="w-6 h-6 flex items-center justify-center hover:bg-surface-container text-primary font-code-num active:translate-y-px transition-colors">-</button>
+<span class="w-6 text-center font-code-num text-code-num text-primary">1</span>
+<button class="w-6 h-6 flex items-center justify-center hover:bg-surface-container text-primary font-code-num active:translate-y-px transition-colors">+</button>
+</div>
+<button class="w-6 h-6 flex items-center justify-center border border-outline-variant hover:border-error hover:bg-error hover:text-on-error text-outline transition-colors rounded" data-icon="delete" title="Excluir">
+<span class="material-symbols-outlined text-[15px]">delete</span>
+</button>
+<label class="flex items-center space-x-1.5 cursor-pointer ml-1">
+<input checked="" class="w-3.5 h-3.5 border-outline-variant text-primary focus:ring-0 rounded" type="checkbox"/>
+<span class="text-label-sm font-label-sm text-on-surface">No deck</span>
+</label>
+<button class="text-on-surface-variant hover:text-primary underline text-label-sm font-label-sm">Tag seção</button>
+</div>
+</article>
+<!-- Row 6: Tripulação Cativante -->
+<article class="flex flex-col sm:flex-row sm:items-center justify-between px-4 py-2 hover:bg-surface-bright transition-colors group">
+<div class="flex items-center space-x-3 mb-2 sm:mb-0 min-w-0">
+<div class="w-1.5 h-1.5 rounded-full bg-primary opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="truncate">
+<div class="font-body-md text-body-md font-semibold text-primary hover:underline cursor-pointer flex items-center gap-2">
+<span>Tripulação Cativante</span>
+<span class="bg-primary text-on-primary text-[9px] px-1 rounded font-label-sm">SAI</span>
+</div>
+<div class="flex items-center space-x-2 font-label-sm text-label-sm text-on-surface-variant">
+<span>Captivating Crew</span>
+<span class="border border-outline-variant px-1 rounded">OTC</span>
+<span>3R</span>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between sm:justify-end space-x-3 text-label-sm font-label-sm">
+<div class="flex items-center border border-outline-variant rounded bg-surface-container-lowest overflow-hidden">
+<button class="w-6 h-6 flex items-center justify-center hover:bg-surface-container text-primary font-code-num active:translate-y-px transition-colors">-</button>
+<span class="w-6 text-center font-code-num text-code-num text-primary">1</span>
+<button class="w-6 h-6 flex items-center justify-center hover:bg-surface-container text-primary font-code-num active:translate-y-px transition-colors">+</button>
+</div>
+<button class="w-6 h-6 flex items-center justify-center border border-outline-variant hover:border-error hover:bg-error hover:text-on-error text-outline transition-colors rounded" data-icon="delete" title="Excluir">
+<span class="material-symbols-outlined text-[15px]">delete</span>
+</button>
+<label class="flex items-center space-x-1.5 cursor-pointer ml-1">
+<input checked="" class="w-3.5 h-3.5 border-outline-variant text-primary focus:ring-0 rounded" type="checkbox"/>
+<span class="text-label-sm font-label-sm text-on-surface">No deck</span>
+</label>
+<button class="text-on-surface-variant hover:text-primary underline text-label-sm font-label-sm">Tag seção</button>
+</div>
+</article>
+<!-- Row 7: Xucro Cáustico -->
+<article class="flex flex-col sm:flex-row sm:items-center justify-between px-4 py-2 hover:bg-surface-bright transition-colors group">
+<div class="flex items-center space-x-3 mb-2 sm:mb-0 min-w-0">
+<div class="w-1.5 h-1.5 rounded-full bg-primary opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="truncate">
+<div class="font-body-md text-body-md font-semibold text-primary hover:underline cursor-pointer">
+                    Xucro Cáustico
+                  </div>
+<div class="flex items-center space-x-2 font-label-sm text-label-sm text-on-surface-variant">
+<span>Caustic Bronco</span>
+<span class="border border-outline-variant px-1 rounded">OTJ</span>
+<span>1B</span>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between sm:justify-end space-x-3 text-label-sm font-label-sm">
+<div class="flex items-center border border-outline-variant rounded bg-surface-container-lowest overflow-hidden">
+<button class="w-6 h-6 flex items-center justify-center hover:bg-surface-container text-primary font-code-num active:translate-y-px transition-colors">-</button>
+<span class="w-6 text-center font-code-num text-code-num text-primary">1</span>
+<button class="w-6 h-6 flex items-center justify-center hover:bg-surface-container text-primary font-code-num active:translate-y-px transition-colors">+</button>
+</div>
+<button class="w-6 h-6 flex items-center justify-center border border-outline-variant hover:border-error hover:bg-error hover:text-on-error text-outline transition-colors rounded" data-icon="delete" title="Excluir">
+<span class="material-symbols-outlined text-[15px]">delete</span>
+</button>
+<label class="flex items-center space-x-1.5 cursor-pointer ml-1">
+<input checked="" class="w-3.5 h-3.5 border-outline-variant text-primary focus:ring-0 rounded" type="checkbox"/>
+<span class="text-label-sm font-label-sm text-on-surface">No deck</span>
+</label>
+<button class="text-on-surface-variant hover:text-primary underline text-label-sm font-label-sm">Tag seção</button>
+</div>
+</article>
+</div>
+</div>
+<!-- COLLAPSIBLE SECTION 2: INSTANTÂNEOS -->
+<div class="border-b border-outline-variant">
+<div class="flex items-center justify-between px-4 py-2.5 bg-surface-bright cursor-pointer select-none hover:bg-surface-container-low transition-colors">
+<div class="flex items-center space-x-2">
+<span class="material-symbols-outlined text-[16px] text-outline" data-icon="arrow_right">arrow_right</span>
+<span class="font-headline-sm text-headline-sm font-semibold text-primary">Instantâneos</span>
+</div>
+<span class="text-label-sm font-label-sm text-on-surface-variant">12</span>
+</div>
+</div>
+<!-- COLLAPSIBLE SECTION 3: FEITIÇOS -->
+<div class="border-b border-outline-variant">
+<div class="flex items-center justify-between px-4 py-2.5 bg-surface-bright cursor-pointer select-none hover:bg-surface-container-low transition-colors">
+<div class="flex items-center space-x-2">
+<span class="material-symbols-outlined text-[16px] text-outline" data-icon="arrow_right">arrow_right</span>
+<span class="font-headline-sm text-headline-sm font-semibold text-primary">Feitiços</span>
+</div>
+<span class="text-label-sm font-label-sm text-on-surface-variant">14</span>
+</div>
+</div>
+<!-- COLLAPSIBLE SECTION 4: ARTEFATOS E ENCANTAMENTOS -->
+<div class="border-b border-outline-variant">
+<div class="flex items-center justify-between px-4 py-2.5 bg-surface-bright cursor-pointer select-none hover:bg-surface-container-low transition-colors">
+<div class="flex items-center space-x-2">
+<span class="material-symbols-outlined text-[16px] text-outline" data-icon="arrow_right">arrow_right</span>
+<span class="font-headline-sm text-headline-sm font-semibold text-primary">Artefatos e Encantamentos</span>
+</div>
+<span class="text-label-sm font-label-sm text-on-surface-variant">16</span>
+</div>
+</div>
+<!-- COLLAPSIBLE SECTION 5: TERRENOS -->
+<div>
+<div class="flex items-center justify-between px-4 py-2.5 bg-surface-bright cursor-pointer select-none hover:bg-surface-container-low transition-colors">
+<div class="flex items-center space-x-2">
+<span class="material-symbols-outlined text-[16px] text-outline" data-icon="arrow_right">arrow_right</span>
+<span class="font-headline-sm text-headline-sm font-semibold text-primary">Terrenos</span>
+</div>
+<span class="text-label-sm font-label-sm text-on-surface-variant">36</span>
+</div>
+</div>
+</section>
+<!-- ZONE 2: ACTION SIDEBAR / UTILITY DOCK (4 Cols on Desktop) -->
+<aside class="lg:col-span-4 bg-surface-container-lowest border border-outline-variant rounded p-4 space-y-5">
+<!-- MODULE 1: BUSCA RÁPIDA -->
+<div class="space-y-2">
+<label class="block font-label-sm text-label-sm font-bold text-primary tracking-wider uppercase">
+            BUSCA
+          </label>
+<div class="relative">
+<input class="w-full h-9 pl-3 pr-9 bg-surface-container-lowest border border-outline-variant text-on-surface font-body-md text-body-md focus:border-primary focus:ring-0 rounded" placeholder="Buscar carta..." type="text"/>
+<span class="material-symbols-outlined absolute right-2.5 top-2.5 text-outline text-[16px]" data-icon="search">search</span>
+</div>
+<button class="w-full h-8 bg-surface-container-lowest border border-outline-variant hover:border-primary text-primary font-body-md text-body-md rounded transition-colors active:translate-y-px flex items-center justify-center gap-1.5">
+<span class="material-symbols-outlined text-[16px]" data-icon="crop_free">crop_free</span>
+<span>Escanear carta</span>
+</button>
+</div>
+<div class="h-px bg-outline-variant"></div>
+<!-- MODULE 2: LISTA RÁPIDA (BATCH IMPORT) -->
+<div class="space-y-2">
+<div class="flex items-center justify-between">
+<label class="block font-label-sm text-label-sm font-bold text-primary tracking-wider uppercase">
+              LISTA
+            </label>
+<span class="text-label-sm font-label-sm text-outline">Qtd + Nome</span>
+</div>
+<textarea class="w-full p-2.5 bg-surface-container-lowest border border-outline-variant text-on-surface font-label-md text-label-md focus:border-primary focus:ring-0 rounded resize-none" placeholder="1 Sol Ring
+1 Demonic Tutor" rows="4">1 Sol Ring</textarea>
+<button class="w-full h-8 bg-surface-container-lowest border border-outline-variant hover:border-primary text-primary font-body-md text-body-md rounded transition-colors active:translate-y-px flex items-center justify-center gap-1">
+<span class="material-symbols-outlined text-[16px]" data-icon="add">add</span>
+<span>Adicionar ao deck</span>
+</button>
+</div>
+<div class="h-px bg-outline-variant"></div>
+<!-- MODULE 3: SEÇÃO (TAG) -->
+<div class="space-y-2">
+<label class="block font-label-sm text-label-sm font-bold text-primary tracking-wider uppercase">
+            SEÇÃO (TAG)
+          </label>
+<input class="w-full h-9 px-3 bg-surface-container-lowest border border-outline-variant text-on-surface font-body-md text-body-md focus:border-primary focus:ring-0 rounded" placeholder="upgrade, remover, trocar" type="text"/>
+<button class="w-full h-8 bg-surface-container-lowest border border-outline-variant hover:border-primary text-primary font-body-md text-body-md rounded transition-colors active:translate-y-px">
+            Criar seção
+          </button>
+</div>
+<div class="h-px bg-outline-variant"></div>
+<!-- MODULE 4: TAGS ATIVAS -->
+<div class="space-y-2">
+<label class="block font-label-sm text-label-sm font-bold text-primary tracking-wider uppercase">
+            TAGS
+          </label>
+<div class="border border-outline-variant rounded divide-y divide-outline-variant bg-surface-container-lowest">
+<div class="flex items-center justify-between px-3 py-1.5 text-body-md">
+<span class="font-medium text-primary">Upgrade</span>
+<button class="text-label-sm font-label-sm text-on-surface-variant hover:text-error underline transition-colors">Excluir</button>
+</div>
+<div class="flex items-center justify-between px-3 py-1.5 text-body-md">
+<span class="font-medium text-primary">Sai</span>
+<button class="text-label-sm font-label-sm text-on-surface-variant hover:text-error underline transition-colors">Excluir</button>
+</div>
+<div class="flex items-center justify-between px-3 py-1.5 text-body-md">
+<span class="font-medium text-primary">Sideboard</span>
+<button class="text-label-sm font-label-sm text-on-surface-variant hover:text-error underline transition-colors">Excluir</button>
+</div>
+</div>
+</div>
+<div class="h-px bg-outline-variant"></div>
+<!-- MODULE 5: ADICIONAR EM TRABALHO + TAG -->
+<div class="pt-1">
+<button class="w-full py-2 px-3 bg-surface-container hover:bg-surface-container-high border border-outline-variant text-primary font-label-sm text-label-sm font-semibold rounded uppercase tracking-wider text-center transition-colors">
+            ADICIONAR EM TRABALHO + TAG
+          </button>
+</div>
+</aside>
+</div>
+</main>
+<!-- QUICK FLOATING STATUS BADGE (Fixed Bottom Right) -->
+<aside aria-label="Deck Statistics" class="fixed bottom-4 right-4 z-40 bg-primary text-on-primary px-3 py-1.5 rounded text-label-sm font-label-sm flex items-center space-x-2 border border-primary shadow-sm">
+<span class="w-2 h-2 rounded-full bg-surface-container-lowest animate-pulse"></span>
+<span>SYNCHRONIZED // 93 CARDS</span>
+</aside>
+</body></html>

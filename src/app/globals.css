@@ -1,0 +1,222 @@
+@import "tailwindcss";
+
+/* F-009 / US-009-01 — tokens from Stitch Monochrome Studio */
+@theme {
+  --color-background: #f9f9fa;
+  --color-surface: #f9f9fa;
+  --color-surface-bright: #f9f9fa;
+  --color-surface-dim: #dadadb;
+  --color-surface-container: #eeeeef;
+  --color-surface-container-low: #f3f3f4;
+  --color-surface-container-high: #e8e8e9;
+  --color-surface-container-highest: #e2e2e3;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-variant: #e2e2e3;
+  --color-on-surface: #1a1c1d;
+  --color-on-surface-variant: #47464a;
+  --color-on-background: #1a1c1d;
+  --color-primary: #000000;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #1c1b1d;
+  --color-secondary: #5d5e66;
+  --color-outline: #78767b;
+  --color-outline-variant: #c8c5ca;
+  --color-error: #ba1a1a;
+  --color-border-line: #e4e4e7;
+  --color-ink: #09090b;
+  --color-muted: #71717a;
+  --color-zinc-800: #27272a;
+  --color-danger: #dc2626;
+
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+
+  --radius-sm: 0.125rem;
+  --radius-DEFAULT: 0.125rem;
+  --radius-lg: 0.25rem;
+  --radius-xl: 0.5rem;
+
+  --spacing-space-xs: 0.25rem;
+  --spacing-space-sm: 0.5rem;
+  --spacing-space-md: 0.75rem;
+  --spacing-space-lg: 1rem;
+  --spacing-space-xl: 1.5rem;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-on-surface);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+::placeholder {
+  color: var(--color-muted);
+}
+
+/* Shared Stitch chrome utilities */
+.ui-panel {
+  border: 1px solid var(--color-ink);
+  background: var(--color-surface-container-lowest);
+}
+
+.ui-panel-soft {
+  border: 1px solid var(--color-border-line);
+  background: var(--color-surface-container-lowest);
+}
+
+.ui-input {
+  height: 34px;
+  width: 100%;
+  border: 1px solid var(--color-border-line);
+  background: #fff;
+  padding: 0 10px;
+  font-size: 13px;
+  outline: none;
+  border-radius: 2px;
+}
+
+.ui-input:focus {
+  border-color: var(--color-ink);
+}
+
+.ui-textarea {
+  width: 100%;
+  border: 1px solid var(--color-border-line);
+  background: #fff;
+  padding: 10px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  outline: none;
+  border-radius: 2px;
+}
+
+.ui-textarea:focus {
+  border-color: var(--color-ink);
+}
+
+.ui-btn {
+  display: inline-flex;
+  height: 32px;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0 12px;
+  border: 1px solid var(--color-ink);
+  background: var(--color-ink);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 2px;
+}
+
+.ui-btn:hover {
+  background: var(--color-zinc-800);
+}
+
+.ui-btn:disabled {
+  opacity: 0.5;
+}
+
+.ui-btn-outline {
+  display: inline-flex;
+  height: 32px;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0 12px;
+  border: 1px solid var(--color-border-line);
+  background: #fff;
+  color: var(--color-ink);
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 2px;
+}
+
+.ui-btn-outline:hover {
+  border-color: var(--color-ink);
+  background: #f4f4f5;
+}
+
+.ui-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.ui-headline {
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 34px;
+  letter-spacing: -0.03em;
+  color: var(--color-ink);
+}
+
+.ui-headline-lg {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 26px;
+  letter-spacing: -0.02em;
+  color: var(--color-ink);
+}
+
+.ui-row {
+  display: flex;
+  min-height: 36px;
+  align-items: center;
+  gap: 0.75rem;
+  border-bottom: 1px solid #f4f4f5;
+  padding: 6px 12px;
+}
+
+.ui-row:hover {
+  background: #fafafa;
+}
+
+.ui-badge {
+  display: inline-flex;
+  height: 20px;
+  align-items: center;
+  padding: 0 6px;
+  border: 1px solid var(--color-border-line);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-radius: 2px;
+}
+
+.ui-badge-active {
+  border-color: var(--color-ink);
+  background: var(--color-ink);
+  color: #fff;
+}
