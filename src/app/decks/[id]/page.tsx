@@ -9,6 +9,7 @@ import { CardQuantityControls } from "@/components/card-quantity-controls";
 import { CardScanner } from "@/components/card-scanner";
 import { CardSearch, type Suggestion } from "@/components/card-search";
 import { DeckCanvas, type DeckCanvasHandle } from "@/components/deck-canvas";
+import { DeckCanvasKonva } from "@/components/deck-canvas-konva";
 import { DeckCoverageBadge } from "@/components/deck-coverage-badge";
 import { DeckExportMenu } from "@/components/deck-export-menu";
 import { DeckStatsCharts } from "@/components/deck-stats-charts";
@@ -43,6 +44,15 @@ type CardRow = {
 
 type Section = { id: string; name: string; kind?: "user" | "type" | string; type_key?: string | null };
 
+/** `canvas` = tldraw (F-008); `canvas-v2` = Konva (US-008-08). */
+type DeckView = "lista" | "canvas" | "canvas-v2";
+
+const VIEW_OPTIONS: Array<{ id: DeckView; label: string }> = [
+  { id: "lista", label: "Lista" },
+  { id: "canvas", label: "Canvas" },
+  { id: "canvas-v2", label: "Canvas v2" },
+];
+
 function normalizeSectionIds(value: unknown): string[] {
   if (Array.isArray(value)) return value.map(String);
   if (typeof value === "string") {
@@ -63,7 +73,8 @@ export default function DeckPage() {
   const [cards, setCards] = useState<CardRow[]>([]);
   const [coverage, setCoverage] = useState<DeckCoverageSummary | null>(null);
   const [sections, setSections] = useState<Section[]>([]);
-  const [view, setView] = useState<"lista" | "canvas">("lista");
+  const [view, setView] = useState<DeckView>("lista");
+  const isCanvasView = view !== "lista";
   const [includeCollection, setIncludeCollection] = useState(false);
   const [sectionName, setSectionName] = useState("");
   const [targetSection, setTargetSection] = useState("");
@@ -77,8 +88,9 @@ export default function DeckPage() {
   const [autoSectionsSyncing, setAutoSectionsSyncing] = useState(false);
   const [canvasToolsOpen, setCanvasToolsOpen] = useState(false);
   const [metaCard, setMetaCard] = useState<CardRow | null>(null);
-  const [canvasSnapshot, setCanvasSnapshot] = useState<TLEditorSnapshot | null>(null);
-  const [canvasReady, setCanvasReady] = useState(false);
+  const [canvasSnapshot, setCanvasSnapshot] = useState<unknown>(null);
+  const [canvasLoadedView, setCanvasLoadedView] = useState<DeckView | null>(null);
+  const canvasReady = isCanvasView && canvasLoadedView === view;
   const [canvasDirty, setCanvasDirty] = useState(false);
   const [canvasSaveState, setCanvasSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [canvasUpdatedAt, setCanvasUpdatedAt] = useState<string | null>(null);
@@ -147,26 +159,27 @@ export default function DeckPage() {
   }, [groupByType, groupByCost, params.id, load]);
 
   useEffect(() => {
-    if (view !== "canvas") {
-      setCanvasReady(false);
+    if (view === "lista") {
+      setCanvasLoadedView(null);
       return;
     }
     let cancelled = false;
-    setCanvasReady(false);
-    void fetch(`/api/decks/${params.id}/canvas`)
+    setCanvasLoadedView(null);
+    const engineQuery = view === "canvas-v2" ? "?engine=konva" : "";
+    void fetch(`/api/decks/${params.id}/canvas${engineQuery}`)
       .then((response) => response.json())
       .then((data) => {
         if (cancelled) return;
-        setCanvasSnapshot((data.snapshot as TLEditorSnapshot | null) ?? null);
+        setCanvasSnapshot(data.snapshot ?? null);
         setCanvasUpdatedAt(data.updatedAt ?? null);
-        setCanvasReady(true);
+        setCanvasLoadedView(view);
         setCanvasDirty(false);
         setCanvasSaveState("idle");
       })
       .catch(() => {
         if (cancelled) return;
         setCanvasSnapshot(null);
-        setCanvasReady(true);
+        setCanvasLoadedView(view);
       });
     return () => {
       cancelled = true;
@@ -174,15 +187,15 @@ export default function DeckPage() {
   }, [view, params.id]);
 
   useEffect(() => {
-    if (view !== "canvas" || !canvasReady) return;
+    if (!isCanvasView || !canvasReady) return;
     const timer = window.setInterval(() => {
       if (canvasRef.current?.isDirty()) void canvasRef.current.save();
     }, 5 * 60 * 1000);
     return () => window.clearInterval(timer);
-  }, [view, canvasReady]);
+  }, [isCanvasView, canvasReady]);
 
   useEffect(() => {
-    if (view !== "canvas") return;
+    if (!isCanvasView) return;
     function onBeforeUnload() {
       if (!canvasRef.current?.isDirty()) return;
       void canvasRef.current.save({ keepalive: true });
@@ -192,11 +205,12 @@ export default function DeckPage() {
       window.removeEventListener("beforeunload", onBeforeUnload);
       if (canvasRef.current?.isDirty()) void canvasRef.current.save({ keepalive: true });
     };
-  }, [view]);
+  }, [isCanvasView]);
 
-  async function leaveCanvas() {
+  async function switchView(next: DeckView) {
+    if (next === view) return;
     if (canvasRef.current?.isDirty()) await canvasRef.current.save();
-    setView("lista");
+    setView(next);
   }
 
   async function ensureAutoSections() {
@@ -581,18 +595,46 @@ export default function DeckPage() {
     />
   );
 
-  if (view === "canvas") {
+  const viewToggle = (buttonHeight: string) => (
+    <div className="flex border border-ink">
+      {VIEW_OPTIONS.map((option) => (
+        <button
+          key={option.id}
+          type="button"
+          aria-pressed={view === option.id}
+          onClick={() => void switchView(option.id)}
+          className={
+            view === option.id
+              ? `ui-btn ${buttonHeight} rounded-none px-3`
+              : `ui-btn-outline ${buttonHeight} rounded-none border-0 px-3`
+          }
+        >
+          {option.label}
+        </button>
+      ))}
+    </div>
+  );
+
+  if (isCanvasView) {
+    const canvasCallbacks = {
+      deckId: params.id,
+      cards,
+      sections,
+      onDirtyChange: setCanvasDirty,
+      onDomainChange: () => void load(),
+      onEditCardMeta: (catalogId: string) => {
+        const card = cards.find((item) => item.id === catalogId);
+        if (card) setMetaCard(card);
+      },
+      onSaveState: (state: "idle" | "saving" | "saved" | "error", updatedAt?: string | null) => {
+        setCanvasSaveState(state);
+        if (updatedAt) setCanvasUpdatedAt(updatedAt);
+      },
+    };
     return (
       <div className="fixed inset-0 z-40 flex flex-col bg-background">
         <header className="flex h-12 shrink-0 items-center gap-3 border-b border-border-line bg-surface-container-lowest px-4">
-          <div className="flex border border-ink">
-            <button type="button" onClick={() => void leaveCanvas()} className="ui-btn-outline h-8 rounded-none border-0 px-3">
-              Lista
-            </button>
-            <button type="button" className="ui-btn h-8 rounded-none px-3" disabled>
-              Canvas
-            </button>
-          </div>
+          {viewToggle("h-8")}
           <span className="text-[13px] font-semibold text-ink">{name}</span>
           <span className="ui-badge">{format}</span>
           <DeckCoverageBadge coverage={coverage} />
@@ -611,24 +653,19 @@ export default function DeckPage() {
           </div>
         </header>
         <div className="relative min-h-0 flex-1">
-          {canvasReady ? (
+          {canvasReady && view === "canvas" ? (
             <DeckCanvas
               key={`${params.id}-canvas`}
               ref={canvasRef}
-              deckId={params.id}
+              initialSnapshot={(canvasSnapshot as TLEditorSnapshot | null) ?? null}
+              {...canvasCallbacks}
+            />
+          ) : canvasReady && view === "canvas-v2" ? (
+            <DeckCanvasKonva
+              key={`${params.id}-canvas-v2`}
+              ref={canvasRef}
               initialSnapshot={canvasSnapshot}
-              cards={cards}
-              sections={sections}
-              onDirtyChange={setCanvasDirty}
-              onDomainChange={() => void load()}
-              onEditCardMeta={(catalogId) => {
-                const card = cards.find((item) => item.id === catalogId);
-                if (card) setMetaCard(card);
-              }}
-              onSaveState={(state, updatedAt) => {
-                setCanvasSaveState(state);
-                if (updatedAt) setCanvasUpdatedAt(updatedAt);
-              }}
+              {...canvasCallbacks}
             />
           ) : (
             <div className="flex h-full items-center justify-center text-sm text-neutral-500">Carregando canvas…</div>
@@ -702,14 +739,7 @@ export default function DeckPage() {
           </button>
           <DeckExportMenu cards={cards} />
           <DeckCoverageBadge coverage={coverage} />
-          <div className="ml-auto flex border border-ink">
-            <button type="button" onClick={() => setView("lista")} className="ui-btn h-9 rounded-none px-3">
-              Lista
-            </button>
-            <button type="button" onClick={() => setView("canvas")} className="ui-btn-outline h-9 rounded-none border-0 px-3">
-              Canvas
-            </button>
-          </div>
+          <div className="ml-auto">{viewToggle("h-9")}</div>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[1fr_320px]">

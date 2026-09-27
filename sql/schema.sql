@@ -92,3 +92,9 @@ CREATE TABLE IF NOT EXISTS deck_canvas (
   snapshot jsonb NOT NULL,
   updated_at timestamptz NOT NULL DEFAULT now()
 );
+
+CREATE TABLE IF NOT EXISTS deck_canvas_konva (
+  deck_id uuid PRIMARY KEY REFERENCES decks (id) ON DELETE CASCADE,
+  snapshot jsonb NOT NULL,
+  updated_at timestamptz NOT NULL DEFAULT now()
+);

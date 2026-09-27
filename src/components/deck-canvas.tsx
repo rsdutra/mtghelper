@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import {
   AssetRecordType,
   createShapeId,
@@ -14,7 +14,26 @@ import {
   type TLShapeId,
 } from "tldraw";
 import "tldraw/tldraw.css";
-import { formatBRLFromCents } from "@/lib/money-br";
+import { useCardOverlays } from "@/components/deck-canvas-overlays";
+import {
+  CARD_H,
+  CARD_W,
+  cardOpacity,
+  defaultInSectionPos,
+  defaultSectionFrameSize,
+  defaultUntaggedPos,
+  expand,
+  imageSrc,
+  primarySection,
+  sectionColsForWidth,
+  sectionOriginY,
+  type CanvasCard,
+  type CanvasSaveState,
+  type CanvasSection,
+  type DeckCanvasHandle,
+} from "@/lib/deck-canvas-model";
+
+export type { CanvasCard, CanvasSection, DeckCanvasHandle } from "@/lib/deck-canvas-model";
 
 const Tldraw = dynamic(async () => (await import("tldraw")).Tldraw, {
   ssr: false,
@@ -24,64 +43,6 @@ const Tldraw = dynamic(async () => (await import("tldraw")).Tldraw, {
     </div>
   ),
 });
-
-export type CanvasCard = {
-  id: string;
-  quantity: number;
-  included: boolean;
-  section_ids: string[];
-  name_en: string;
-  name_pt: string | null;
-  image_normal: string | null;
-  image_small: string | null;
-  price_cents?: number | null;
-  note?: string | null;
-};
-
-export type CanvasSection = {
-  id: string;
-  name: string;
-  kind?: "user" | "type" | string;
-};
-
-export type DeckCanvasHandle = {
-  save: (options?: { keepalive?: boolean }) => Promise<boolean>;
-  isDirty: () => boolean;
-};
-
-const CARD_W = 146;
-const CARD_H = 204;
-const GAP = 12;
-const COLS = 8;
-/** Cartas fora do deck: levemente atenuadas (ainda legíveis). */
-const OUT_OF_DECK_OPACITY = 0.84;
-/** Delay antes do preview ampliado (F-008 / US-008-04). */
-const HOVER_PREVIEW_DELAY_MS = 1500;
-const PREVIEW_W = 280;
-
-function expand(cards: CanvasCard[]) {
-  const copies: Array<CanvasCard & { copy: number }> = [];
-  for (const card of cards) {
-    for (let i = 0; i < card.quantity; i += 1) {
-      copies.push({ ...card, copy: i });
-    }
-  }
-  return copies;
-}
-
-function imageSrc(card: CanvasCard) {
-  return card.image_normal ?? card.image_small?.replace("/small/", "/normal/") ?? null;
-}
-
-/** Prefere seção automática por tipo quando a carta tem essa tag (F-008 / US-008-03). */
-function primarySection(card: CanvasCard, sectionsById: Map<string, CanvasSection>) {
-  const autoId = card.section_ids.find((id) => {
-    const kind = sectionsById.get(id)?.kind;
-    return kind === "type" || kind === "cost";
-  });
-  if (autoId) return autoId;
-  return card.section_ids[0] ?? null;
-}
 
 function ensureImageAsset(editor: Editor, key: string, src: string, name: string) {
   const assetId = AssetRecordType.createId(key) as TLAssetId;
@@ -160,32 +121,6 @@ function syncOutOfDeckMarker(
   }
 }
 
-function cardOpacity(included: boolean) {
-  return included ? 1 : OUT_OF_DECK_OPACITY;
-}
-
-function defaultUntaggedPos(index: number) {
-  const col = index % COLS;
-  const row = Math.floor(index / COLS);
-  return { x: 48 + col * (CARD_W + GAP), y: 48 + row * (CARD_H + GAP) };
-}
-
-function defaultSectionFrameSize(cardCount: number) {
-  const cols = Math.max(2, Math.min(6, cardCount || 2));
-  const rows = Math.max(1, Math.ceil((cardCount || 1) / cols));
-  return {
-    cols,
-    w: cols * (CARD_W + GAP) + GAP * 2,
-    h: rows * (CARD_H + GAP) + 48,
-  };
-}
-
-function defaultInSectionPos(index: number, cols: number) {
-  const col = index % cols;
-  const row = Math.floor(index / cols);
-  return { x: GAP + col * (CARD_W + GAP), y: 32 + row * (CARD_H + GAP) };
-}
-
 /**
  * Sincroniza shapes com o domínio sem sobrescrever layout persistido (F-008).
  * - Shape novo → posição/tamanho default
@@ -249,8 +184,7 @@ function syncBoard(editor: Editor, cards: CanvasCard[], sections: CanvasSection[
     }
   });
 
-  const mainRows = Math.max(1, Math.ceil(untagged.length / COLS));
-  const sectionOriginY = 48 + mainRows * (CARD_H + GAP) + 64;
+  const framesOriginY = sectionOriginY(untagged.length);
 
   sections.forEach((section, sectionIndex) => {
     const frameKey = `frame:${section.id}`;
@@ -266,7 +200,7 @@ function syncBoard(editor: Editor, cards: CanvasCard[], sections: CanvasSection[
         type: "frame",
         parentId: pageId,
         x: 48 + sectionIndex * (defaults.w + 48),
-        y: sectionOriginY,
+        y: framesOriginY,
         meta: {
           mtgKey: frameKey,
           sectionId: section.id,
@@ -304,7 +238,7 @@ function syncBoard(editor: Editor, cards: CanvasCard[], sections: CanvasSection[
       existingFrame && existingFrame.type === "frame"
         ? Number(existingFrame.props.w) || defaults.w
         : defaults.w;
-    const cols = Math.max(2, Math.min(6, Math.floor((frameW - GAP * 2) / (CARD_W + GAP)) || defaults.cols));
+    const cols = sectionColsForWidth(frameW, defaults.cols);
 
     cardsInSection.forEach((card, index) => {
       const src = imageSrc(card);
@@ -388,30 +322,13 @@ function sectionIdFromParent(editor: Editor, parentId: string) {
   return typeof sectionId === "string" ? sectionId : null;
 }
 
-type HoverPreview = {
-  src: string;
-  name: string;
-  x: number;
-  y: number;
-};
-
-type CardContextMenu = {
-  x: number;
-  y: number;
-  catalogId: string;
-  name: string;
-  nameEn: string;
-  hasPt: boolean;
-  priceLabel: string | null;
-};
-
 type Props = {
   deckId: string;
   initialSnapshot: TLEditorSnapshot | null;
   cards: CanvasCard[];
   sections: CanvasSection[];
   onDirtyChange?: (dirty: boolean) => void;
-  onSaveState?: (state: "idle" | "saving" | "saved" | "error", updatedAt?: string | null) => void;
+  onSaveState?: (state: CanvasSaveState, updatedAt?: string | null) => void;
   onDomainChange?: () => void;
   onEditCardMeta?: (catalogCardId: string) => void;
 };
@@ -430,39 +347,8 @@ export const DeckCanvas = forwardRef<DeckCanvasHandle, Props>(function DeckCanva
   boardRef.current = { cards, sections };
   const onDomainChangeRef = useRef(onDomainChange);
   onDomainChangeRef.current = onDomainChange;
-  const onEditCardMetaRef = useRef(onEditCardMeta);
-  onEditCardMetaRef.current = onEditCardMeta;
-  const cardsByIdRef = useRef(new Map<string, CanvasCard>());
-  cardsByIdRef.current = new Map(cards.map((card) => [card.id, card]));
-
-  const hoverTimerRef = useRef<number | null>(null);
-  const hoverKeyRef = useRef<string | null>(null);
-  const hoverPreviewVisibleRef = useRef(false);
-  const pointerRef = useRef({ x: 0, y: 0 });
-  const [hoverPreview, setHoverPreview] = useState<HoverPreview | null>(null);
-  const [contextMenu, setContextMenu] = useState<CardContextMenu | null>(null);
-  const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
-  const contextMenuOpenRef = useRef(false);
-  contextMenuOpenRef.current = Boolean(contextMenu);
-
-  function clearHoverTimer() {
-    if (hoverTimerRef.current !== null) {
-      window.clearTimeout(hoverTimerRef.current);
-      hoverTimerRef.current = null;
-    }
-  }
-
-  function hideHoverPreview() {
-    clearHoverTimer();
-    hoverKeyRef.current = null;
-    hoverPreviewVisibleRef.current = false;
-    setHoverPreview(null);
-  }
-
-  function closeContextMenu() {
-    setContextMenu(null);
-    setCopyFeedback(null);
-  }
+  const { overlays, hoverCard, hideHoverPreview, openContextMenu, closeContextMenu, editCardMeta } =
+    useCardOverlays({ cards, onEditCardMeta });
 
   function cardShapeAtClientPoint(editor: Editor, clientX: number, clientY: number) {
     const pagePoint = editor.screenToPage({ x: clientX, y: clientY });
@@ -475,16 +361,6 @@ export const DeckCanvas = forwardRef<DeckCanvasHandle, Props>(function DeckCanva
     const catalogId = shape.meta?.catalogId;
     if (typeof catalogId !== "string") return null;
     return { shape, catalogId };
-  }
-
-  async function copyCardName(name: string) {
-    try {
-      await navigator.clipboard.writeText(name);
-      setCopyFeedback("Nome copiado");
-      window.setTimeout(() => closeContextMenu(), 700);
-    } catch {
-      setCopyFeedback("Falha ao copiar");
-    }
   }
 
   function handleEditorContextMenu(event: MouseEvent) {
@@ -500,23 +376,7 @@ export const DeckCanvas = forwardRef<DeckCanvasHandle, Props>(function DeckCanva
       closeContextMenu();
       return;
     }
-    hideHoverPreview();
-    const card = cardsByIdRef.current.get(hit.catalogId);
-    if (!card) {
-      closeContextMenu();
-      return;
-    }
-    const name = card.name_pt ?? card.name_en;
-    setCopyFeedback(null);
-    setContextMenu({
-      x: event.clientX,
-      y: event.clientY,
-      catalogId: hit.catalogId,
-      name,
-      nameEn: card.name_en,
-      hasPt: Boolean(card.name_pt),
-      priceLabel: formatBRLFromCents(card.price_cents ?? null) || null,
-    });
+    openContextMenu(hit.catalogId, event.clientX, event.clientY);
   }
 
   function handleEditorDoubleClick(event: MouseEvent) {
@@ -526,9 +386,7 @@ export const DeckCanvas = forwardRef<DeckCanvasHandle, Props>(function DeckCanva
     if (!hit) return;
     event.preventDefault();
     event.stopPropagation();
-    hideHoverPreview();
-    closeContextMenu();
-    onEditCardMetaRef.current?.(hit.catalogId);
+    editCardMeta(hit.catalogId);
   }
 
   const handleEditorContextMenuRef = useRef(handleEditorContextMenu);
@@ -536,41 +394,9 @@ export const DeckCanvas = forwardRef<DeckCanvasHandle, Props>(function DeckCanva
   const handleEditorDoubleClickRef = useRef(handleEditorDoubleClick);
   handleEditorDoubleClickRef.current = handleEditorDoubleClick;
 
-  function scheduleHoverPreview(key: string, catalogId: string) {
-    if (hoverKeyRef.current === key) {
-      if (hoverPreviewVisibleRef.current) {
-        setHoverPreview((prev) =>
-          prev ? { ...prev, x: pointerRef.current.x, y: pointerRef.current.y } : prev,
-        );
-      }
-      return;
-    }
-    clearHoverTimer();
-    hoverKeyRef.current = key;
-    hoverPreviewVisibleRef.current = false;
-    setHoverPreview(null);
-    hoverTimerRef.current = window.setTimeout(() => {
-      const card = cardsByIdRef.current.get(catalogId);
-      const src = card ? imageSrc(card) : null;
-      if (!src || !card) {
-        setHoverPreview(null);
-        return;
-      }
-      hoverPreviewVisibleRef.current = true;
-      setHoverPreview({
-        src,
-        name: card.name_pt ?? card.name_en,
-        x: pointerRef.current.x,
-        y: pointerRef.current.y,
-      });
-      hoverTimerRef.current = null;
-    }, HOVER_PREVIEW_DELAY_MS);
-  }
-
   function handleEditorPointerMove(event: PointerEvent) {
-    pointerRef.current = { x: event.clientX, y: event.clientY };
     const editor = editorRef.current;
-    if (!editor || !readyRef.current || event.buttons !== 0 || contextMenuOpenRef.current) {
+    if (!editor || !readyRef.current || event.buttons !== 0) {
       hideHoverPreview();
       return;
     }
@@ -582,7 +408,7 @@ export const DeckCanvas = forwardRef<DeckCanvasHandle, Props>(function DeckCanva
     }
     const key =
       typeof hit.shape.meta?.mtgKey === "string" ? hit.shape.meta.mtgKey : hit.shape.id;
-    scheduleHoverPreview(key, hit.catalogId);
+    hoverCard(key, hit.catalogId, event.clientX, event.clientY);
   }
 
   const handleEditorPointerMoveRef = useRef(handleEditorPointerMove);
@@ -650,27 +476,8 @@ export const DeckCanvas = forwardRef<DeckCanvasHandle, Props>(function DeckCanva
     return () => {
       listenUnsubRef.current?.();
       listenUnsubRef.current = null;
-      clearHoverTimer();
     };
   }, []);
-
-  useEffect(() => {
-    if (!contextMenu) return;
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") closeContextMenu();
-    }
-    function onPointerDown(event: MouseEvent) {
-      const target = event.target as HTMLElement | null;
-      if (target?.closest("[data-card-context-menu]")) return;
-      closeContextMenu();
-    }
-    window.addEventListener("keydown", onKeyDown);
-    window.addEventListener("mousedown", onPointerDown);
-    return () => {
-      window.removeEventListener("keydown", onKeyDown);
-      window.removeEventListener("mousedown", onPointerDown);
-    };
-  }, [contextMenu]);
 
   return (
     <div
@@ -767,77 +574,7 @@ export const DeckCanvas = forwardRef<DeckCanvasHandle, Props>(function DeckCanva
           onDirtyChange?.(false);
         }}
       />
-      {hoverPreview ? (
-        <div
-          className="pointer-events-none fixed z-[120]"
-          style={{
-            left: hoverPreview.x,
-            top: hoverPreview.y,
-            transform: "translate(-50%, -50%)",
-          }}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={hoverPreview.src}
-            alt={hoverPreview.name}
-            width={PREVIEW_W}
-            className="border border-black shadow-2xl"
-            style={{ width: PREVIEW_W, height: "auto" }}
-          />
-        </div>
-      ) : null}
-      {contextMenu ? (
-        <div
-          data-card-context-menu
-          className="fixed z-[130] min-w-[180px] border border-black bg-white py-1 text-sm shadow-xl"
-          style={{ left: contextMenu.x, top: contextMenu.y }}
-          role="menu"
-        >
-          <button
-            type="button"
-            role="menuitem"
-            className="block w-full px-3 py-2 text-left hover:bg-neutral-100"
-            onClick={() => void copyCardName(contextMenu.name)}
-          >
-            Copiar nome
-          </button>
-          {contextMenu.hasPt ? (
-            <button
-              type="button"
-              role="menuitem"
-              className="block w-full px-3 py-2 text-left hover:bg-neutral-100"
-              onClick={() => void copyCardName(contextMenu.nameEn)}
-            >
-              Copiar nome (EN)
-            </button>
-          ) : null}
-          {contextMenu.priceLabel ? (
-            <button
-              type="button"
-              role="menuitem"
-              className="block w-full px-3 py-2 text-left hover:bg-neutral-100"
-              onClick={() => void copyCardName(contextMenu.priceLabel!)}
-            >
-              Copiar preço ({contextMenu.priceLabel})
-            </button>
-          ) : null}
-          <button
-            type="button"
-            role="menuitem"
-            className="block w-full px-3 py-2 text-left hover:bg-neutral-100"
-            onClick={() => {
-              const id = contextMenu.catalogId;
-              closeContextMenu();
-              onEditCardMetaRef.current?.(id);
-            }}
-          >
-            Preço / Nota…
-          </button>
-          {copyFeedback ? (
-            <p className="border-t border-neutral-200 px-3 py-1.5 text-xs text-neutral-600">{copyFeedback}</p>
-          ) : null}
-        </div>
-      ) : null}
+      {overlays}
     </div>
   );
 });
