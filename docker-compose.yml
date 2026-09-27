@@ -1,0 +1,46 @@
+name: mtghelper
+
+# O Postgres roda no projeto `mtghelper-db` (deploy/postgres/docker-compose.yml),
+# que precisa estar no ar antes deste — ele cria a rede externa `mtghelper-db`.
+services:
+  web:
+    image: ${APP_IMAGE:-ghcr.io/rsdutra/mtghelper:latest}
+    restart: unless-stopped
+    expose:
+      - "3000"
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      HOSTNAME: "0.0.0.0"
+      AUTH_SECRET: ${AUTH_SECRET}
+      DATABASE_URL: postgresql://mtghelper:${POSTGRES_PASSWORD}@mtghelper-postgres:5432/mtghelper
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://127.0.0.1:3000/",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+    networks:
+      - mtghelper-db
+    # Traefik na VPS usa network_mode: host e descobre containers via Docker socket.
+    # Hostname temporário Hostinger (wildcard *.srv1919186.hstgr.cloud → 187.127.61.176).
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=mtghelper-db
+      - traefik.http.routers.mtghelper.rule=Host(`mtghelper.srv1919186.hstgr.cloud`)
+      - traefik.http.routers.mtghelper.entrypoints=websecure
+      - traefik.http.routers.mtghelper.tls=true
+      - traefik.http.routers.mtghelper.tls.certresolver=letsencrypt
+      - traefik.http.services.mtghelper.loadbalancer.server.port=3000
+
+networks:
+  mtghelper-db:
+    external: true

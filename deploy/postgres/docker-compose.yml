@@ -1,0 +1,33 @@
+name: mtghelper-db
+
+# Projeto Docker separado do app: redeploys do `mtghelper` não recriam o banco.
+# Suba este projeto antes do app — ele cria a rede `mtghelper-db` usada pelo `web`.
+services:
+  mtghelper-postgres:
+    image: postgres:16-alpine
+    container_name: mtghelper-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: mtghelper
+      POSTGRES_USER: mtghelper
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    # Só localhost da VPS — para túnel SSH / cliente SQL; não fica exposto na internet.
+    ports:
+      - "127.0.0.1:5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mtghelper -d mtghelper"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    networks:
+      - mtghelper-db
+
+networks:
+  mtghelper-db:
+    name: mtghelper-db
+
+volumes:
+  postgres_data:

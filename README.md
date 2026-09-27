@@ -32,3 +32,4 @@ Outros comandos:
 - [Features e user stories](docs/features/README.md)
 - [API Scryfall](docs/scryfall-api.md)
 - [Configuração MCP](docs/mcp-setup.md)
+- [Deploy na VPS Hostinger](docs/deploy-hostinger-vps.md)

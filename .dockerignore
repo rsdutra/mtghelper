@@ -1,0 +1,33 @@
+# dependencies & build
+node_modules
+npm-debug.log*
+.next
+out
+build
+coverage
+test-results
+playwright-report
+blob-report
+
+# git / ide / local
+.git
+.gitignore
+.cursor
+.agents
+.stitch
+.env
+.env.*
+!.env.example
+
+# docs & tests (not needed in runtime image)
+docs
+tests
+*.md
+!AGENTS.md
+
+# misc
+Dockerfile*
+docker-compose*.yml
+deploy
+.dockerignore
+.github
