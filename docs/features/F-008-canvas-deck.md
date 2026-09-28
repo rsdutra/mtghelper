@@ -2,7 +2,7 @@
 
 ## Objetivo
 
-Canvas interativo (tldraw) para organizar visualmente as cartas do deck, com persistência de posições e evolução independente do CRUD de lista (F-004).
+Canvas interativo (Konva / react-konva, MIT) para organizar visualmente as cartas do deck, com persistência de posições e evolução independente do CRUD de lista (F-004).
 
 ## Escopo
 
@@ -15,7 +15,8 @@ Canvas interativo (tldraw) para organizar visualmente as cartas do deck, com per
 - **US-008-07:** agrupar por custo (CMC); cartas com sessão `user` não são movidas.
 - **US-008-04:** painel lateral colapsável + preview ampliado ao pairar na carta (com delay).
 - **US-008-05:** botão direito na carta → copiar nome.
-- **US-008-08:** Canvas v2 com Konva (MIT), em paralelo ao tldraw, com as mesmas funcionalidades e persistência própria.
+- **US-008-08:** canvas reescrito com Konva (MIT), com as mesmas funcionalidades e persistência própria.
+- **US-008-09:** remoção do tldraw; o canvas Konva passa a ser o único modo Canvas.
 
 ## Fora de escopo (agora)
 
@@ -115,19 +116,30 @@ Critérios de aceite:
 - [x] Preview ampliado após ~1,5 s sobre a carta, menu do botão direito (copiar nome/nome EN/preço, Preço / Nota…) e duplo clique abrindo o modal.
 - Fora de escopo no v2: desfazer/refazer (as ações têm efeito no banco).
 
+### US-008-09 — Remover o tldraw
+
+**Como** dono do app **quero** remover o tldraw **para** publicar sem licença comercial e manter um único canvas.
+
+Critérios de aceite:
+
+- [x] Seletor volta a ser `Lista | Canvas`; o modo Canvas usa o canvas Konva (US-008-08).
+- [x] Pacote `tldraw` e componentes que o usavam removidos do app.
+- [x] `GET|PUT /api/decks/[id]/canvas` lê/grava só `deck_canvas_konva` (sem parâmetro `engine`).
+- [x] A tabela antiga `deck_canvas` não é mais criada em bancos novos nem lida; bancos existentes a mantêm (sem migração dos layouts tldraw, sem drop).
+
 ## Regras
 
-- Snapshot é JSON do tldraw (`getSnapshot` / `loadSnapshot`), incluindo posição de cartas, tamanho/posição de frames e câmera.
-- Após carregar o snapshot, o sync de domínio **não** reposiciona nem redimensiona shapes já existentes.
+- Snapshot é JSON próprio (`engine: "konva"`, `version: 1`): câmera, posição de cartas relativa ao frame pai (`parent` = id da seção ou `null`) e posição/tamanho de frames.
+- Após carregar o snapshot, o sync de domínio **não** reposiciona nem redimensiona itens já existentes.
 - Só o dono do deck lê/grava o canvas.
 - Autosave não bloqueia a UI; falha mostra status sem perder o editor.
 - `beforeunload` usa `keepalive`/`sendBeacon` ou fetch sync best-effort.
 
 ## Superfície
 
-- UI: modo Canvas em `/decks/[id]`, `src/components/deck-canvas.tsx`; Canvas v2 em `src/components/deck-canvas-konva.tsx`
-- API: `GET|PUT /api/decks/[id]/canvas` (`?engine=konva` para o v2)
-- Dados: `deck_canvas(deck_id, snapshot, updated_at)`; v2 em `deck_canvas_konva(deck_id, snapshot, updated_at)`
+- UI: modo Canvas em `/decks/[id]`, `src/components/deck-canvas.tsx` (wrapper) e `src/components/deck-canvas-board.tsx` (Konva)
+- API: `GET|PUT /api/decks/[id]/canvas`
+- Dados: `deck_canvas_konva(deck_id, snapshot, updated_at)`
 
 ## Relação com F-004
 

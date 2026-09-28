@@ -2,14 +2,12 @@
 
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { TLEditorSnapshot } from "tldraw";
 import { AppShell } from "@/components/app-shell";
 import { CardMetaModal, type CardMetaValues } from "@/components/card-meta-modal";
 import { CardQuantityControls } from "@/components/card-quantity-controls";
 import { CardScanner } from "@/components/card-scanner";
 import { CardSearch, type Suggestion } from "@/components/card-search";
 import { DeckCanvas, type DeckCanvasHandle } from "@/components/deck-canvas";
-import { DeckCanvasKonva } from "@/components/deck-canvas-konva";
 import { DeckCoverageBadge } from "@/components/deck-coverage-badge";
 import { DeckExportMenu } from "@/components/deck-export-menu";
 import { DeckStatsCharts } from "@/components/deck-stats-charts";
@@ -44,13 +42,11 @@ type CardRow = {
 
 type Section = { id: string; name: string; kind?: "user" | "type" | string; type_key?: string | null };
 
-/** `canvas` = tldraw (F-008); `canvas-v2` = Konva (US-008-08). */
-type DeckView = "lista" | "canvas" | "canvas-v2";
+type DeckView = "lista" | "canvas";
 
 const VIEW_OPTIONS: Array<{ id: DeckView; label: string }> = [
   { id: "lista", label: "Lista" },
   { id: "canvas", label: "Canvas" },
-  { id: "canvas-v2", label: "Canvas v2" },
 ];
 
 function normalizeSectionIds(value: unknown): string[] {
@@ -165,8 +161,7 @@ export default function DeckPage() {
     }
     let cancelled = false;
     setCanvasLoadedView(null);
-    const engineQuery = view === "canvas-v2" ? "?engine=konva" : "";
-    void fetch(`/api/decks/${params.id}/canvas${engineQuery}`)
+    void fetch(`/api/decks/${params.id}/canvas`)
       .then((response) => response.json())
       .then((data) => {
         if (cancelled) return;
@@ -653,16 +648,9 @@ export default function DeckPage() {
           </div>
         </header>
         <div className="relative min-h-0 flex-1">
-          {canvasReady && view === "canvas" ? (
+          {canvasReady ? (
             <DeckCanvas
               key={`${params.id}-canvas`}
-              ref={canvasRef}
-              initialSnapshot={(canvasSnapshot as TLEditorSnapshot | null) ?? null}
-              {...canvasCallbacks}
-            />
-          ) : canvasReady && view === "canvas-v2" ? (
-            <DeckCanvasKonva
-              key={`${params.id}-canvas-v2`}
               ref={canvasRef}
               initialSnapshot={canvasSnapshot}
               {...canvasCallbacks}

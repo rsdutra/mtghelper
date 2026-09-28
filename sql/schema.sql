@@ -87,12 +87,6 @@ CREATE TABLE IF NOT EXISTS deck_card_sections (
 
 CREATE INDEX IF NOT EXISTS deck_card_sections_section_idx ON deck_card_sections (section_id);
 
-CREATE TABLE IF NOT EXISTS deck_canvas (
-  deck_id uuid PRIMARY KEY REFERENCES decks (id) ON DELETE CASCADE,
-  snapshot jsonb NOT NULL,
-  updated_at timestamptz NOT NULL DEFAULT now()
-);
-
 CREATE TABLE IF NOT EXISTS deck_canvas_konva (
   deck_id uuid PRIMARY KEY REFERENCES decks (id) ON DELETE CASCADE,
   snapshot jsonb NOT NULL,

@@ -3,7 +3,7 @@
 import type Konva from "konva";
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { Circle, Group, Image as KonvaImage, Layer, Rect, Stage, Text } from "react-konva";
-import type { KonvaBoardProps, KonvaCanvasSnapshot } from "@/components/deck-canvas-konva";
+import type { DeckCanvasBoardProps, DeckCanvasSnapshot } from "@/components/deck-canvas";
 import { useCardOverlays } from "@/components/deck-canvas-overlays";
 import {
   CARD_H,
@@ -24,9 +24,9 @@ import {
 } from "@/lib/deck-canvas-model";
 import { useLatestRef } from "@/lib/use-latest-ref";
 
-type CardPos = KonvaCanvasSnapshot["cards"][string];
-type FrameRect = KonvaCanvasSnapshot["frames"][string];
-type Camera = KonvaCanvasSnapshot["camera"];
+type CardPos = DeckCanvasSnapshot["cards"][string];
+type FrameRect = DeckCanvasSnapshot["frames"][string];
+type Camera = DeckCanvasSnapshot["camera"];
 type Layout = { cards: Record<string, CardPos>; frames: Record<string, FrameRect> };
 type Point = { x: number; y: number };
 
@@ -147,7 +147,7 @@ type PointerGesture =
   | { kind: "pan"; startClient: Point; startCamera: Camera }
   | { kind: "marquee"; start: Point; additive: boolean };
 
-export function KonvaBoard({
+export function DeckCanvasBoard({
   deckId,
   initialSnapshot,
   cards,
@@ -157,7 +157,7 @@ export function KonvaBoard({
   onSaveState,
   onDomainChange,
   onEditCardMeta,
-}: KonvaBoardProps) {
+}: DeckCanvasBoardProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const stageRef = useRef<Konva.Stage | null>(null);
   const cardNodesRef = useRef(new Map<string, Konva.Group>());
@@ -229,14 +229,14 @@ export function KonvaBoard({
     savingRef.current = true;
     onSaveStateRef.current?.("saving");
     try {
-      const snapshot: KonvaCanvasSnapshot = {
+      const snapshot: DeckCanvasSnapshot = {
         engine: "konva",
         version: 1,
         camera: cameraRef.current,
         cards: layoutRef.current.cards,
         frames: layoutRef.current.frames,
       };
-      const response = await fetch(`/api/decks/${deckIdRef.current}/canvas?engine=konva`, {
+      const response = await fetch(`/api/decks/${deckIdRef.current}/canvas`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ snapshot }),

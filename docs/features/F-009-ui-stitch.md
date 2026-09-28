@@ -14,7 +14,7 @@ Aplicar o design system e os layouts do projeto Stitch à aplicação Next.js ex
 ## Fora de escopo
 
 - Scaffold de app Vite separado.
-- Redesign funcional do canvas tldraw (apenas chrome/painéis se houver design).
+- Redesign funcional do canvas de deck (apenas chrome/painéis se houver design).
 - Mudança de contratos de API ou schema de dados.
 - Commit automático / deploy.
 

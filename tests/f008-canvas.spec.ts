@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-/** F-008 / US-008-08 — Canvas v2 (Konva). */
+/** F-008 / US-008-08 — Canvas de deck (Konva). */
 const stamp = Date.now();
 const login = `konva${stamp}`;
 const password = "senha123";
@@ -22,13 +22,13 @@ async function deckData(page: Page, deckId: string): Promise<DeckData> {
 }
 
 async function snapshot(page: Page, deckId: string): Promise<Snapshot> {
-  const response = await page.request.get(`/api/decks/${deckId}/canvas?engine=konva`);
+  const response = await page.request.get(`/api/decks/${deckId}/canvas`);
   return ((await response.json()) as { snapshot: Snapshot }).snapshot;
 }
 
-async function saveCanvas(page: Page) {
+async function saveCanvas(page: Page, deckId: string) {
   const saved = page.waitForResponse(
-    (response) => response.url().includes("/canvas?engine=konva") && response.request().method() === "PUT",
+    (response) => response.url().endsWith(`/api/decks/${deckId}/canvas`) && response.request().method() === "PUT",
   );
   await page.getByRole("button", { name: "Salvar", exact: true }).click();
   expect((await saved).ok()).toBe(true);
@@ -47,7 +47,7 @@ async function cardCenterOnScreen(page: Page, snap: Snapshot, key: string) {
   };
 }
 
-test("canvas v2: snapshot, mover para seção, deletar e menu", async ({ page }) => {
+test("canvas: snapshot, mover para seção, deletar e menu", async ({ page }) => {
   await page.goto("/cadastro");
   await page.getByLabel("Login").fill(login);
   await page.getByLabel("Senha").fill(password);
@@ -69,9 +69,9 @@ test("canvas v2: snapshot, mover para seção, deletar e menu", async ({ page })
   await page.getByRole("button", { name: "Criar seção" }).click();
   await expect(page.getByLabel("Seção destino")).toContainText("upgrade");
 
-  await page.getByRole("button", { name: "Canvas v2" }).click();
+  await page.getByRole("button", { name: "Canvas", exact: true }).click();
   await expect(page.getByTestId("konva-canvas").locator("canvas").first()).toBeVisible();
-  await saveCanvas(page);
+  await saveCanvas(page, deckId);
 
   const data = await deckData(page, deckId);
   const solRing = data.cards.find((card) => card.name_en === "Sol Ring")!;
@@ -123,13 +123,13 @@ test("canvas v2: snapshot, mover para seção, deletar e menu", async ({ page })
   await page.mouse.move(5, 5);
 
   // Layout persiste após salvar e recarregar.
-  await saveCanvas(page);
+  await saveCanvas(page, deckId);
   snap = await snapshot(page, deckId);
   expect(snap.cards[`card:${solRing.id}:0`].parent).toBe(upgrade.id);
   expect(Object.keys(snap.cards)).toHaveLength(3);
 
   await page.reload();
-  await page.getByRole("button", { name: "Canvas v2" }).click();
+  await page.getByRole("button", { name: "Canvas", exact: true }).click();
   await expect(page.getByTestId("konva-canvas").locator("canvas").first()).toBeVisible();
   await expect(page.getByText(/^Salvo /)).toBeVisible();
 
@@ -153,7 +153,7 @@ test("canvas v2: snapshot, mover para seção, deletar e menu", async ({ page })
     .toBe(false);
   expect((await deckData(page, deckId)).cards.some((card) => card.id === solRing.id)).toBe(true);
 
-  // O canvas tldraw continua disponível.
-  await page.getByRole("button", { name: "Canvas", exact: true }).click();
-  await expect(page.locator(".tl-container")).toBeVisible();
+  // Voltar para a lista salva o canvas pendente.
+  await page.getByRole("button", { name: "Lista", exact: true }).click();
+  await expect(page.getByPlaceholder("1 Sol Ring")).toBeVisible();
 });

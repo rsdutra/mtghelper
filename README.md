@@ -24,7 +24,7 @@ Outros comandos:
 
 - Next.js (App Router) + TypeScript
 - Tailwind CSS
-- tldraw
+- Konva (react-konva) para o canvas de deck
 - TanStack Query
 
 ## Documentação
