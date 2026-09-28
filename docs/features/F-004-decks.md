@@ -128,6 +128,8 @@ Critérios de aceite:
 
 **Como** jogador **quero** ver a arte da carta ao lado do nome na lista **para** reconhecer cartas mais rápido.
 
+> Substituída por F-010: a view Texto não mostra miniatura; a arte fica nas views Grid visual e Grid visual agrupada.
+
 Critérios de aceite:
 
 - [x] Thumbnail (`image_small`, fallback `image_normal`) ao lado do nome em “No deck” e “Em trabalho”.
@@ -137,6 +139,8 @@ Critérios de aceite:
 ### US-004-14 — Preview ampliado na listagem
 
 **Como** jogador **quero** ampliar a carta ao pairar o mouse na lista **para** conferir arte/texto como no canvas (US-008-04).
+
+> Atualizada por F-010 / US-010-05: preview compartilhado entre as views, com delay de ~300 ms e posicionado ao lado do cursor/carta.
 
 Critérios de aceite:
 
