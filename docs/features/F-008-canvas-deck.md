@@ -1,8 +1,8 @@
-﻿# F-008 — Canvas de deck
+# F-008 — Canvas de deck
 
 ## Objetivo
 
-Canvas interativo (tldraw) para organizar visualmente as cartas do deck, com persistência de posições e evolução independente do CRUD de lista (F-004).
+Canvas interativo (Konva / react-konva, MIT) para organizar visualmente as cartas do deck, com persistência de posições e evolução independente do CRUD de lista (F-004).
 
 ## Escopo
 
@@ -15,6 +15,8 @@ Canvas interativo (tldraw) para organizar visualmente as cartas do deck, com per
 - **US-008-07:** agrupar por custo (CMC); cartas com sessão `user` não são movidas.
 - **US-008-04:** painel lateral colapsável + preview ampliado ao pairar na carta (com delay).
 - **US-008-05:** botão direito na carta → copiar nome.
+- **US-008-08:** canvas reescrito com Konva (MIT), com as mesmas funcionalidades e persistência própria.
+- **US-008-09:** remoção do tldraw; o canvas Konva passa a ser o único modo Canvas.
 
 ## Fora de escopo (agora)
 
@@ -94,19 +96,50 @@ Critérios de aceite:
 - [x] Duplo clique na carta abre o modal.
 - [x] Se houver preço, o menu oferece a opção Copiar preço.
 
+### US-008-08 — Canvas v2 (Konva)
+
+**Como** dono do app **quero** um segundo canvas feito com Konva **para** não depender da licença comercial do tldraw em produção, sem perder o canvas atual enquanto o v2 amadurece.
+
+Critérios de aceite:
+
+- [x] Seletor `Lista | Canvas | Canvas v2` na página do deck; os dois canvas ficam habilitados.
+- [x] Snapshot separado por engine (`deck_canvas_konva`); layouts do tldraw não são migrados.
+- [x] `GET|PUT /api/decks/[id]/canvas?engine=konva` lê/grava o snapshot do v2.
+- [x] Cartas renderizadas por cópia (qty expandida), com opacidade e marcador laranja para `included=false`.
+- [x] Frames por seção (`user`, `type`, `cost`) com nome, arrastáveis e redimensionáveis; cartas acompanham o frame.
+- [x] Soltar carta num frame aplica a tag da seção; soltar no board remove as tags `user` (mesma API do v1).
+- [x] Delete/Backspace remove 1 cópia por carta selecionada.
+- [x] Seleção por clique, Shift+clique e Shift+arrastar (retângulo); arrastar a seleção move todas as cartas.
+- [x] Pan arrastando o fundo ou com a roda; zoom com Ctrl/⌘+roda e botões (+, −, ajustar).
+- [x] Sync de domínio preserva posições salvas; só itens novos ou que mudaram de seção recebem layout default.
+- [x] Salvar manual, autosave (5 min) e salvar ao sair / trocar de modo, com status dirty/salvo/erro.
+- [x] Preview ampliado após ~1,5 s sobre a carta, menu do botão direito (copiar nome/nome EN/preço, Preço / Nota…) e duplo clique abrindo o modal.
+- Fora de escopo no v2: desfazer/refazer (as ações têm efeito no banco).
+
+### US-008-09 — Remover o tldraw
+
+**Como** dono do app **quero** remover o tldraw **para** publicar sem licença comercial e manter um único canvas.
+
+Critérios de aceite:
+
+- [x] Seletor volta a ser `Lista | Canvas`; o modo Canvas usa o canvas Konva (US-008-08).
+- [x] Pacote `tldraw` e componentes que o usavam removidos do app.
+- [x] `GET|PUT /api/decks/[id]/canvas` lê/grava só `deck_canvas_konva` (sem parâmetro `engine`).
+- [x] A tabela antiga `deck_canvas` (layouts tldraw) é removida por `sql/migrate_drop_deck_canvas.sql`; os layouts não são migrados para o Konva.
+
 ## Regras
 
-- Snapshot é JSON do tldraw (`getSnapshot` / `loadSnapshot`), incluindo posição de cartas, tamanho/posição de frames e câmera.
-- Após carregar o snapshot, o sync de domínio **não** reposiciona nem redimensiona shapes já existentes.
+- Snapshot é JSON próprio (`engine: "konva"`, `version: 1`): câmera, posição de cartas relativa ao frame pai (`parent` = id da seção ou `null`) e posição/tamanho de frames.
+- Após carregar o snapshot, o sync de domínio **não** reposiciona nem redimensiona itens já existentes.
 - Só o dono do deck lê/grava o canvas.
 - Autosave não bloqueia a UI; falha mostra status sem perder o editor.
 - `beforeunload` usa `keepalive`/`sendBeacon` ou fetch sync best-effort.
 
 ## Superfície
 
-- UI: modo Canvas em `/decks/[id]`, `src/components/deck-canvas.tsx`
+- UI: modo Canvas em `/decks/[id]`, `src/components/deck-canvas.tsx` (wrapper) e `src/components/deck-canvas-board.tsx` (Konva)
 - API: `GET|PUT /api/decks/[id]/canvas`
-- Dados: `deck_canvas(deck_id, snapshot, updated_at)`
+- Dados: `deck_canvas_konva(deck_id, snapshot, updated_at)`
 
 ## Relação com F-004
 

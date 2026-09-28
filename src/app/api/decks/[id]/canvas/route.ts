@@ -20,7 +20,7 @@ export async function GET(_request: Request, { params }: Params) {
   }
 
   const [row] = await sql<{ snapshot: unknown; updated_at: string }[]>`
-    SELECT snapshot, updated_at FROM deck_canvas WHERE deck_id = ${id}
+    SELECT snapshot, updated_at FROM deck_canvas_konva WHERE deck_id = ${id}
   `;
   return NextResponse.json({
     snapshot: row?.snapshot ?? null,
@@ -49,7 +49,7 @@ export async function PUT(request: Request, { params }: Params) {
 
   try {
     const [row] = await sql<{ updated_at: string }[]>`
-      INSERT INTO deck_canvas (deck_id, snapshot, updated_at)
+      INSERT INTO deck_canvas_konva (deck_id, snapshot, updated_at)
       VALUES (${id}, ${sql.json(body.snapshot as Parameters<typeof sql.json>[0])}, now())
       ON CONFLICT (deck_id) DO UPDATE SET
         snapshot = EXCLUDED.snapshot,
