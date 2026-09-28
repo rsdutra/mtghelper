@@ -123,18 +123,23 @@ export function DeckCardActions({
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-2" data-testid="deck-card-actions">
-      <div className="flex items-center gap-0.5 text-muted">
+    <div className="flex flex-wrap items-center gap-3" data-testid="deck-card-actions">
+      <div className="flex items-center overflow-hidden rounded-[2px] border border-outline-variant bg-surface-container-lowest">
         {decrement}
-        <span aria-label={`Quantidade de ${label}`} className="min-w-5 text-center text-[12px] tabular-nums text-ink">
+        <span
+          aria-label={`Quantidade de ${label}`}
+          className="w-6 text-center font-mono text-[13px] font-semibold tabular-nums text-ink"
+        >
           {quantity}
         </span>
         {increment}
-        {removeAll}
+      </div>
+      <div className="flex items-center gap-1">
+        <span className="flex rounded-[2px] border border-outline-variant hover:border-danger">{removeAll}</span>
         {inspect}
         {coverageBadge}
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-3">
         {includedToggle}
         {tags}
       </div>

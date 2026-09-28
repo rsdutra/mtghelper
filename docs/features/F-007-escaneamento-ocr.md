@@ -105,7 +105,7 @@ Critérios de aceite:
 
 ## Superfície
 
-- UI: `src/components/card-scanner.tsx` em `/decks/[id]` e `/colecao/[id]`
+- UI: `src/components/card-scanner.tsx` em `/decks/[id]/edit` e `/colecao/[id]`
 - Lib cliente: `src/lib/ocr/` (`clean`, `crop`, `worker`)
 - API: reutiliza `/api/cards/suggest`, endpoints de deck/coleção (`set` opcional no deck)
 - Dados: nenhum schema novo na V1 (usa `catalog_cards` + destino)

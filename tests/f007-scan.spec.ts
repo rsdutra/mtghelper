@@ -18,7 +18,7 @@ test("F-007 abre o scanner no deck", async ({ page }) => {
   await page.getByLabel("Nome do deck").fill("Scan Deck");
   await page.getByLabel("Formato").selectOption("modern");
   await page.getByRole("button", { name: "Criar" }).click();
-  await expect(page).toHaveURL(/\/decks\//);
+  await expect(page).toHaveURL(/\/decks\/[^/]+\/edit$/);
 
   await page.getByRole("button", { name: "Escanear carta" }).click();
   await expect(page.getByRole("dialog", { name: "Escanear carta" })).toBeVisible();

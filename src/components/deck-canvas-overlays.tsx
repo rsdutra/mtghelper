@@ -143,14 +143,16 @@ export function useCardOverlays({
               Copiar preço ({contextMenu.priceLabel})
             </button>
           ) : null}
-          <button
-            type="button"
-            role="menuitem"
-            className="block w-full px-3 py-2 text-left hover:bg-neutral-100"
-            onClick={() => editCardMeta(contextMenu.catalogId)}
-          >
-            Preço / Nota…
-          </button>
+          {onEditCardMeta ? (
+            <button
+              type="button"
+              role="menuitem"
+              className="block w-full px-3 py-2 text-left hover:bg-neutral-100"
+              onClick={() => editCardMeta(contextMenu.catalogId)}
+            >
+              Preço / Nota…
+            </button>
+          ) : null}
           {copyFeedback ? (
             <p className="border-t border-neutral-200 px-3 py-1.5 text-xs text-neutral-600">{copyFeedback}</p>
           ) : null}

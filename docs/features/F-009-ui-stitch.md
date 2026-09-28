@@ -71,8 +71,8 @@ Critérios de aceite:
 |---|---|---|
 | `cbcda840…` | Busca - MTG Helper | `/buscar` |
 | `c8110659…` | Decks - Gerenciamento | `/decks` |
-| `95364351…` | Detalhes do Deck | `/decks/[id]` (lista) |
-| `60ddb133…` | Canvas - Edição de Deck | `/decks/[id]` (canvas) |
+| `95364351…` | Detalhes do Deck | `/decks/[id]` e `/decks/[id]/edit` (lista — F-011) |
+| `60ddb133…` | Canvas - Edição de Deck | `/decks/[id]/edit?view=canvas` (somente leitura em `/decks/[id]?view=canvas`) |
 | `114ba251…` | Coleção - Gerenciamento | `/colecao` |
 | `119692…` (×4) | image.png (refs) | sem rota — referências de UI anterior / canvas real |
 

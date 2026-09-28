@@ -137,7 +137,7 @@ Critérios de aceite:
 
 ## Superfície
 
-- UI: modo Canvas em `/decks/[id]`, `src/components/deck-canvas.tsx` (wrapper) e `src/components/deck-canvas-board.tsx` (Konva)
+- UI: modo Canvas em `/decks/[id]/edit` (editável) e `/decks/[id]` (somente leitura — F-011), `src/components/deck-canvas.tsx` (wrapper) e `src/components/deck-canvas-board.tsx` (Konva)
 - API: `GET|PUT /api/decks/[id]/canvas`
 - Dados: `deck_canvas_konva(deck_id, snapshot, updated_at)`
 

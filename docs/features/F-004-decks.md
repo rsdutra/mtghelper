@@ -199,7 +199,7 @@ Critérios de aceite:
 
 ## Superfície
 
-- UI: `/decks`, `/decks/[id]`
+- UI: `/decks`, `/decks/[id]` (visualização) e `/decks/[id]/edit` (edição — F-011)
 - API: `/api/decks`, `/api/decks/[id]`, `.../cards`, `.../sections` (POST/DELETE), `.../process-collection`
 - Dados: `decks`, `deck_cards` (+ `included`), `deck_sections` (+ `kind` / `type_key`), `deck_card_sections`
 - API: `POST /api/decks/[id]/type-sections` `{ enabled }` — cria/sincroniza ou remove seções `kind=type`

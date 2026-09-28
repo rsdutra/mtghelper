@@ -11,6 +11,8 @@ type CardLike = {
 
 type Props = {
   cards: CardLike[];
+  /** Um gráfico por linha, para painéis laterais estreitos (F-011 / US-011-02). */
+  stacked?: boolean;
 };
 
 function polar(cx: number, cy: number, r: number, angle: number) {
@@ -29,7 +31,7 @@ function piePath(cx: number, cy: number, r: number, start: number, end: number) 
   return `M ${cx} ${cy} L ${p0.x} ${p0.y} A ${r} ${r} 0 ${large} 1 ${p1.x} ${p1.y} Z`;
 }
 
-function TypePie({ slices }: { slices: TypeSlice[] }) {
+function TypePie({ slices, stacked }: { slices: TypeSlice[]; stacked: boolean }) {
   const total = slices.reduce((n, s) => n + s.count, 0);
   if (!total) {
     return <p className="text-sm text-neutral-500">Sem cartas no deck.</p>;
@@ -48,8 +50,8 @@ function TypePie({ slices }: { slices: TypeSlice[] }) {
   });
 
   return (
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-      <svg viewBox="0 0 180 180" className="mx-auto h-44 w-44 shrink-0" role="img" aria-label="Distribuição por tipo">
+    <div className={`flex gap-4 ${stacked ? "items-center" : "flex-col sm:flex-row sm:items-center"}`}>
+      <svg viewBox="0 0 180 180" className={`shrink-0 ${stacked ? "h-32 w-32" : "mx-auto h-44 w-44"}`} role="img" aria-label="Distribuição por tipo">
         {arcs.map((slice) => (
           <path
             key={slice.group}
@@ -137,7 +139,7 @@ function ManaBars({ buckets }: { buckets: ManaBucket[] }) {
 }
 
 /** Charts de tipo e curva de mana para cartas included (F-004 / US-004-09). */
-export function DeckStatsCharts({ cards }: Props) {
+export function DeckStatsCharts({ cards, stacked = false }: Props) {
   const slices = useMemo(() => typeDistribution(cards), [cards]);
   const curve = useMemo(() => manaCurve(cards), [cards]);
   const total = cards.reduce((n, c) => n + c.quantity, 0);
@@ -145,12 +147,12 @@ export function DeckStatsCharts({ cards }: Props) {
   if (!total) return null;
 
   return (
-    <section className="grid gap-4 md:grid-cols-2">
-      <div className="border border-black p-4">
+    <section className={`grid gap-4 ${stacked ? "" : "md:grid-cols-2"}`}>
+      <div className="border border-outline-variant bg-surface-container-lowest p-4">
         <h2 className="mb-3 text-sm font-medium uppercase">Distribuição por tipo</h2>
-        <TypePie slices={slices} />
+        <TypePie slices={slices} stacked={stacked} />
       </div>
-      <div className="border border-black p-4">
+      <div className="border border-outline-variant bg-surface-container-lowest p-4">
         <h2 className="mb-3 text-sm font-medium uppercase">Curva de mana</h2>
         <p className="mb-2 text-xs text-neutral-500">Exclui terrenos.</p>
         <ManaBars buckets={curve} />
