@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
+import { getSessionUser } from "@/lib/auth";
 
-export default function Home() {
+export default async function Home() {
+  const user = await getSessionUser();
+
   return (
     <AppShell>
       <section className="max-w-xl space-y-5 border border-ink bg-surface-container-lowest p-8">
@@ -14,9 +17,11 @@ export default function Home() {
           <Link href="/buscar" className="ui-btn h-9 px-4">
             Buscar carta
           </Link>
-          <Link href="/cadastro" className="ui-btn-outline h-9 px-4">
-            Criar conta
-          </Link>
+          {user ? null : (
+            <Link href="/cadastro" className="ui-btn-outline h-9 px-4">
+              Criar conta
+            </Link>
+          )}
         </div>
       </section>
     </AppShell>

@@ -9,6 +9,7 @@ import { LoadingModal } from "@/components/loading-modal";
 type Props = {
   deckId: string;
   userSections: Section[];
+  sideboardSection: Section | null;
   status: string;
   setStatus: (status: string) => void;
   addText: (text: string, sectionId?: string, set?: string, included?: boolean) => Promise<void>;
@@ -28,7 +29,15 @@ function Module({ title, aside, children }: { title: string; aside?: ReactNode; 
 }
 
 /** Painel lateral de ferramentas, exclusivo do modo edição (F-011 / US-011-04). */
-export function DeckEditTools({ deckId, userSections, status, setStatus, addText, reload }: Props) {
+export function DeckEditTools({
+  deckId,
+  userSections,
+  sideboardSection,
+  status,
+  setStatus,
+  addText,
+  reload,
+}: Props) {
   const [listText, setListText] = useState("");
   const [listImporting, setListImporting] = useState(false);
   const [sectionName, setSectionName] = useState("");
@@ -98,6 +107,14 @@ export function DeckEditTools({ deckId, userSections, status, setStatus, addText
           Escanear carta
         </button>
       </Module>
+      {sideboardSection ? (
+        <Module title="Sideboard" aside={<span className="font-mono text-[10px] text-outline">até 15</span>}>
+          <CardSearch
+            placeholder="Adicionar ao sideboard"
+            onSelect={(item) => void addSuggestion(item, sideboardSection.id, true)}
+          />
+        </Module>
+      ) : null}
       <Module title="Lista" aside={<span className="font-mono text-[10px] text-outline">Qtd + Nome</span>}>
         <textarea
           value={listText}
@@ -148,7 +165,7 @@ export function DeckEditTools({ deckId, userSections, status, setStatus, addText
         </Module>
       ) : null}
       {userSections.length ? (
-        <Module title="Adicionar em trabalho + tag">
+        <Module title="Adicionar fora do deck + tag">
           <select
             aria-label="Seção destino"
             value={targetSection}
@@ -164,7 +181,7 @@ export function DeckEditTools({ deckId, userSections, status, setStatus, addText
           </select>
           {targetSection ? (
             <CardSearch
-              placeholder="Carta em trabalho"
+              placeholder="Carta fora do deck"
               onSelect={(item) => void addSuggestion(item, targetSection, false)}
             />
           ) : null}

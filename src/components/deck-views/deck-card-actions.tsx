@@ -15,6 +15,8 @@ type Props = {
   coverage: { owned: number; needed: number; missing: number } | null;
   included: boolean;
   onIncludedChange: (included: boolean) => void;
+  inSideboard?: boolean;
+  onSideboardChange?: (inSideboard: boolean) => void;
   sections: readonly SectionOption[];
   selectedTagIds: readonly string[];
   onTagsChange: (nextIds: string[]) => void;
@@ -35,6 +37,8 @@ export function DeckCardActions({
   coverage,
   included,
   onIncludedChange,
+  inSideboard = false,
+  onSideboardChange,
   sections,
   selectedTagIds,
   onTagsChange,
@@ -104,6 +108,28 @@ export function DeckCardActions({
       No deck
     </label>
   );
+  const sideboardToggle = onSideboardChange ? (
+    column ? (
+      <input
+        type="checkbox"
+        aria-label="Sideboard"
+        title="Sideboard"
+        className="my-1"
+        checked={inSideboard}
+        onChange={(event) => onSideboardChange(event.target.checked)}
+      />
+    ) : (
+      <label className="flex items-center gap-1 text-[11px] text-muted">
+        <input
+          type="checkbox"
+          aria-label="Sideboard"
+          checked={inSideboard}
+          onChange={(event) => onSideboardChange(event.target.checked)}
+        />
+        Sideboard
+      </label>
+    )
+  ) : null;
   const tags = (
     <SectionMultiSelect sections={sections} selectedIds={selectedTagIds} onChange={onTagsChange} compact={column} />
   );
@@ -116,6 +142,7 @@ export function DeckCardActions({
         {removeAll}
         {inspect}
         {includedToggle}
+        {sideboardToggle}
         {tags}
         {coverageBadge}
       </div>
@@ -141,6 +168,7 @@ export function DeckCardActions({
       </div>
       <div className="flex items-center gap-3">
         {includedToggle}
+        {sideboardToggle}
         {tags}
       </div>
     </div>

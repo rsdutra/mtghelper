@@ -47,6 +47,9 @@ export async function DELETE(request: Request, { params }: Params) {
     SELECT id, kind FROM deck_sections WHERE id = ${sectionId} AND deck_id = ${id}
   `;
   if (!section) return NextResponse.json({ error: "Seção não encontrada." }, { status: 404 });
+  if (section.kind === "sideboard") {
+    return NextResponse.json({ error: "O sideboard deste formato não pode ser excluído." }, { status: 400 });
+  }
   if (section.kind === "type" || section.kind === "cost") {
     return NextResponse.json(
       { error: "Seções automáticas (tipo/custo) são gerenciadas pelos toggles de agrupamento." },

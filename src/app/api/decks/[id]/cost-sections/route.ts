@@ -50,7 +50,7 @@ export async function POST(request: Request, { params }: Params) {
         SELECT 1
         FROM deck_card_sections dcs
         JOIN deck_sections ds ON ds.id = dcs.section_id
-        WHERE dcs.deck_card_id = dc.id AND ds.kind = 'user'
+        WHERE dcs.deck_card_id = dc.id AND ds.kind IN ('user', 'sideboard')
       )
   `;
 

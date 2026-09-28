@@ -32,7 +32,8 @@ import {
 } from "@/components/deck-views/deck-view-types";
 import { groupCardsByType } from "@/lib/card-types";
 import type { DeckCoverageSummary } from "@/lib/deck-coverage";
-import { FORMATS } from "@/lib/formats";
+import { evaluateDeckSize } from "@/lib/deck-size";
+import { FORMATS, sideboardLimit } from "@/lib/formats";
 import { groupCardsByManaCost } from "@/lib/mana-cost-groups";
 import { formatBRLFromCents } from "@/lib/money-br";
 
@@ -211,12 +212,30 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
 
   const includedCards = useMemo(() => cards.filter((card) => card.included), [cards]);
   const workingCards = useMemo(() => cards.filter((card) => !card.included), [cards]);
-  const groupedIncluded = useMemo(() => groupCardsByType(includedCards), [includedCards]);
-  const groupedByCost = useMemo(() => groupCardsByManaCost(includedCards), [includedCards]);
   const userSections = useMemo(
-    () => sections.filter((section) => section.kind !== "type" && section.kind !== "cost"),
+    () => sections.filter((section) => section.kind !== "type" && section.kind !== "cost" && section.kind !== "sideboard"),
     [sections],
   );
+  const allowsSideboard = sideboardLimit(format) != null;
+  const sideboardSection = useMemo(
+    () => (allowsSideboard ? (sections.find((section) => section.kind === "sideboard") ?? null) : null),
+    [allowsSideboard, sections],
+  );
+  const sideboardId = sideboardSection?.id ?? null;
+  const mainCards = useMemo(
+    () => includedCards.filter((card) => !sideboardId || !card.section_ids.includes(sideboardId)),
+    [includedCards, sideboardId],
+  );
+  const sideboardCards = useMemo(
+    () => (sideboardId ? includedCards.filter((card) => card.section_ids.includes(sideboardId)) : []),
+    [includedCards, sideboardId],
+  );
+  const groupedIncluded = useMemo(() => groupCardsByType(mainCards), [mainCards]);
+  const groupedByCost = useMemo(() => groupCardsByManaCost(mainCards), [mainCards]);
+  const sizeStatus = useMemo(() => {
+    const sum = (rows: CardRow[]) => rows.reduce((total, card) => total + card.quantity, 0);
+    return evaluateDeckSize(format, sum(mainCards), sum(sideboardCards));
+  }, [format, mainCards, sideboardCards]);
   const formatLabel = FORMATS.find((item) => item.id === format)?.label ?? format;
 
   function toggleCollapsedGroup(group: string) {
@@ -299,6 +318,10 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
             }
             included={card.included}
             onIncludedChange={(included) => void mutations.setIncluded(card.id, included)}
+            inSideboard={Boolean(sideboardId && card.section_ids.includes(sideboardId))}
+            onSideboardChange={
+              sideboardId ? (inSideboard) => void mutations.setSideboard(card.id, inSideboard) : undefined
+            }
             sections={userSections}
             selectedTagIds={tags.map((tag) => tag.id)}
             onTagsChange={(nextIds) => void mutations.setCardUserSections(card.id, nextIds)}
@@ -311,7 +334,7 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
     ? groupedIncluded.map((bucket) => ({ key: bucket.group, label: bucket.label, items: bucket.cards.map(toViewItem) }))
     : groupByCost
       ? groupedByCost.map((bucket) => ({ key: bucket.key, label: bucket.label, items: bucket.cards.map(toViewItem) }))
-      : [{ key: "included", label: null, items: includedCards.map(toViewItem) }];
+      : [{ key: "included", label: null, items: mainCards.map(toViewItem) }];
   const workingGroups: DeckViewGroup[] = [{ key: "working", label: null, items: workingCards.map(toViewItem) }];
 
   const listViewSelect = (
@@ -385,6 +408,7 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
     <DeckEditTools
       deckId={deckId}
       userSections={userSections}
+      sideboardSection={sideboardSection}
       status={status}
       setStatus={setStatus}
       addText={mutations.addText}
@@ -399,6 +423,7 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
           {viewToggle}
           <span className="truncate text-[13px] font-semibold text-ink">{name}</span>
           <span className="ui-badge">{formatLabel}</span>
+          <DeckSizeStatus status={sizeStatus} />
           <DeckCoverageBadge coverage={coverage} />
           <div className="ml-auto flex items-center gap-3">
             {editing ? groupingToggles : null}
@@ -477,12 +502,14 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
     );
   }
 
-  const includedCount = includedCards.reduce((total, card) => total + card.quantity, 0);
+  const includedCount = mainCards.reduce((total, card) => total + card.quantity, 0);
+  const sideboardCount = sideboardCards.reduce((total, card) => total + card.quantity, 0);
   const workingCount = workingCards.reduce((total, card) => total + card.quantity, 0);
+  const sideboardGroups: DeckViewGroup[] = [{ key: "sideboard", label: null, items: sideboardCards.map(toViewItem) }];
 
   const deckPanel = (
     <ListPanel title="No deck" count={includedCount}>
-      {includedCards.length === 0 ? (
+      {mainCards.length === 0 ? (
         <p className="px-4 py-4 text-[13px] text-muted">
           Nenhuma carta incluída.{editing ? "" : " Use Editar para adicionar cartas."}
         </p>
@@ -498,16 +525,38 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
     </ListPanel>
   );
 
+  const sideboardPanel = sideboardSection ? (
+    <ListPanel
+      title="Sideboard"
+      count={sideboardCount}
+      limit={sizeStatus.sideboardLimit ?? undefined}
+      over={sizeStatus.overSideboard}
+      note="Faz parte do deck e entra na conta da coleção."
+    >
+      {sideboardCards.length === 0 ? (
+        <p className="px-4 py-4 text-[13px] text-muted">Nenhuma carta no sideboard.</p>
+      ) : listView ? (
+        <DeckCardView
+          view={listView}
+          groups={sideboardGroups}
+          collapsedGroups={collapsedGroups}
+          onToggleGroup={toggleCollapsedGroup}
+          readOnly={!editing}
+        />
+      ) : null}
+    </ListPanel>
+  ) : null;
+
   const workingPanel =
     editing || workingCards.length ? (
       <ListPanel
-        title="Em trabalho"
+        title="Fora do deck"
         count={workingCount}
         dashed
         note="Cartas para upgrade, corte ou consideração — ainda não entram no deck."
       >
         {workingCards.length === 0 ? (
-          <p className="px-4 py-4 text-[13px] text-muted">Nenhuma carta em trabalho.</p>
+          <p className="px-4 py-4 text-[13px] text-muted">Nenhuma carta fora do deck.</p>
         ) : listView ? (
           <DeckCardView
             view={listView}
@@ -526,11 +575,19 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
         <div className="flex flex-col gap-4 border-b border-outline-variant pb-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-3">
             {editing ? (
-              <DeckEditHeader deckId={deckId} name={name} format={format} onNameChange={setName} onFormatChange={setFormat} />
+              <DeckEditHeader
+                deckId={deckId}
+                name={name}
+                format={format}
+                onNameChange={setName}
+                onFormatChange={setFormat}
+                onSaved={() => void load()}
+              />
             ) : (
               deckTitle
             )}
             <DeckExportMenu cards={cards} />
+            <DeckSizeStatus status={sizeStatus} />
             <DeckCoverageBadge coverage={coverage} />
           </div>
           <div className="flex items-center gap-2 self-start lg:self-auto">
@@ -556,6 +613,7 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
             <div className="min-w-0 space-y-5 lg:col-span-8">
               <DeckStatsCharts cards={includedCards} />
               {deckPanel}
+              {sideboardPanel}
               {workingPanel}
             </div>
             <aside className="border border-outline-variant bg-surface-container-lowest p-4 lg:col-span-4">{tools}</aside>
@@ -564,6 +622,7 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
           <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
             <div className="min-w-0 space-y-5">
               {deckPanel}
+              {sideboardPanel}
               {workingPanel}
             </div>
             <aside className="min-w-0">
@@ -577,15 +636,42 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
   );
 }
 
+function DeckSizeStatus({ status }: { status: ReturnType<typeof evaluateDeckSize> }) {
+  return (
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px]">
+      <span
+        className={`font-mono tabular-nums ${status.overMain ? "font-semibold text-danger" : "text-muted"}`}
+        title={status.sideboardLimit != null ? "Inclui as cartas do sideboard." : undefined}
+      >
+        Deck {status.mainCount}/{status.mainLimit}
+      </span>
+      {status.sideboardLimit != null ? (
+        <span className={`font-mono tabular-nums ${status.overSideboard ? "font-semibold text-danger" : "text-muted"}`}>
+          Sideboard {status.sideboardCount}/{status.sideboardLimit}
+        </span>
+      ) : null}
+      {status.messages.map((message) => (
+        <span key={message} className="font-semibold text-danger">
+          {message}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 function ListPanel({
   title,
   count,
+  limit,
+  over = false,
   note,
   dashed = false,
   children,
 }: {
   title: string;
   count: number;
+  limit?: number;
+  over?: boolean;
   note?: string;
   dashed?: boolean;
   children: ReactNode;
@@ -599,8 +685,12 @@ function ListPanel({
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-outline-variant bg-surface-container px-4 py-2.5">
         <div className="flex items-center gap-2">
           <h2 className="font-mono text-[12px] font-bold tracking-wide text-ink uppercase">{title}</h2>
-          <span className="bg-surface-container-high px-1.5 py-0.5 font-mono text-[10px] font-semibold text-on-surface">
-            ({count})
+          <span
+            className={`bg-surface-container-high px-1.5 py-0.5 font-mono text-[10px] font-semibold ${
+              over ? "text-danger" : "text-on-surface"
+            }`}
+          >
+            ({limit != null ? `${count}/${limit}` : count})
           </span>
         </div>
         {note ? <span className="font-mono text-[10px] text-on-surface-variant">{note}</span> : null}

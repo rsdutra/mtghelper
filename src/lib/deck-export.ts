@@ -9,7 +9,7 @@ export type DeckExportCard = {
 export const DECK_EXPORT_OPTIONS: ReadonlyArray<{ scope: DeckExportScope; label: string }> = [
   { scope: "all", label: "Exportar tudo" },
   { scope: "included", label: "Exportar somente no deck" },
-  { scope: "working", label: "Exportar somente em trabalho" },
+  { scope: "working", label: "Exportar somente fora do deck" },
 ];
 
 export function filterDeckExportCards<T extends DeckExportCard>(cards: readonly T[], scope: DeckExportScope): T[] {

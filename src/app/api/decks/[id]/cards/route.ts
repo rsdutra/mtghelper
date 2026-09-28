@@ -30,7 +30,7 @@ export async function POST(request: Request, { params }: Params) {
   const lines = parseCardList(body.text ?? "");
   const missing = [];
   let added = 0;
-  // Na seção: default em trabalho; no deck: included
+  // Na seção: default fora do deck; no deck: included
   const included = body.included ?? !body.sectionId;
 
   for (const line of lines) {
@@ -82,6 +82,7 @@ export async function PATCH(request: Request, { params }: Params) {
   const body = (await request.json()) as {
     catalogCardId?: string;
     included?: boolean;
+    sideboard?: boolean;
     sectionIds?: string[] | null;
     setSectionId?: string | null;
     priceCents?: number | null;
@@ -99,6 +100,38 @@ export async function PATCH(request: Request, { params }: Params) {
 
   if (typeof body.included === "boolean") {
     await sql`UPDATE deck_cards SET included = ${body.included} WHERE id = ${row.id}`;
+    if (!body.included) {
+      await sql`
+        DELETE FROM deck_card_sections dcs
+        USING deck_sections ds
+        WHERE dcs.deck_card_id = ${row.id}
+          AND dcs.section_id = ds.id
+          AND ds.deck_id = ${id}
+          AND ds.kind = 'sideboard'
+      `;
+    }
+  }
+
+  if (typeof body.sideboard === "boolean") {
+    const [side] = await sql<{ id: string }[]>`
+      SELECT id FROM deck_sections WHERE deck_id = ${id} AND kind = 'sideboard'
+    `;
+    if (body.sideboard) {
+      if (!side) {
+        return NextResponse.json({ error: "Este formato não tem sideboard." }, { status: 400 });
+      }
+      await sql`UPDATE deck_cards SET included = true WHERE id = ${row.id}`;
+      await sql`
+        INSERT INTO deck_card_sections (deck_card_id, section_id)
+        VALUES (${row.id}, ${side.id})
+        ON CONFLICT DO NOTHING
+      `;
+    } else if (side) {
+      await sql`
+        DELETE FROM deck_card_sections
+        WHERE deck_card_id = ${row.id} AND section_id = ${side.id}
+      `;
+    }
   }
 
   if (body.priceCents !== undefined) {

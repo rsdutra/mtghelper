@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth";
 import { coverageByKey, coverageKey, summarizeCoverage, type CoverageRow } from "@/lib/deck-coverage";
+import { syncSideboardSection } from "@/lib/deck-sideboard";
 import { isFormat } from "@/lib/formats";
 import { sql } from "@/lib/db";
 
@@ -19,6 +20,8 @@ export async function GET(_request: Request, { params }: Params) {
   const { id } = await params;
   const deck = await ownedDeck(user.id, id);
   if (!deck) return NextResponse.json({ error: "Deck não encontrado." }, { status: 404 });
+
+  await syncSideboardSection(id, deck.format);
 
   const cards = await sql`
     SELECT dc.id AS deck_card_id, dc.quantity, dc.included, dc.price_cents, dc.note,
@@ -92,11 +95,12 @@ export async function PATCH(request: Request, { params }: Params) {
   const body = (await request.json()) as { name?: string; format?: string };
   const name = body.name?.trim() || deck.name;
   const format = body.format && isFormat(body.format) ? body.format : deck.format;
-  const [updated] = await sql`
+  const [updated] = await sql<{ id: string; name: string; format: string }[]>`
     UPDATE decks SET name = ${name}, format = ${format}
     WHERE id = ${id}
     RETURNING id, name, format
   `;
+  await syncSideboardSection(id, format);
   return NextResponse.json({ deck: updated });
 }
 

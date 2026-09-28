@@ -71,13 +71,17 @@ CREATE TABLE IF NOT EXISTS deck_sections (
   deck_id uuid NOT NULL REFERENCES decks (id) ON DELETE CASCADE,
   name text NOT NULL,
   position integer NOT NULL DEFAULT 0,
-  kind text NOT NULL DEFAULT 'user' CHECK (kind IN ('user', 'type', 'cost')),
+  kind text NOT NULL DEFAULT 'user' CHECK (kind IN ('user', 'type', 'cost', 'sideboard')),
   type_key text
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS deck_sections_type_key_uidx
   ON deck_sections (deck_id, type_key)
   WHERE type_key IS NOT NULL;
+
+CREATE UNIQUE INDEX IF NOT EXISTS deck_sections_sideboard_uidx
+  ON deck_sections (deck_id)
+  WHERE kind = 'sideboard';
 
 CREATE TABLE IF NOT EXISTS deck_card_sections (
   deck_card_id uuid NOT NULL REFERENCES deck_cards (id) ON DELETE CASCADE,

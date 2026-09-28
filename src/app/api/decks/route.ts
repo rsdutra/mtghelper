@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth";
+import { syncSideboardSection } from "@/lib/deck-sideboard";
 import { isFormat } from "@/lib/formats";
 import { sql } from "@/lib/db";
 
@@ -26,10 +27,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Nome e formato são obrigatórios." }, { status: 400 });
   }
 
-  const [deck] = await sql`
+  const [deck] = await sql<{ id: string; name: string; format: string; created_at: string }[]>`
     INSERT INTO decks (user_id, name, format)
     VALUES (${user.id}, ${name}, ${format})
     RETURNING id, name, format, created_at
   `;
+  await syncSideboardSection(deck.id, format);
   return NextResponse.json({ deck });
 }

@@ -51,6 +51,20 @@ export function useDeckCardMutations({ deckId, sections, setCards, setStatus, lo
     await addText(`1 ${card.name_pt ?? card.name_en}`, undefined, undefined, card.included);
   }
 
+  async function setSideboard(catalogCardId: string, sideboard: boolean) {
+    const response = await fetch(cardsUrl, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ catalogCardId, sideboard }),
+    });
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      setStatus(typeof data.error === "string" ? data.error : "Não foi possível atualizar o sideboard.");
+    }
+    await load();
+    await ensureAutoSections();
+  }
+
   async function setIncluded(catalogCardId: string, included: boolean) {
     await fetch(cardsUrl, {
       method: "PATCH",
@@ -62,13 +76,13 @@ export function useDeckCardMutations({ deckId, sections, setCards, setStatus, lo
   }
 
   async function setCardUserSections(catalogCardId: string, sectionIds: string[]) {
-    // Otimista: mantém carta em No deck / Em trabalho; só atualiza tags user.
+    // Otimista: mantém carta em No deck / Fora do deck; só atualiza tags user.
     setCards((prev) =>
       prev.map((card) => {
         if (card.id !== catalogCardId) return card;
         const autoIds = card.section_ids.filter((id) => {
           const section = sections.find((item) => item.id === id);
-          return section?.kind === "type" || section?.kind === "cost";
+          return section?.kind === "type" || section?.kind === "cost" || section?.kind === "sideboard";
         });
         return { ...card, section_ids: [...autoIds, ...sectionIds] };
       }),
@@ -94,5 +108,5 @@ export function useDeckCardMutations({ deckId, sections, setCards, setStatus, lo
     await load();
   }
 
-  return { addText, removeCard, addOneCopy, setIncluded, setCardUserSections, saveCardMeta };
+  return { addText, removeCard, addOneCopy, setIncluded, setSideboard, setCardUserSections, saveCardMeta };
 }

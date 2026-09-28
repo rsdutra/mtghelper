@@ -17,7 +17,7 @@ type Props = {
 const SCOPE_TITLE: Record<DeckExportScope, string> = {
   all: "Exportar tudo",
   included: "Exportar somente no deck",
-  working: "Exportar somente em trabalho",
+  working: "Exportar somente fora do deck",
 };
 
 export function DeckExportMenu({ cards, buttonClassName = "ui-btn-outline h-9", menuAlign = "left" }: Props) {

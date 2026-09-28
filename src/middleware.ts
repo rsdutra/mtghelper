@@ -11,9 +11,15 @@ export function middleware(request: NextRequest) {
     url.searchParams.set("next", path);
     return NextResponse.redirect(url);
   }
+  if (path.startsWith("/cadastro") && session) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/";
+    url.search = "";
+    return NextResponse.redirect(url);
+  }
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/decks/:path*", "/colecao/:path*"],
+  matcher: ["/decks/:path*", "/colecao/:path*", "/cadastro", "/cadastro/:path*"],
 };

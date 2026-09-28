@@ -9,10 +9,11 @@ type Props = {
   format: string;
   onNameChange: (name: string) => void;
   onFormatChange: (format: string) => void;
+  onSaved?: () => void;
 };
 
 /** Nome e formato editáveis + Salvar, só no modo edição (F-011 / US-011-04). */
-export function DeckEditHeader({ deckId, name, format, onNameChange, onFormatChange }: Props) {
+export function DeckEditHeader({ deckId, name, format, onNameChange, onFormatChange, onSaved }: Props) {
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
 
   async function save() {
@@ -23,6 +24,7 @@ export function DeckEditHeader({ deckId, name, format, onNameChange, onFormatCha
       body: JSON.stringify({ name, format }),
     });
     setSaveState(response.ok ? "saved" : "error");
+    if (response.ok) onSaved?.();
   }
 
   return (
