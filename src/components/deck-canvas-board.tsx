@@ -157,6 +157,7 @@ export function DeckCanvasBoard({
   onSaveState,
   onDomainChange,
   onEditCardMeta,
+  readOnly = false,
 }: DeckCanvasBoardProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const stageRef = useRef<Konva.Stage | null>(null);
@@ -207,7 +208,7 @@ export function DeckCanvasBoard({
   const onSaveStateRef = useLatestRef(onSaveState);
 
   const { overlays, hoverCard, hideHoverPreview, openContextMenu, closeContextMenu, editCardMeta } =
-    useCardOverlays({ cards, onEditCardMeta });
+    useCardOverlays({ cards, onEditCardMeta: readOnly ? undefined : onEditCardMeta });
 
   const copies = useMemo(() => expand(cards), [cards]);
   const copiesByKey = useMemo(() => new Map(copies.map((copy) => [cardKey(copy), copy])), [copies]);
@@ -218,13 +219,13 @@ export function DeckCanvasBoard({
   const imageFor = useCardImages(srcs);
 
   const markDirty = useCallback(() => {
-    if (!readyRef.current) return;
+    if (!readyRef.current || readOnly) return;
     dirtyRef.current = true;
     onDirtyChangeRef.current?.(true);
-  }, [onDirtyChangeRef]);
+  }, [onDirtyChangeRef, readOnly]);
 
   const persist = useCallback(async (options?: { force?: boolean; keepalive?: boolean }) => {
-    if (savingRef.current) return false;
+    if (savingRef.current || readOnly) return false;
     if (!options?.force && !dirtyRef.current) return true;
     savingRef.current = true;
     onSaveStateRef.current?.("saving");
@@ -254,7 +255,7 @@ export function DeckCanvasBoard({
     } finally {
       savingRef.current = false;
     }
-  }, [deckIdRef, onDirtyChangeRef, onSaveStateRef]);
+  }, [deckIdRef, onDirtyChangeRef, onSaveStateRef, readOnly]);
 
   useEffect(() => {
     handleRef.current = {
@@ -386,6 +387,7 @@ export function DeckCanvasBoard({
   }
 
   function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (readOnly) return;
     if (event.key === "Delete" || event.key === "Backspace") {
       event.preventDefault();
       deleteSelectedCards();
@@ -432,7 +434,7 @@ export function DeckCanvasBoard({
       if (event.target.name() === "frame-body" && !event.evt.shiftKey) setSelected(new Set());
       return;
     }
-    if (event.evt.shiftKey) {
+    if (event.evt.shiftKey && !readOnly) {
       const pointer = stage.getPointerPosition();
       if (!pointer) return;
       const start = toPage(pointer);
@@ -496,6 +498,7 @@ export function DeckCanvasBoard({
 
   /** No mousedown só amplia a seleção, para arrastar várias cartas juntas; o clique reduz. */
   function handleCardMouseDown(key: string, additive: boolean) {
+    if (readOnly) return;
     if (additive) {
       const next = new Set(selectedRef.current);
       if (next.has(key)) next.delete(key);
@@ -619,7 +622,7 @@ export function DeckCanvasBoard({
                   key={section.id}
                   x={frame.x}
                   y={frame.y}
-                  draggable
+                  draggable={!readOnly}
                   onDragStart={(event) => {
                     if (event.target !== event.currentTarget) return;
                     hideHoverPreview();
@@ -651,37 +654,39 @@ export function DeckCanvasBoard({
                     strokeWidth={1}
                     strokeScaleEnabled={false}
                   />
-                  <Rect
-                    x={frame.w - RESIZE_HANDLE}
-                    y={frame.h - RESIZE_HANDLE}
-                    width={RESIZE_HANDLE}
-                    height={RESIZE_HANDLE}
-                    fill="#e5e5e5"
-                    stroke="#737373"
-                    strokeWidth={1}
-                    strokeScaleEnabled={false}
-                    draggable
-                    onMouseEnter={() => {
-                      if (containerRef.current) containerRef.current.style.cursor = "nwse-resize";
-                    }}
-                    onMouseLeave={() => {
-                      if (containerRef.current) containerRef.current.style.cursor = "";
-                    }}
-                    onDragMove={(event) => {
-                      event.cancelBubble = true;
-                      const w = Math.max(FRAME_MIN_W, event.target.x() + RESIZE_HANDLE);
-                      const h = Math.max(FRAME_MIN_H, event.target.y() + RESIZE_HANDLE);
-                      event.target.position({ x: w - RESIZE_HANDLE, y: h - RESIZE_HANDLE });
-                      updateFrame(section.id, { w, h });
-                    }}
-                    onDragEnd={(event) => {
-                      event.cancelBubble = true;
-                      markDirty();
-                    }}
-                    onDragStart={(event) => {
-                      event.cancelBubble = true;
-                    }}
-                  />
+                  {readOnly ? null : (
+                    <Rect
+                      x={frame.w - RESIZE_HANDLE}
+                      y={frame.h - RESIZE_HANDLE}
+                      width={RESIZE_HANDLE}
+                      height={RESIZE_HANDLE}
+                      fill="#e5e5e5"
+                      stroke="#737373"
+                      strokeWidth={1}
+                      strokeScaleEnabled={false}
+                      draggable
+                      onMouseEnter={() => {
+                        if (containerRef.current) containerRef.current.style.cursor = "nwse-resize";
+                      }}
+                      onMouseLeave={() => {
+                        if (containerRef.current) containerRef.current.style.cursor = "";
+                      }}
+                      onDragMove={(event) => {
+                        event.cancelBubble = true;
+                        const w = Math.max(FRAME_MIN_W, event.target.x() + RESIZE_HANDLE);
+                        const h = Math.max(FRAME_MIN_H, event.target.y() + RESIZE_HANDLE);
+                        event.target.position({ x: w - RESIZE_HANDLE, y: h - RESIZE_HANDLE });
+                        updateFrame(section.id, { w, h });
+                      }}
+                      onDragEnd={(event) => {
+                        event.cancelBubble = true;
+                        markDirty();
+                      }}
+                      onDragStart={(event) => {
+                        event.cancelBubble = true;
+                      }}
+                    />
+                  )}
                 </Group>
               );
             })}
@@ -699,7 +704,7 @@ export function DeckCanvasBoard({
                   }}
                   x={abs.x}
                   y={abs.y}
-                  draggable
+                  draggable={!readOnly}
                   onMouseDown={(event) => {
                     if (event.evt.button !== 0) return;
                     handleCardMouseDown(key, event.evt.shiftKey);
@@ -711,7 +716,9 @@ export function DeckCanvasBoard({
                   onDragStart={(event) => handleCardDragStart(key, event)}
                   onDragMove={handleCardDragMove}
                   onDragEnd={handleCardDragEnd}
-                  onDblClick={() => editCardMeta(copy.id)}
+                  onDblClick={() => {
+                    if (!readOnly) editCardMeta(copy.id);
+                  }}
                   onContextMenu={(event) => {
                     event.evt.preventDefault();
                     event.cancelBubble = true;
@@ -820,7 +827,9 @@ export function DeckCanvasBoard({
         </button>
       </div>
       <p className="pointer-events-none absolute bottom-4 left-[20rem] z-10 hidden font-mono text-[10px] tracking-wide text-muted uppercase md:block">
-        Arrastar fundo: mover · Shift+arrastar: selecionar · Ctrl+roda: zoom · Del: remover
+        {readOnly
+          ? "Somente leitura · Arrastar fundo: mover · Ctrl+roda: zoom"
+          : "Arrastar fundo: mover · Shift+arrastar: selecionar · Ctrl+roda: zoom · Del: remover"}
       </p>
       {overlays}
     </div>

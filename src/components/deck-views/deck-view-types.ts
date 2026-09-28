@@ -25,7 +25,9 @@ export type DeckViewItem = {
   quantity: number;
   label: string;
   secondary: string | null;
-  meta: string | null;
+  setCode: string | null;
+  tags: string[];
+  priceLabel: string | null;
   imageSrc: string | null;
   renderActions: (layout: ActionsLayout) => ReactNode;
 };

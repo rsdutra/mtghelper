@@ -56,8 +56,8 @@ test("canvas: snapshot, mover para seção, deletar e menu", async ({ page }) =>
 
   await page.getByLabel("Nome do deck").fill("Konva Test");
   await page.getByRole("button", { name: "Criar" }).click();
-  await expect(page).toHaveURL(/\/decks\//);
-  const deckId = page.url().split("/decks/")[1];
+  await expect(page).toHaveURL(/\/decks\/[^/]+\/edit$/);
+  const deckId = page.url().split("/decks/")[1].split("/")[0];
 
   await page.getByPlaceholder("1 Sol Ring").fill("1 Sol Ring");
   await page.getByRole("button", { name: "Adicionar ao deck" }).click();

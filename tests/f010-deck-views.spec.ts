@@ -33,8 +33,8 @@ test("visualizações: texto, grid visual e grid visual agrupada", async ({ page
 
   await page.getByLabel("Nome do deck").fill("Views Test");
   await page.getByRole("button", { name: "Criar" }).click();
-  await expect(page).toHaveURL(/\/decks\//);
-  const deckId = page.url().split("/decks/")[1];
+  await expect(page).toHaveURL(/\/decks\/[^/]+\/edit$/);
+  const deckId = page.url().split("/decks/")[1].split("/")[0];
 
   await addToDeck(page, "1 Sol Ring", "Sol Ring");
   await addToDeck(page, "3 Lightning Bolt", "Lightning Bolt");

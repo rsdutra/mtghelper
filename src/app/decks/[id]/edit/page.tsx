@@ -1,7 +1,7 @@
 import { DeckDetail } from "@/components/deck-detail/deck-detail";
 
-/** F-011 / US-011-02 — visualização do deck. */
-export default async function DeckViewPage({
+/** F-011 / US-011-04 — edição do deck. */
+export default async function DeckEditPage({
   params,
   searchParams,
 }: {
@@ -10,5 +10,5 @@ export default async function DeckViewPage({
 }) {
   const { id } = await params;
   const { view } = await searchParams;
-  return <DeckDetail deckId={id} mode="view" initialView={view === "canvas" ? "canvas" : "lista"} />;
+  return <DeckDetail deckId={id} mode="edit" initialView={view === "canvas" ? "canvas" : "lista"} />;
 }

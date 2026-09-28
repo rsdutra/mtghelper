@@ -33,6 +33,8 @@ export type DeckCanvasBoardProps = {
   onSaveState?: (state: CanvasSaveState, updatedAt?: string | null) => void;
   onDomainChange?: () => void;
   onEditCardMeta?: (catalogCardId: string) => void;
+  /** Visualização (F-011 / US-011-02): só pan, zoom, preview e copiar; nada é alterado nem salvo. */
+  readOnly?: boolean;
 };
 
 const DeckCanvasBoard = dynamic(

@@ -24,7 +24,7 @@ test("cadastro, busca Scryfall, deck e coleção", async ({ page }) => {
   await page.getByLabel("Nome do deck").fill("V1 Azorius");
   await page.getByLabel("Formato").selectOption("modern");
   await page.getByRole("button", { name: "Criar" }).click();
-  await expect(page).toHaveURL(/\/decks\//);
+  await expect(page).toHaveURL(/\/decks\/[^/]+\/edit$/);
 
   await page.getByPlaceholder("1 Sol Ring").fill("1 Sol Ring");
   await page.getByRole("button", { name: "Adicionar ao deck" }).click();

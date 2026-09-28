@@ -37,7 +37,7 @@ export default function DecksPage() {
       body: JSON.stringify({ name, format }),
     });
     const data = await response.json();
-    if (response.ok) router.push(`/decks/${data.deck.id}`);
+    if (response.ok) router.push(`/decks/${data.deck.id}/edit`);
   }
 
   async function deleteDeck(deck: Deck) {

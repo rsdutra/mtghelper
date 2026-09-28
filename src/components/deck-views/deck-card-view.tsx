@@ -25,23 +25,33 @@ type Props = {
   groups: DeckViewGroup[];
   collapsedGroups: ReadonlySet<string>;
   onToggleGroup: (key: string) => void;
-  /** `working` = seção “Em trabalho”, com borda tracejada. */
-  tone?: "deck" | "working";
+  /** Visualização do deck (F-011): sem ações e com o Texto condensado em colunas. */
+  readOnly?: boolean;
 };
 
 /** Renderiza cartas do deck como Texto, Grid visual ou Grid visual agrupada (F-010). */
-export function DeckCardView({ view, groups, collapsedGroups, onToggleGroup, tone = "deck" }: Props) {
+export function DeckCardView({ view, groups, collapsedGroups, onToggleGroup, readOnly = false }: Props) {
   const preview = useCardHoverPreview(LIST_PREVIEW_DELAY_MS);
   const grouped = groups.some((group) => group.label !== null);
-  const frame = tone === "working" ? "border border-dashed border-neutral-400" : "border border-ink";
+  const actionsW = readOnly ? 0 : ACTIONS_W;
 
   function body(items: DeckViewItem[]) {
-    if (view === "grid") return <CardGrid items={items} preview={preview} />;
+    if (view === "grid") return <CardGrid items={items} preview={preview} actionsW={actionsW} />;
     return <TextList items={items} preview={preview} />;
   }
 
   let content: ReactNode;
-  if (view === "pilhas") {
+  if (view === "texto" && readOnly) {
+    content = (
+      <CompactColumns
+        groups={groups}
+        grouped={grouped}
+        collapsedGroups={collapsedGroups}
+        onToggleGroup={onToggleGroup}
+        preview={preview}
+      />
+    );
+  } else if (view === "pilhas") {
     const columns = grouped
       ? groups
       : chunk(
@@ -49,49 +59,42 @@ export function DeckCardView({ view, groups, collapsedGroups, onToggleGroup, ton
           STACK_MAX,
         ).map((items, index) => ({ key: `stack-${index}`, label: null, items }));
     content = (
-      <div className={`${frame} flex flex-wrap items-start gap-x-4 gap-y-6 p-3`}>
+      <div className="flex flex-wrap items-start gap-x-4 gap-y-6 p-4">
         {columns.map((column) => {
           const collapsed = column.label !== null && collapsedGroups.has(column.key);
           return (
-            <div key={column.key} style={{ width: CARD_W + ACTIONS_W }}>
+            <div key={column.key} style={{ width: CARD_W + actionsW }}>
               {column.label !== null ? (
-                <GroupHeader
+                <StackHeader
                   label={column.label}
                   items={column.items}
                   collapsed={collapsed}
                   onToggle={() => onToggleGroup(column.key)}
-                  className="mb-2 border border-ink"
-                  compact
                 />
               ) : null}
-              {collapsed ? null : <CardStack items={column.items} preview={preview} />}
+              {collapsed ? null : <CardStack items={column.items} preview={preview} actionsW={actionsW} />}
             </div>
           );
         })}
       </div>
     );
   } else if (grouped) {
-    content = (
-      <div className="space-y-3">
-        {groups.map((group) => {
-          const collapsed = collapsedGroups.has(group.key);
-          return (
-            <div key={group.key} className={frame}>
-              <GroupHeader
-                label={group.label ?? ""}
-                items={group.items}
-                collapsed={collapsed}
-                onToggle={() => onToggleGroup(group.key)}
-                className="border-b border-border-line"
-              />
-              {collapsed ? null : body(group.items)}
-            </div>
-          );
-        })}
-      </div>
-    );
+    content = groups.map((group) => {
+      const collapsed = collapsedGroups.has(group.key);
+      return (
+        <div key={group.key} className="border-b border-outline-variant last:border-b-0">
+          <AccordionHeader
+            label={group.label ?? ""}
+            items={group.items}
+            collapsed={collapsed}
+            onToggle={() => onToggleGroup(group.key)}
+          />
+          {collapsed ? null : body(group.items)}
+        </div>
+      );
+    });
   } else {
-    content = <div className={frame}>{body(groups.flatMap((group) => group.items))}</div>;
+    content = body(groups.flatMap((group) => group.items));
   }
 
   return (
@@ -102,52 +105,145 @@ export function DeckCardView({ view, groups, collapsedGroups, onToggleGroup, ton
   );
 }
 
-function GroupHeader({
-  label,
-  items,
-  collapsed,
-  onToggle,
-  className,
-  compact = false,
-}: {
-  label: string;
-  items: DeckViewItem[];
-  collapsed: boolean;
-  onToggle: () => void;
-  className: string;
-  compact?: boolean;
-}) {
-  const quantity = items.reduce((total, item) => total + item.quantity, 0);
-  const size = compact ? "gap-1 px-2 py-1.5 text-[11px]" : "gap-2 px-3 py-2 text-[13px] tracking-wide";
+function groupQuantity(items: DeckViewItem[]) {
+  return items.reduce((total, item) => total + item.quantity, 0);
+}
+
+function Chevron({ collapsed }: { collapsed: boolean }) {
+  return (
+    <span className="w-4 shrink-0 text-center text-[11px] text-muted" aria-hidden>
+      {collapsed ? "▸" : "▾"}
+    </span>
+  );
+}
+
+type HeaderProps = { label: string; items: DeckViewItem[]; collapsed: boolean; onToggle: () => void };
+
+/** Acordeão do layout Stitch “Detalhes do Deck” (F-011 / US-011-01). */
+function AccordionHeader({ label, items, collapsed, onToggle }: HeaderProps) {
   return (
     <button
       type="button"
-      className={`flex w-full items-center bg-surface-container-low text-left font-semibold uppercase ${size} ${className}`}
+      className="flex w-full items-center gap-2 border-b border-surface-variant bg-surface px-4 py-2 text-left hover:bg-surface-container-low"
       aria-expanded={!collapsed}
       onClick={onToggle}
     >
-      <span className="w-4 shrink-0 text-muted" aria-hidden>
-        {collapsed ? "▸" : "▾"}
-      </span>
-      <span className="flex-1 truncate">{label}</span>
-      <span className="font-mono text-[11px] font-normal text-muted">{quantity}</span>
+      <Chevron collapsed={collapsed} />
+      <span className="flex-1 truncate text-[15px] font-semibold tracking-tight text-ink">{label}</span>
+      <span className="font-mono text-[10px] font-semibold text-on-surface-variant">{groupQuantity(items)}</span>
     </button>
+  );
+}
+
+function StackHeader({ label, items, collapsed, onToggle }: HeaderProps) {
+  return (
+    <button
+      type="button"
+      className="mb-2 flex w-full items-center gap-1 border border-outline-variant bg-surface-container-low px-2 py-1.5 text-left text-[11px] font-semibold uppercase"
+      aria-expanded={!collapsed}
+      onClick={onToggle}
+    >
+      <Chevron collapsed={collapsed} />
+      <span className="flex-1 truncate">{label}</span>
+      <span className="font-mono text-[10px] font-normal text-muted">{groupQuantity(items)}</span>
+    </button>
+  );
+}
+
+/** Texto condensado em colunas, como o Moxfield (F-011 / US-011-03). */
+function CompactColumns({
+  groups,
+  grouped,
+  collapsedGroups,
+  onToggleGroup,
+  preview,
+}: {
+  groups: DeckViewGroup[];
+  grouped: boolean;
+  collapsedGroups: ReadonlySet<string>;
+  onToggleGroup: (key: string) => void;
+  preview: Preview;
+}) {
+  if (!grouped) {
+    return (
+      <ul className="columns-[15rem] gap-x-8 px-4 py-3">
+        {groups.flatMap((group) => group.items).map((item) => (
+          <CompactRow key={item.id} item={item} preview={preview} />
+        ))}
+      </ul>
+    );
+  }
+  return (
+    <div className="columns-[15rem] gap-x-8 px-4 py-3">
+      {groups.map((group) => {
+        const collapsed = collapsedGroups.has(group.key);
+        return (
+          <div key={group.key} className="mb-4 break-inside-avoid">
+            <button
+              type="button"
+              className="flex w-full items-center gap-1 border-b border-outline-variant pb-1 text-left text-[13px] font-semibold text-ink"
+              aria-expanded={!collapsed}
+              onClick={() => onToggleGroup(group.key)}
+            >
+              <span className="truncate">{group.label}</span>
+              <span className="font-normal text-muted">({groupQuantity(group.items)})</span>
+              <Chevron collapsed={collapsed} />
+            </button>
+            {collapsed ? null : (
+              <ul className="pt-1">
+                {group.items.map((item) => (
+                  <CompactRow key={item.id} item={item} preview={preview} />
+                ))}
+              </ul>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function CompactRow({ item, preview }: { item: DeckViewItem; preview: Preview }) {
+  return (
+    <li
+      className="flex break-inside-avoid items-baseline gap-2 px-1 py-[3px] text-[13px] leading-5 hover:bg-surface-container-low"
+      data-testid="deck-card-text"
+      {...preview.bind(item.id, item.imageSrc, item.label)}
+    >
+      <span className="w-5 shrink-0 text-right font-mono text-[12px] tabular-nums text-muted">{item.quantity}</span>
+      <span className="min-w-0 truncate">{item.label}</span>
+    </li>
   );
 }
 
 function TextList({ items, preview }: { items: DeckViewItem[]; preview: Preview }) {
   return (
-    <ul className="divide-y">
+    <ul className="divide-y divide-surface-container">
       {items.map((item) => (
-        <li key={item.id} className="flex flex-wrap items-center gap-2 px-3 py-1.5 text-sm">
+        <li
+          key={item.id}
+          className="flex flex-col gap-2 px-4 py-2 hover:bg-surface-bright sm:flex-row sm:items-center sm:justify-between"
+        >
           <div
             className="min-w-0 flex-1 cursor-default"
             data-testid="deck-card-text"
             {...preview.bind(item.id, item.imageSrc, item.label)}
           >
-            <p className="truncate font-medium">{item.label}</p>
-            {item.secondary ? <p className="truncate text-xs text-neutral-500">{item.secondary}</p> : null}
-            {item.meta ? <p className="text-xs uppercase text-neutral-500">{item.meta}</p> : null}
+            <p className="flex min-w-0 items-center gap-2 text-[13px] font-semibold text-ink">
+              <span className="truncate">{item.label}</span>
+              {item.tags.map((tag) => (
+                <span key={tag} className="shrink-0 bg-ink px-1 font-mono text-[9px] font-medium text-white uppercase">
+                  {tag}
+                </span>
+              ))}
+            </p>
+            <p className="flex min-w-0 items-center gap-2 font-mono text-[10px] tracking-[0.04em] text-on-surface-variant">
+              {item.secondary ? <span className="truncate">{item.secondary}</span> : null}
+              {item.setCode ? (
+                <span className="shrink-0 border border-outline-variant px-1 uppercase">{item.setCode}</span>
+              ) : null}
+              {item.priceLabel ? <span className="shrink-0">{item.priceLabel}</span> : null}
+            </p>
           </div>
           {item.renderActions("row")}
         </li>
@@ -156,12 +252,12 @@ function TextList({ items, preview }: { items: DeckViewItem[]; preview: Preview 
   );
 }
 
-function CardImage({ item, preview }: { item: DeckViewItem; preview: Preview }) {
+function CardImage({ item, preview, actionsW }: { item: DeckViewItem; preview: Preview; actionsW: number }) {
   return (
     <div
       className="relative shrink-0 overflow-hidden rounded-[6px] border border-ink bg-surface-container"
       style={{ width: CARD_W, height: CARD_H }}
-      {...preview.bind(item.id, item.imageSrc, item.label, ACTIONS_W)}
+      {...preview.bind(item.id, item.imageSrc, item.label, actionsW)}
     >
       {item.imageSrc ? (
         // eslint-disable-next-line @next/next/no-img-element
@@ -179,14 +275,14 @@ function CardImage({ item, preview }: { item: DeckViewItem; preview: Preview }) 
   );
 }
 
-function CardGrid({ items, preview }: { items: DeckViewItem[]; preview: Preview }) {
+function CardGrid({ items, preview, actionsW }: { items: DeckViewItem[]; preview: Preview; actionsW: number }) {
   return (
     <div
-      className="grid gap-x-3 p-3"
+      className="grid gap-x-3 p-4"
       style={{
-        gridTemplateColumns: `repeat(auto-fill, minmax(${CARD_W + ACTIONS_W}px, 1fr))`,
+        gridTemplateColumns: `repeat(auto-fill, minmax(${CARD_W + actionsW}px, 1fr))`,
         gridAutoRows: GRID_ROW_H,
-        paddingBottom: CARD_H - GRID_ROW_H + 12,
+        paddingBottom: CARD_H - GRID_ROW_H + 16,
       }}
     >
       {items.map((item) => (
@@ -194,12 +290,14 @@ function CardGrid({ items, preview }: { items: DeckViewItem[]; preview: Preview 
           key={item.id}
           data-testid="deck-card-tile"
           className="relative flex hover:z-20 focus-within:z-20"
-          style={{ height: CARD_H, width: CARD_W + ACTIONS_W }}
+          style={{ height: CARD_H, width: CARD_W + actionsW }}
         >
-          <CardImage item={item} preview={preview} />
-          <div className="bg-surface-container-lowest" style={{ width: ACTIONS_W }}>
-            {item.renderActions("column")}
-          </div>
+          <CardImage item={item} preview={preview} actionsW={actionsW} />
+          {actionsW ? (
+            <div className="bg-surface-container-lowest" style={{ width: actionsW }}>
+              {item.renderActions("column")}
+            </div>
+          ) : null}
         </div>
       ))}
     </div>
@@ -207,17 +305,17 @@ function CardGrid({ items, preview }: { items: DeckViewItem[]; preview: Preview 
 }
 
 /** Ações da carta ativa (pairada) ficam ao lado dela; as demais só mostram a faixa do título. */
-function CardStack({ items, preview }: { items: DeckViewItem[]; preview: Preview }) {
+function CardStack({ items, preview, actionsW }: { items: DeckViewItem[]; preview: Preview; actionsW: number }) {
   const [activeId, setActiveId] = useState<string | null>(null);
   const activeIndex = items.findIndex((item) => item.id === activeId);
-  const active = activeIndex >= 0 ? items[activeIndex] : null;
+  const active = actionsW && activeIndex >= 0 ? items[activeIndex] : null;
   const height = items.length ? (items.length - 1) * STACK_OFFSET + CARD_H : 0;
 
   return (
     <div
       className="relative"
       data-testid="deck-card-stack"
-      style={{ width: CARD_W + ACTIONS_W, height }}
+      style={{ width: CARD_W + actionsW, height }}
       onPointerLeave={() => setActiveId(null)}
     >
       {items.map((item, index) => (
@@ -228,13 +326,13 @@ function CardStack({ items, preview }: { items: DeckViewItem[]; preview: Preview
           style={{ top: index * STACK_OFFSET, zIndex: index }}
           onPointerEnter={() => setActiveId(item.id)}
         >
-          <CardImage item={item} preview={preview} />
+          <CardImage item={item} preview={preview} actionsW={actionsW} />
         </div>
       ))}
       {active ? (
         <div
           className="absolute bg-surface-container-lowest"
-          style={{ left: CARD_W, top: activeIndex * STACK_OFFSET, width: ACTIONS_W, zIndex: items.length + 1 }}
+          style={{ left: CARD_W, top: activeIndex * STACK_OFFSET, width: actionsW, zIndex: items.length + 1 }}
         >
           {active.renderActions("column")}
         </div>
