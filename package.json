@@ -10,6 +10,7 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@floating-ui/dom": "^1.8.0",
     "@tanstack/react-query": "^5.102.8",
     "@tiptap/pm": "^3.31.3",
     "@tiptap/react": "^3.31.3",
