@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth";
-import { syncSideboardSection } from "@/lib/deck-sideboard";
 import { isFormat } from "@/lib/formats";
 import { sql } from "@/lib/db";
 
@@ -32,6 +31,5 @@ export async function POST(request: Request) {
     VALUES (${user.id}, ${name}, ${format})
     RETURNING id, name, format, created_at
   `;
-  await syncSideboardSection(deck.id, format);
   return NextResponse.json({ deck });
 }

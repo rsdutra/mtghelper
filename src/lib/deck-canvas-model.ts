@@ -4,7 +4,7 @@ export type CanvasCard = {
   id: string;
   quantity: number;
   included: boolean;
-  section_ids: string[];
+  section_ids?: string[];
   name_en: string;
   name_pt: string | null;
   image_normal: string | null;
@@ -57,12 +57,13 @@ export function imageSrc(card: CanvasCard) {
 
 /** Prefere seção automática por tipo/custo quando a carta tem essa tag (F-008 / US-008-03, US-008-07). */
 export function primarySection(card: CanvasCard, sectionsById: Map<string, CanvasSection>) {
-  const autoId = card.section_ids.find((id) => {
+  const ids = card.section_ids ?? [];
+  const autoId = ids.find((id) => {
     const kind = sectionsById.get(id)?.kind;
     return kind === "type" || kind === "cost";
   });
   if (autoId) return autoId;
-  return card.section_ids[0] ?? null;
+  return ids[0] ?? null;
 }
 
 export function cardOpacity(included: boolean) {

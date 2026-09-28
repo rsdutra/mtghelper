@@ -2,17 +2,23 @@
 ALTER TABLE deck_cards
   ADD COLUMN IF NOT EXISTS included boolean NOT NULL DEFAULT true;
 
-CREATE TABLE IF NOT EXISTS deck_card_sections (
-  deck_card_id uuid NOT NULL REFERENCES deck_cards (id) ON DELETE CASCADE,
-  section_id uuid NOT NULL REFERENCES deck_sections (id) ON DELETE CASCADE,
-  PRIMARY KEY (deck_card_id, section_id)
-);
-
-CREATE INDEX IF NOT EXISTS deck_card_sections_section_idx ON deck_card_sections (section_id);
-
 -- deck_section_cards só existe em bancos anteriores a esta migração.
+-- Se as seções já foram removidas, não recria as tabelas.
 DO $$
 BEGIN
+  IF to_regclass('deck_sections') IS NULL THEN
+    RETURN;
+  END IF;
+
+  EXECUTE $sql$
+    CREATE TABLE IF NOT EXISTS deck_card_sections (
+      deck_card_id uuid NOT NULL REFERENCES deck_cards (id) ON DELETE CASCADE,
+      section_id uuid NOT NULL REFERENCES deck_sections (id) ON DELETE CASCADE,
+      PRIMARY KEY (deck_card_id, section_id)
+    )
+  $sql$;
+  EXECUTE 'CREATE INDEX IF NOT EXISTS deck_card_sections_section_idx ON deck_card_sections (section_id)';
+
   IF to_regclass('deck_section_cards') IS NULL THEN
     RETURN;
   END IF;

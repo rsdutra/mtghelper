@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth";
 import { coverageByKey, coverageKey, summarizeCoverage, type CoverageRow } from "@/lib/deck-coverage";
-import { syncSideboardSection } from "@/lib/deck-sideboard";
-import { isFormat } from "@/lib/formats";
+import { isFormat, sideboardLimit } from "@/lib/formats";
 import { sql } from "@/lib/db";
 
 type Params = { params: Promise<{ id: string }> };
@@ -21,16 +20,10 @@ export async function GET(_request: Request, { params }: Params) {
   const deck = await ownedDeck(user.id, id);
   if (!deck) return NextResponse.json({ error: "Deck não encontrado." }, { status: 404 });
 
-  await syncSideboardSection(id, deck.format);
-
   const cards = await sql`
-    SELECT dc.id AS deck_card_id, dc.quantity, dc.included, dc.price_cents, dc.note,
+    SELECT dc.id AS deck_card_id, dc.quantity, dc.included, dc.in_sideboard, dc.price_cents, dc.note,
            c.id, c.oracle_id, c.name_en, c.name_pt, c.set_code, c.set_name,
-           c.image_normal, c.image_small, c.mana_cost, c.type_line,
-           COALESCE(
-             (SELECT array_agg(dcs.section_id::text) FROM deck_card_sections dcs WHERE dcs.deck_card_id = dc.id),
-             '{}'
-           ) AS section_ids
+           c.image_normal, c.image_small, c.mana_cost, c.type_line
     FROM deck_cards dc
     JOIN catalog_cards c ON c.id = dc.catalog_card_id
     WHERE dc.deck_id = ${id}
@@ -69,20 +62,7 @@ export async function GET(_request: Request, { params }: Params) {
     }
     return { ...card, owned: item.owned, needed: item.needed, missing: item.missing };
   });
-  const sections = await sql`
-    SELECT id, name, position, kind, type_key FROM deck_sections
-    WHERE deck_id = ${id}
-    ORDER BY
-      CASE
-        WHEN kind = 'type' THEN 0
-        WHEN kind = 'cost' THEN 1
-        ELSE 2
-      END,
-      position,
-      name
-  `;
-
-  return NextResponse.json({ deck, cards: cardsWithCoverage, sections, coverage });
+  return NextResponse.json({ deck, cards: cardsWithCoverage, coverage });
 }
 
 export async function PATCH(request: Request, { params }: Params) {
@@ -100,7 +80,12 @@ export async function PATCH(request: Request, { params }: Params) {
     WHERE id = ${id}
     RETURNING id, name, format
   `;
-  await syncSideboardSection(id, format);
+  if (sideboardLimit(format) == null) {
+    await sql`
+      UPDATE deck_cards SET in_sideboard = false
+      WHERE deck_id = ${id} AND in_sideboard = true
+    `;
+  }
   return NextResponse.json({ deck: updated });
 }
 

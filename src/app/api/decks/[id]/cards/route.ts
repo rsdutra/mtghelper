@@ -2,7 +2,14 @@ import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth";
 import { resolveCardName } from "@/lib/cards";
 import { sql } from "@/lib/db";
+import { sideboardLimit } from "@/lib/formats";
 import { parseCardList } from "@/lib/lists";
+
+type Place = "out" | "main" | "side";
+
+function isPlace(value: unknown): value is Place {
+  return value === "out" || value === "main" || value === "side";
+}
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -23,15 +30,21 @@ export async function POST(request: Request, { params }: Params) {
 
   const body = (await request.json()) as {
     text?: string;
-    sectionId?: string;
     set?: string;
-    included?: boolean;
+    place?: Place;
   };
+  const place: Place = isPlace(body.place) ? body.place : "main";
+  if (place === "side") {
+    const [deck] = await sql<{ format: string }[]>`SELECT format FROM decks WHERE id = ${id}`;
+    if (!deck || sideboardLimit(deck.format) == null) {
+      return NextResponse.json({ error: "Este formato não tem sideboard." }, { status: 400 });
+    }
+  }
+  const included = place !== "out";
+  const inSideboard = place === "side";
   const lines = parseCardList(body.text ?? "");
   const missing = [];
   let added = 0;
-  // Na seção: default fora do deck; no deck: included
-  const included = body.included ?? !body.sectionId;
 
   for (const line of lines) {
     const card = await resolveCardName(line.name, body.set || null);
@@ -40,31 +53,15 @@ export async function POST(request: Request, { params }: Params) {
       continue;
     }
 
-    const [row] = await sql<{ id: string }[]>`
-      INSERT INTO deck_cards (deck_id, catalog_card_id, quantity, included)
-      VALUES (${id}, ${card.id}, ${line.quantity}, ${included})
+    await sql`
+      INSERT INTO deck_cards (deck_id, catalog_card_id, quantity, included, in_sideboard)
+      VALUES (${id}, ${card.id}, ${line.quantity}, ${included}, ${inSideboard})
       ON CONFLICT (deck_id, catalog_card_id)
       DO UPDATE SET
         quantity = deck_cards.quantity + EXCLUDED.quantity,
-        included = CASE
-          WHEN ${included} THEN true
-          ELSE deck_cards.included
-        END
-      RETURNING id
+        included = EXCLUDED.included,
+        in_sideboard = EXCLUDED.in_sideboard
     `;
-
-    if (body.sectionId) {
-      const [owned] = await sql<{ id: string }[]>`
-        SELECT id FROM deck_sections WHERE id = ${body.sectionId} AND deck_id = ${id}
-      `;
-      if (owned) {
-        await sql`
-          INSERT INTO deck_card_sections (deck_card_id, section_id)
-          VALUES (${row.id}, ${body.sectionId})
-          ON CONFLICT DO NOTHING
-        `;
-      }
-    }
     added += 1;
   }
 
@@ -81,10 +78,7 @@ export async function PATCH(request: Request, { params }: Params) {
 
   const body = (await request.json()) as {
     catalogCardId?: string;
-    included?: boolean;
-    sideboard?: boolean;
-    sectionIds?: string[] | null;
-    setSectionId?: string | null;
+    place?: Place;
     priceCents?: number | null;
     note?: string | null;
   };
@@ -98,40 +92,20 @@ export async function PATCH(request: Request, { params }: Params) {
   `;
   if (!row) return NextResponse.json({ error: "Carta não está no deck." }, { status: 404 });
 
-  if (typeof body.included === "boolean") {
-    await sql`UPDATE deck_cards SET included = ${body.included} WHERE id = ${row.id}`;
-    if (!body.included) {
-      await sql`
-        DELETE FROM deck_card_sections dcs
-        USING deck_sections ds
-        WHERE dcs.deck_card_id = ${row.id}
-          AND dcs.section_id = ds.id
-          AND ds.deck_id = ${id}
-          AND ds.kind = 'sideboard'
-      `;
-    }
-  }
-
-  if (typeof body.sideboard === "boolean") {
-    const [side] = await sql<{ id: string }[]>`
-      SELECT id FROM deck_sections WHERE deck_id = ${id} AND kind = 'sideboard'
-    `;
-    if (body.sideboard) {
-      if (!side) {
+  if (isPlace(body.place)) {
+    if (body.place === "side") {
+      const [deck] = await sql<{ format: string }[]>`SELECT format FROM decks WHERE id = ${id}`;
+      if (!deck || sideboardLimit(deck.format) == null) {
         return NextResponse.json({ error: "Este formato não tem sideboard." }, { status: 400 });
       }
-      await sql`UPDATE deck_cards SET included = true WHERE id = ${row.id}`;
-      await sql`
-        INSERT INTO deck_card_sections (deck_card_id, section_id)
-        VALUES (${row.id}, ${side.id})
-        ON CONFLICT DO NOTHING
-      `;
-    } else if (side) {
-      await sql`
-        DELETE FROM deck_card_sections
-        WHERE deck_card_id = ${row.id} AND section_id = ${side.id}
-      `;
     }
+    const included = body.place !== "out";
+    const inSideboard = body.place === "side";
+    await sql`
+      UPDATE deck_cards
+      SET included = ${included}, in_sideboard = ${inSideboard}
+      WHERE id = ${row.id}
+    `;
   }
 
   if (body.priceCents !== undefined) {
@@ -144,54 +118,6 @@ export async function PATCH(request: Request, { params }: Params) {
 
   if (body.note !== undefined) {
     await sql`UPDATE deck_cards SET note = ${body.note} WHERE id = ${row.id}`;
-  }
-
-  // Só sincroniza tags `kind=user`; preserva type/cost e não altera `included`.
-  if (body.sectionIds) {
-    await sql`
-      DELETE FROM deck_card_sections dcs
-      USING deck_sections ds
-      WHERE dcs.deck_card_id = ${row.id}
-        AND dcs.section_id = ds.id
-        AND ds.deck_id = ${id}
-        AND ds.kind = 'user'
-    `;
-    for (const sectionId of body.sectionIds) {
-      const [owned] = await sql<{ id: string }[]>`
-        SELECT id FROM deck_sections
-        WHERE id = ${sectionId} AND deck_id = ${id} AND kind = 'user'
-      `;
-      if (owned) {
-        await sql`
-          INSERT INTO deck_card_sections (deck_card_id, section_id)
-          VALUES (${row.id}, ${sectionId})
-          ON CONFLICT DO NOTHING
-        `;
-      }
-    }
-  } else if (body.setSectionId !== undefined) {
-    await sql`
-      DELETE FROM deck_card_sections dcs
-      USING deck_sections ds
-      WHERE dcs.deck_card_id = ${row.id}
-        AND dcs.section_id = ds.id
-        AND ds.deck_id = ${id}
-        AND ds.kind = 'user'
-    `;
-    if (body.setSectionId) {
-      const sectionId = body.setSectionId;
-      const [owned] = await sql<{ id: string }[]>`
-        SELECT id FROM deck_sections
-        WHERE id = ${sectionId} AND deck_id = ${id} AND kind = 'user'
-      `;
-      if (owned) {
-        await sql`
-          INSERT INTO deck_card_sections (deck_card_id, section_id)
-          VALUES (${row.id}, ${sectionId})
-          ON CONFLICT DO NOTHING
-        `;
-      }
-    }
   }
 
   return NextResponse.json({ ok: true });

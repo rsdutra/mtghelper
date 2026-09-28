@@ -41,15 +41,15 @@ test("visualizações: texto, grid visual e grid visual agrupada", async ({ page
   await addToDeck(page, "1 Island", "Island");
   const names = await cardLabels(page, deckId);
 
-  // US-010-01 / US-010-02: Texto é o default, sem miniaturas.
+  // Texto é o default, com miniatura na edição.
   const viewSelect = page.getByLabel("Visualização");
   await expect(viewSelect).toHaveValue("texto");
   const textView = page.getByTestId("deck-view-texto").first();
-  await expect(textView.locator("img")).toHaveCount(0);
+  await expect(textView.locator("img")).toHaveCount(3);
 
-  // Island vai para "Em trabalho" pela ação da linha.
+  // Island vai para "Fora do deck" pelo seletor da linha.
   const islandRow = textView.locator("li").filter({ hasText: "Island" });
-  await islandRow.getByRole("checkbox", { name: "No deck", exact: true }).click();
+  await islandRow.getByLabel(`Mover ${names.island}`).selectOption("out");
   await expect(page.getByTestId("deck-view-texto")).toHaveCount(2);
 
   // US-010-05: preview só ao pairar sobre o texto.
@@ -74,10 +74,11 @@ test("visualizações: texto, grid visual e grid visual agrupada", async ({ page
   const boltTile = gridView.getByTestId("deck-card-tile").filter({ has: page.getByAltText(names.bolt) });
   await boltTile.getByRole("img", { name: names.bolt }).hover();
   await expect(preview).toBeVisible();
-  const increment = boltTile.getByRole("button", { name: `Aumentar ${names.bolt}` });
-  await increment.hover();
+  await boltTile.hover();
+  const options = boltTile.getByRole("button", { name: `Opções de ${names.bolt}` });
+  await options.click();
   await expect(preview).toHaveCount(0);
-  await increment.click();
+  await boltTile.getByRole("menuitem", { name: "Aumentar" }).click();
   await expect(gridView.getByLabel(`Quantidade de ${names.bolt}`)).toHaveText("x4");
 
   // Agrupar por tipo vale para a grid (grupos recolhíveis).
@@ -98,6 +99,7 @@ test("visualizações: texto, grid visual e grid visual agrupada", async ({ page
     .getByTestId("deck-card-stack")
     .filter({ has: page.getByAltText(names.bolt) });
   await instantStack.getByRole("img", { name: names.bolt }).hover();
+  await instantStack.getByRole("button", { name: `Opções de ${names.bolt}` }).click();
   await expect(instantStack.getByTestId("deck-card-actions")).toBeVisible();
   await expect(instantStack.getByLabel(`Quantidade de ${names.bolt}`)).toHaveText("x4");
 

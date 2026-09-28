@@ -29,11 +29,7 @@ test("cadastro, busca Scryfall, deck e coleção", async ({ page }) => {
   await page.getByPlaceholder("1 Sol Ring").fill("1 Sol Ring");
   await page.getByRole("button", { name: "Adicionar ao deck" }).click();
   await expect(page.getByText("Sol Ring").first()).toBeVisible();
-  await expect(page.getByRole("checkbox", { name: "No deck", exact: true }).first()).toBeChecked();
-
-  await page.getByLabel("Nome da seção").fill("upgrade");
-  await page.getByRole("button", { name: "Criar seção" }).click();
-  await expect(page.getByLabel("Seção destino")).toContainText("upgrade");
+  await expect(page.getByLabel(/Mover /).first()).toBeVisible();
 
   await page.getByRole("checkbox", { name: /Incluir na coleção/ }).check();
   await page.getByRole("button", { name: "Processar" }).click();

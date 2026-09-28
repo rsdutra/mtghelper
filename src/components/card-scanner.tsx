@@ -10,16 +10,12 @@ export type ScanConfirm = {
   name: string;
   quantity: number;
   set?: string;
-  sectionId?: string;
 };
-
-type Section = { id: string; name: string };
 
 type Props = {
   open: boolean;
   onClose: () => void;
   onConfirm: (payload: ScanConfirm) => Promise<void>;
-  sections?: Section[];
   title?: string;
 };
 
@@ -29,7 +25,6 @@ export function CardScanner({
   open,
   onClose,
   onConfirm,
-  sections = [],
   title = "Escanear carta",
 }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -45,7 +40,6 @@ export function CardScanner({
   const [selected, setSelected] = useState<Candidate | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [setCode, setSetCode] = useState("");
-  const [sectionId, setSectionId] = useState("");
   const [saving, setSaving] = useState(false);
   const [manualMode, setManualMode] = useState(false);
 
@@ -204,7 +198,6 @@ export function CardScanner({
         name,
         quantity: Math.max(1, quantity),
         set: setCode.trim() || undefined,
-        sectionId: sectionId || undefined,
       });
       resetCapture();
       onClose();
@@ -371,25 +364,6 @@ export function CardScanner({
               />
             </label>
           </div>
-
-          {sections.length ? (
-            <label className="block space-y-1 text-sm">
-              <span>Destino</span>
-              <select
-                aria-label="Destino do scan"
-                value={sectionId}
-                onChange={(event) => setSectionId(event.target.value)}
-                className="h-11 w-full border border-black px-3"
-              >
-                <option value="">Deck principal</option>
-                {sections.map((section) => (
-                  <option key={section.id} value={section.id}>
-                    Seção: {section.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-          ) : null}
 
           {error ? <p className="text-sm text-red-700">{error}</p> : null}
         </div>

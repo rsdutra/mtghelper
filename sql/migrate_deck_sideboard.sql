@@ -1,8 +1,13 @@
--- Sideboard padrão: seção fixa, no máximo uma por deck.
-ALTER TABLE deck_sections DROP CONSTRAINT IF EXISTS deck_sections_kind_check;
-ALTER TABLE deck_sections
-  ADD CONSTRAINT deck_sections_kind_check CHECK (kind IN ('user', 'type', 'cost', 'sideboard'));
+-- Sideboard como seção. Ignorado depois que as seções são removidas.
+DO $$
+BEGIN
+  IF to_regclass('deck_sections') IS NULL THEN
+    RETURN;
+  END IF;
 
-CREATE UNIQUE INDEX IF NOT EXISTS deck_sections_sideboard_uidx
-  ON deck_sections (deck_id)
-  WHERE kind = 'sideboard';
+  ALTER TABLE deck_sections DROP CONSTRAINT IF EXISTS deck_sections_kind_check;
+  ALTER TABLE deck_sections
+    ADD CONSTRAINT deck_sections_kind_check CHECK (kind IN ('user', 'type', 'cost', 'sideboard'));
+
+  EXECUTE 'CREATE UNIQUE INDEX IF NOT EXISTS deck_sections_sideboard_uidx ON deck_sections (deck_id) WHERE kind = ''sideboard''';
+END $$;

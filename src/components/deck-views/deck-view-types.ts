@@ -18,7 +18,7 @@ export function parseDeckListView(value: string | null): DeckListView {
   return DECK_LIST_VIEWS.some((option) => option.id === value) ? (value as DeckListView) : "texto";
 }
 
-export type ActionsLayout = "row" | "column";
+export type ActionsLayout = "row" | "menu";
 
 export type DeckViewItem = {
   id: string;
@@ -29,6 +29,7 @@ export type DeckViewItem = {
   tags: string[];
   priceLabel: string | null;
   imageSrc: string | null;
+  thumbSrc: string | null;
   renderActions: (layout: ActionsLayout) => ReactNode;
 };
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useCardHoverPreview } from "@/components/card-hover-preview";
 import {
   LIST_PREVIEW_DELAY_MS,
@@ -11,7 +11,6 @@ import {
 
 const CARD_W = 140;
 const CARD_H = Math.round((CARD_W * 88) / 63);
-const ACTIONS_W = 30;
 /** Grid visual: cada linha cobre a metade de baixo da anterior (US-010-03). */
 const GRID_ROW_H = Math.round(CARD_H / 2);
 /** Grid agrupada: faixa visível de cada carta, o suficiente para o título (US-010-04). */
@@ -33,10 +32,10 @@ type Props = {
 export function DeckCardView({ view, groups, collapsedGroups, onToggleGroup, readOnly = false }: Props) {
   const preview = useCardHoverPreview(LIST_PREVIEW_DELAY_MS);
   const grouped = groups.some((group) => group.label !== null);
-  const actionsW = readOnly ? 0 : ACTIONS_W;
+  const editable = !readOnly;
 
   function body(items: DeckViewItem[]) {
-    if (view === "grid") return <CardGrid items={items} preview={preview} actionsW={actionsW} />;
+    if (view === "grid") return <CardGrid items={items} preview={preview} editable={editable} />;
     return <TextList items={items} preview={preview} />;
   }
 
@@ -63,7 +62,7 @@ export function DeckCardView({ view, groups, collapsedGroups, onToggleGroup, rea
         {columns.map((column) => {
           const collapsed = column.label !== null && collapsedGroups.has(column.key);
           return (
-            <div key={column.key} style={{ width: CARD_W + actionsW }}>
+            <div key={column.key} style={{ width: CARD_W }}>
               {column.label !== null ? (
                 <StackHeader
                   label={column.label}
@@ -72,7 +71,7 @@ export function DeckCardView({ view, groups, collapsedGroups, onToggleGroup, rea
                   onToggle={() => onToggleGroup(column.key)}
                 />
               ) : null}
-              {collapsed ? null : <CardStack items={column.items} preview={preview} actionsW={actionsW} />}
+              {collapsed ? null : <CardStack items={column.items} preview={preview} editable={editable} />}
             </div>
           );
         })}
@@ -225,17 +224,19 @@ function TextList({ items, preview }: { items: DeckViewItem[]; preview: Preview 
           className="flex flex-col gap-2 px-4 py-2 hover:bg-surface-bright sm:flex-row sm:items-center sm:justify-between"
         >
           <div
-            className="min-w-0 flex-1 cursor-default"
+            className="flex min-w-0 flex-1 cursor-default items-center gap-3"
             data-testid="deck-card-text"
             {...preview.bind(item.id, item.imageSrc, item.label)}
           >
+            {item.thumbSrc ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={item.thumbSrc} alt="" className="h-14 w-10 shrink-0 border border-ink object-cover" />
+            ) : (
+              <span className="h-14 w-10 shrink-0 border border-ink bg-surface-container" />
+            )}
+            <div className="min-w-0">
             <p className="flex min-w-0 items-center gap-2 text-[13px] font-semibold text-ink">
               <span className="truncate">{item.label}</span>
-              {item.tags.map((tag) => (
-                <span key={tag} className="shrink-0 bg-ink px-1 font-mono text-[9px] font-medium text-white uppercase">
-                  {tag}
-                </span>
-              ))}
             </p>
             <p className="flex min-w-0 items-center gap-2 font-mono text-[10px] tracking-[0.04em] text-on-surface-variant">
               {item.secondary ? <span className="truncate">{item.secondary}</span> : null}
@@ -244,6 +245,7 @@ function TextList({ items, preview }: { items: DeckViewItem[]; preview: Preview 
               ) : null}
               {item.priceLabel ? <span className="shrink-0">{item.priceLabel}</span> : null}
             </p>
+            </div>
           </div>
           {item.renderActions("row")}
         </li>
@@ -252,12 +254,12 @@ function TextList({ items, preview }: { items: DeckViewItem[]; preview: Preview 
   );
 }
 
-function CardImage({ item, preview, actionsW }: { item: DeckViewItem; preview: Preview; actionsW: number }) {
+function CardImage({ item, preview }: { item: DeckViewItem; preview: Preview }) {
   return (
     <div
       className="relative shrink-0 overflow-hidden rounded-[6px] border border-ink bg-surface-container"
       style={{ width: CARD_W, height: CARD_H }}
-      {...preview.bind(item.id, item.imageSrc, item.label, actionsW)}
+      {...preview.bind(item.id, item.imageSrc, item.label)}
     >
       {item.imageSrc ? (
         // eslint-disable-next-line @next/next/no-img-element
@@ -275,28 +277,58 @@ function CardImage({ item, preview, actionsW }: { item: DeckViewItem; preview: P
   );
 }
 
-function CardGrid({ items, preview, actionsW }: { items: DeckViewItem[]; preview: Preview; actionsW: number }) {
+function CardGrid({ items, preview, editable }: { items: DeckViewItem[]; preview: Preview; editable: boolean }) {
   return (
     <div
       className="grid gap-x-3 p-4"
       style={{
-        gridTemplateColumns: `repeat(auto-fill, minmax(${CARD_W + actionsW}px, 1fr))`,
+        gridTemplateColumns: `repeat(auto-fill, minmax(${CARD_W}px, 1fr))`,
         gridAutoRows: GRID_ROW_H,
         paddingBottom: CARD_H - GRID_ROW_H + 16,
       }}
     >
       {items.map((item) => (
+        <GridTile key={item.id} item={item} preview={preview} editable={editable} />
+      ))}
+    </div>
+  );
+}
+
+function GridTile({ item, preview, editable }: { item: DeckViewItem; preview: Preview; editable: boolean }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div
+      data-testid="deck-card-tile"
+      className={`group relative hover:z-20 focus-within:z-20 ${open ? "z-30" : ""}`}
+      style={{ height: CARD_H, width: CARD_W }}
+    >
+      <CardImage item={item} preview={preview} />
+      {editable ? <CardOptionsMenu item={item} open={open} onOpenChange={setOpen} /> : null}
+    </div>
+  );
+}
+
+/** Ações da carta ativa (pairada) ficam ao lado dela; as demais só mostram a faixa do título. */
+function CardStack({ items, preview, editable }: { items: DeckViewItem[]; preview: Preview; editable: boolean }) {
+  const [openId, setOpenId] = useState<string | null>(null);
+  const height = items.length ? (items.length - 1) * STACK_OFFSET + CARD_H : 0;
+
+  return (
+    <div className="relative" data-testid="deck-card-stack" style={{ width: CARD_W, height }}>
+      {items.map((item, index) => (
         <div
           key={item.id}
           data-testid="deck-card-tile"
-          className="relative flex hover:z-20 focus-within:z-20"
-          style={{ height: CARD_H, width: CARD_W + actionsW }}
+          className="group absolute left-0"
+          style={{ top: index * STACK_OFFSET, zIndex: openId === item.id ? items.length + 2 : index }}
         >
-          <CardImage item={item} preview={preview} actionsW={actionsW} />
-          {actionsW ? (
-            <div className="bg-surface-container-lowest" style={{ width: actionsW }}>
-              {item.renderActions("column")}
-            </div>
+          <CardImage item={item} preview={preview} />
+          {editable ? (
+            <CardOptionsMenu
+              item={item}
+              open={openId === item.id}
+              onOpenChange={(open) => setOpenId(open ? item.id : null)}
+            />
           ) : null}
         </div>
       ))}
@@ -304,37 +336,50 @@ function CardGrid({ items, preview, actionsW }: { items: DeckViewItem[]; preview
   );
 }
 
-/** Ações da carta ativa (pairada) ficam ao lado dela; as demais só mostram a faixa do título. */
-function CardStack({ items, preview, actionsW }: { items: DeckViewItem[]; preview: Preview; actionsW: number }) {
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const activeIndex = items.findIndex((item) => item.id === activeId);
-  const active = actionsW && activeIndex >= 0 ? items[activeIndex] : null;
-  const height = items.length ? (items.length - 1) * STACK_OFFSET + CARD_H : 0;
+function CardOptionsMenu({
+  item,
+  open,
+  onOpenChange,
+}: {
+  item: DeckViewItem;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function onPointerDown(event: PointerEvent) {
+      if (!rootRef.current?.contains(event.target as Node)) onOpenChange(false);
+    }
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "Escape") onOpenChange(false);
+    }
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open, onOpenChange]);
 
   return (
-    <div
-      className="relative"
-      data-testid="deck-card-stack"
-      style={{ width: CARD_W + actionsW, height }}
-      onPointerLeave={() => setActiveId(null)}
-    >
-      {items.map((item, index) => (
-        <div
-          key={item.id}
-          data-testid="deck-card-tile"
-          className="absolute left-0"
-          style={{ top: index * STACK_OFFSET, zIndex: index }}
-          onPointerEnter={() => setActiveId(item.id)}
-        >
-          <CardImage item={item} preview={preview} actionsW={actionsW} />
-        </div>
-      ))}
-      {active ? (
-        <div
-          className="absolute bg-surface-container-lowest"
-          style={{ left: CARD_W, top: activeIndex * STACK_OFFSET, width: actionsW, zIndex: items.length + 1 }}
-        >
-          {active.renderActions("column")}
+    <div ref={rootRef} className={`absolute top-1.5 right-1.5 z-30 ${open ? "opacity-100" : "opacity-0 group-hover:opacity-100 focus-within:opacity-100"}`}>
+      <button
+        type="button"
+        aria-label={`Opções de ${item.label}`}
+        aria-expanded={open}
+        className="bg-ink/85 px-1.5 font-mono text-[11px] leading-4 text-white"
+        onClick={(event) => {
+          event.stopPropagation();
+          onOpenChange(!open);
+        }}
+      >
+        ...
+      </button>
+      {open ? (
+        <div className="absolute right-0 top-full z-40 mt-1 w-44 border border-ink bg-surface-container-lowest p-1 shadow-[4px_4px_0_#09090b]">
+          {item.renderActions("menu")}
         </div>
       ) : null}
     </div>

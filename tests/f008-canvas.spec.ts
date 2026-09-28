@@ -5,8 +5,8 @@ const stamp = Date.now();
 const login = `konva${stamp}`;
 const password = "senha123";
 
-type DeckCard = { id: string; name_en: string; quantity: number; section_ids: string[] };
-type DeckData = { cards: DeckCard[]; sections: Array<{ id: string; name: string }> };
+type DeckCard = { id: string; name_en: string; quantity: number };
+type DeckData = { cards: DeckCard[] };
 type Snapshot = {
   camera: { x: number; y: number; scale: number };
   cards: Record<string, { parent: string | null; x: number; y: number }>;
@@ -47,7 +47,7 @@ async function cardCenterOnScreen(page: Page, snap: Snapshot, key: string) {
   };
 }
 
-test("canvas: snapshot, mover para seção, deletar e menu", async ({ page }) => {
+test("canvas: snapshot, mover carta, deletar e menu", async ({ page }) => {
   await page.goto("/cadastro");
   await page.getByLabel("Login").fill(login);
   await page.getByLabel("Senha").fill(password);
@@ -65,9 +65,6 @@ test("canvas: snapshot, mover para seção, deletar e menu", async ({ page }) =>
   await page.getByPlaceholder("1 Sol Ring").fill("3 Lightning Bolt");
   await page.getByRole("button", { name: "Adicionar ao deck" }).click();
   await expect(page.getByText("Lightning Bolt").first()).toBeVisible();
-  await page.getByLabel("Nome da seção").fill("upgrade");
-  await page.getByRole("button", { name: "Criar seção" }).click();
-  await expect(page.getByLabel("Seção destino")).toContainText("upgrade");
 
   await page.getByRole("button", { name: "Canvas", exact: true }).click();
   await expect(page.getByTestId("konva-canvas").locator("canvas").first()).toBeVisible();
@@ -76,31 +73,16 @@ test("canvas: snapshot, mover para seção, deletar e menu", async ({ page }) =>
   const data = await deckData(page, deckId);
   const solRing = data.cards.find((card) => card.name_en === "Sol Ring")!;
   const bolt = data.cards.find((card) => card.name_en === "Lightning Bolt")!;
-  const upgrade = data.sections.find((section) => section.name === "upgrade")!;
 
   let snap = await snapshot(page, deckId);
   expect(Object.keys(snap.cards)).toHaveLength(4);
-  expect(snap.frames[upgrade.id]).toBeTruthy();
+  expect(Object.keys(snap.frames)).toHaveLength(0);
 
-  // Arrastar Sol Ring para o frame "upgrade" aplica a tag da seção.
   const from = await cardCenterOnScreen(page, snap, `card:${solRing.id}:0`);
-  const frame = snap.frames[upgrade.id];
-  const box = (await page.getByTestId("konva-canvas").boundingBox())!;
-  const to = {
-    x: box.x + snap.camera.x + (frame.x + frame.w / 2) * snap.camera.scale,
-    y: box.y + snap.camera.y + (frame.y + frame.h / 2) * snap.camera.scale,
-  };
-  const patched = page.waitForResponse(
-    (response) => response.url().endsWith(`/api/decks/${deckId}/cards`) && response.request().method() === "PATCH",
-  );
   await page.mouse.move(from.x, from.y);
   await page.mouse.down();
-  await page.mouse.move(to.x, to.y, { steps: 12 });
+  await page.mouse.move(from.x + 80, from.y + 40, { steps: 12 });
   await page.mouse.up();
-  expect((await patched).ok()).toBe(true);
-  await expect
-    .poll(async () => (await deckData(page, deckId)).cards.find((card) => card.id === solRing.id)?.section_ids)
-    .toContain(upgrade.id);
 
   // Delete remove 1 cópia da carta selecionada.
   const boltCenter = await cardCenterOnScreen(page, snap, `card:${bolt.id}:0`);
@@ -125,7 +107,7 @@ test("canvas: snapshot, mover para seção, deletar e menu", async ({ page }) =>
   // Layout persiste após salvar e recarregar.
   await saveCanvas(page, deckId);
   snap = await snapshot(page, deckId);
-  expect(snap.cards[`card:${solRing.id}:0`].parent).toBe(upgrade.id);
+  expect(snap.cards[`card:${solRing.id}:0`].parent).toBeNull();
   expect(Object.keys(snap.cards)).toHaveLength(3);
 
   await page.reload();

@@ -15,6 +15,7 @@ Cada mudança de produto neste repositório deve referenciar uma **feature** (`F
 | F-009 | UI / layout Stitch | [F-009-ui-stitch.md](./F-009-ui-stitch.md) |
 | F-010 | Tipos de visualização do deck | [F-010-visualizacao-deck.md](./F-010-visualizacao-deck.md) |
 | F-011 | Deck: modo visualização e modo edição | [F-011-deck-view-edit.md](./F-011-deck-view-edit.md) |
+| F-012 | Spots de cartas no deck | [F-012-spots.md](./F-012-spots.md) |
 
 ## Como criar uma feature
 

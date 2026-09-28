@@ -11,11 +11,9 @@ import { DeckEditTools } from "@/components/deck-detail/deck-edit-tools";
 import {
   DECK_VIEW_OPTIONS,
   deckHref,
-  normalizeSectionIds,
   type CardRow,
   type DeckMode,
   type DeckView,
-  type Section,
 } from "@/components/deck-detail/deck-detail-types";
 import { useDeckCardMutations } from "@/components/deck-detail/use-deck-card-mutations";
 import { DeckExportMenu } from "@/components/deck-export-menu";
@@ -53,7 +51,6 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
   const [format, setFormat] = useState("commander");
   const [cards, setCards] = useState<CardRow[]>([]);
   const [coverage, setCoverage] = useState<DeckCoverageSummary | null>(null);
-  const [sections, setSections] = useState<Section[]>([]);
   const [view, setView] = useState<DeckView>(initialView);
   const isCanvasView = view !== "lista";
   const [status, setStatus] = useState("");
@@ -61,7 +58,6 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
   const [groupByCost, setGroupByCost] = useState<boolean | null>(null);
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(() => new Set());
   const [listView, setListView] = useState<DeckListView | null>(null);
-  const [autoSectionsSyncing, setAutoSectionsSyncing] = useState(false);
   const [canvasToolsOpen, setCanvasToolsOpen] = useState(false);
   const [metaCard, setMetaCard] = useState<CardRow | null>(null);
   const [canvasSnapshot, setCanvasSnapshot] = useState<unknown>(null);
@@ -78,13 +74,12 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
     setName(data.deck.name);
     setFormat(data.deck.format);
     setCards(
-      (data.cards ?? []).map((card: CardRow & { section_ids?: unknown }) => ({
+      (data.cards ?? []).map((card: CardRow) => ({
         ...card,
         included: Boolean(card.included),
-        section_ids: normalizeSectionIds(card.section_ids),
+        in_sideboard: Boolean(card.in_sideboard),
       })),
     );
-    setSections(data.sections ?? []);
     setCoverage(data.coverage ?? null);
   }, [deckId]);
 
@@ -118,29 +113,7 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
     if (groupByType === null || groupByCost === null) return;
     window.localStorage.setItem("mtghelper.deck.groupByType", groupByType ? "1" : "0");
     window.localStorage.setItem("mtghelper.deck.groupByCost", groupByCost ? "1" : "0");
-    // Visualização só reagrupa no cliente; seções automáticas são sincronizadas na edição.
-    if (!editing) return;
-    let cancelled = false;
-    setAutoSectionsSyncing(true);
-    void (async () => {
-      const typeRes = await fetch(`/api/decks/${deckId}/type-sections`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ enabled: groupByType }),
-      });
-      const costRes = await fetch(`/api/decks/${deckId}/cost-sections`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ enabled: groupByCost }),
-      });
-      if (cancelled) return;
-      if (typeRes.ok && costRes.ok) await load();
-      if (!cancelled) setAutoSectionsSyncing(false);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [groupByType, groupByCost, deckId, load, editing]);
+  }, [groupByType, groupByCost]);
 
   useEffect(() => {
     if (view === "lista") {
@@ -197,38 +170,18 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
     window.history.replaceState(null, "", deckHref(deckId, mode, next));
   }
 
-  async function ensureAutoSections() {
-    if (!groupByType && !groupByCost) return;
-    const kind = groupByType ? "type-sections" : "cost-sections";
-    const response = await fetch(`/api/decks/${deckId}/${kind}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ enabled: true }),
-    });
-    if (response.ok) await load();
-  }
-
-  const mutations = useDeckCardMutations({ deckId, sections, setCards, setStatus, load, ensureAutoSections });
+  const mutations = useDeckCardMutations({ deckId, setStatus, load });
 
   const includedCards = useMemo(() => cards.filter((card) => card.included), [cards]);
   const workingCards = useMemo(() => cards.filter((card) => !card.included), [cards]);
-  const userSections = useMemo(
-    () => sections.filter((section) => section.kind !== "type" && section.kind !== "cost" && section.kind !== "sideboard"),
-    [sections],
-  );
   const allowsSideboard = sideboardLimit(format) != null;
-  const sideboardSection = useMemo(
-    () => (allowsSideboard ? (sections.find((section) => section.kind === "sideboard") ?? null) : null),
-    [allowsSideboard, sections],
-  );
-  const sideboardId = sideboardSection?.id ?? null;
   const mainCards = useMemo(
-    () => includedCards.filter((card) => !sideboardId || !card.section_ids.includes(sideboardId)),
-    [includedCards, sideboardId],
+    () => includedCards.filter((card) => !allowsSideboard || !card.in_sideboard),
+    [includedCards, allowsSideboard],
   );
   const sideboardCards = useMemo(
-    () => (sideboardId ? includedCards.filter((card) => card.section_ids.includes(sideboardId)) : []),
-    [includedCards, sideboardId],
+    () => (allowsSideboard ? includedCards.filter((card) => card.in_sideboard) : []),
+    [includedCards, allowsSideboard],
   );
   const groupedIncluded = useMemo(() => groupCardsByType(mainCards), [mainCards]);
   const groupedByCost = useMemo(() => groupCardsByManaCost(mainCards), [mainCards]);
@@ -263,19 +216,19 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
         <input
           type="checkbox"
           checked={Boolean(groupByType)}
-          disabled={groupByType === null || autoSectionsSyncing}
+          disabled={groupByType === null}
           onChange={(event) => enableGroupByType(event.target.checked)}
         />
-        Agrupar por tipo{autoSectionsSyncing && groupByType ? "…" : ""}
+        Agrupar por tipo
       </label>
       <label className="flex items-center gap-2">
         <input
           type="checkbox"
           checked={Boolean(groupByCost)}
-          disabled={groupByCost === null || autoSectionsSyncing}
+          disabled={groupByCost === null}
           onChange={(event) => enableGroupByCost(event.target.checked)}
         />
-        Agrupar por custo{autoSectionsSyncing && groupByCost ? "…" : ""}
+        Agrupar por custo
       </label>
     </div>
   );
@@ -290,7 +243,6 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
   }
 
   function toViewItem(card: CardRow): DeckViewItem {
-    const tags = userSections.filter((section) => card.section_ids.includes(section.id));
     const label = card.name_pt ?? card.name_en;
     return {
       id: card.id,
@@ -298,9 +250,10 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
       label,
       secondary: card.name_pt ? card.name_en : null,
       setCode: card.set_code || null,
-      tags: tags.map((tag) => tag.name),
+      tags: [],
       priceLabel: formatBRLFromCents(card.price_cents ?? null) || null,
       imageSrc: card.image_normal ?? card.image_small,
+      thumbSrc: card.image_small ?? card.image_normal,
       renderActions: (layout) =>
         editing ? (
           <DeckCardActions
@@ -316,15 +269,8 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
                 ? { owned: card.owned ?? 0, needed: card.needed, missing: card.missing ?? 0 }
                 : null
             }
-            included={card.included}
-            onIncludedChange={(included) => void mutations.setIncluded(card.id, included)}
-            inSideboard={Boolean(sideboardId && card.section_ids.includes(sideboardId))}
-            onSideboardChange={
-              sideboardId ? (inSideboard) => void mutations.setSideboard(card.id, inSideboard) : undefined
-            }
-            sections={userSections}
-            selectedTagIds={tags.map((tag) => tag.id)}
-            onTagsChange={(nextIds) => void mutations.setCardUserSections(card.id, nextIds)}
+            allowsSideboard={allowsSideboard}
+            onMove={(place) => void mutations.moveCard(card.id, place)}
           />
         ) : null,
     };
@@ -407,8 +353,7 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
   const tools = editing ? (
     <DeckEditTools
       deckId={deckId}
-      userSections={userSections}
-      sideboardSection={sideboardSection}
+      allowsSideboard={allowsSideboard}
       status={status}
       setStatus={setStatus}
       addText={mutations.addText}
@@ -452,7 +397,7 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
               initialSnapshot={canvasSnapshot}
               deckId={deckId}
               cards={cards}
-              sections={sections}
+              sections={[]}
               readOnly={!editing}
               onDirtyChange={setCanvasDirty}
               onDomainChange={() => void load()}
@@ -525,7 +470,7 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
     </ListPanel>
   );
 
-  const sideboardPanel = sideboardSection ? (
+  const sideboardPanel = allowsSideboard ? (
     <ListPanel
       title="Sideboard"
       count={sideboardCount}
@@ -601,7 +546,7 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
             {groupingToggles}
             {editing ? (
               <span className="hidden font-mono text-[10px] tracking-[0.04em] text-on-surface-variant md:inline">
-                Só “No deck”. Cartas já em sessão manual (tag) não mudam de sessão ao agrupar. Os modos são exclusivos.
+                Só “No deck”. Os modos são exclusivos.
               </span>
             ) : null}
           </div>

@@ -61,35 +61,11 @@ CREATE TABLE IF NOT EXISTS deck_cards (
   catalog_card_id uuid NOT NULL REFERENCES catalog_cards (id),
   quantity integer NOT NULL CHECK (quantity > 0),
   included boolean NOT NULL DEFAULT true,
+  in_sideboard boolean NOT NULL DEFAULT false,
   price_cents integer CHECK (price_cents IS NULL OR price_cents >= 0),
   note text,
   UNIQUE (deck_id, catalog_card_id)
 );
-
-CREATE TABLE IF NOT EXISTS deck_sections (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  deck_id uuid NOT NULL REFERENCES decks (id) ON DELETE CASCADE,
-  name text NOT NULL,
-  position integer NOT NULL DEFAULT 0,
-  kind text NOT NULL DEFAULT 'user' CHECK (kind IN ('user', 'type', 'cost', 'sideboard')),
-  type_key text
-);
-
-CREATE UNIQUE INDEX IF NOT EXISTS deck_sections_type_key_uidx
-  ON deck_sections (deck_id, type_key)
-  WHERE type_key IS NOT NULL;
-
-CREATE UNIQUE INDEX IF NOT EXISTS deck_sections_sideboard_uidx
-  ON deck_sections (deck_id)
-  WHERE kind = 'sideboard';
-
-CREATE TABLE IF NOT EXISTS deck_card_sections (
-  deck_card_id uuid NOT NULL REFERENCES deck_cards (id) ON DELETE CASCADE,
-  section_id uuid NOT NULL REFERENCES deck_sections (id) ON DELETE CASCADE,
-  PRIMARY KEY (deck_card_id, section_id)
-);
-
-CREATE INDEX IF NOT EXISTS deck_card_sections_section_idx ON deck_card_sections (section_id);
 
 CREATE TABLE IF NOT EXISTS deck_canvas_konva (
   deck_id uuid PRIMARY KEY REFERENCES decks (id) ON DELETE CASCADE,

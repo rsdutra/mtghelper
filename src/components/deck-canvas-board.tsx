@@ -57,6 +57,14 @@ function syncLayout(prev: Layout, cards: CanvasCard[], sections: CanvasSection[]
     const existing = prev.cards[key];
     if (existing && existing.parent === null) {
       next.cards[key] = existing;
+    } else if (existing?.parent) {
+      const frame = prev.frames[existing.parent];
+      next.cards[key] = {
+        parent: null,
+        x: frame ? frame.x + existing.x : existing.x,
+        y: frame ? frame.y + existing.y : existing.y,
+      };
+      changed = true;
     } else {
       next.cards[key] = { parent: null, ...defaultUntaggedPos(index) };
       changed = true;
@@ -351,16 +359,6 @@ export function DeckCanvasBoard({
     return { x: (point.x - current.x) / current.scale, y: (point.y - current.y) / current.scale };
   }
 
-  function sendCardPatch(catalogCardId: string, sectionId: string | null) {
-    void fetch(`/api/decks/${deckIdRef.current}/cards`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ catalogCardId, setSectionId: sectionId }),
-    }).then((response) => {
-      if (response.ok) onDomainChangeRef.current?.();
-    });
-  }
-
   function deleteSelectedCards() {
     const keys = [...selectedRef.current].filter((key) => key in layoutRef.current.cards);
     if (!keys.length) return;
@@ -550,25 +548,18 @@ export function DeckCanvasBoard({
     if (!drag) return;
     const current = layoutRef.current;
     const nextCards = { ...current.cards };
-    const patches = new Map<string, string | null>();
     for (const key of [drag.anchorKey, ...drag.others.keys()]) {
       const node = cardNodesRef.current.get(key);
-      const prev = current.cards[key];
-      if (!node || !prev) continue;
+      if (!node || !current.cards[key]) continue;
       const abs = { x: node.x(), y: node.y() };
       const parent = frameAtCardCenter(abs, sections, current.frames);
       const frame = parent ? current.frames[parent] : undefined;
       nextCards[key] = frame
         ? { parent, x: abs.x - frame.x, y: abs.y - frame.y }
         : { parent: null, x: abs.x, y: abs.y };
-      if (parent !== prev.parent) {
-        const copy = copiesByKey.get(key);
-        if (copy) patches.set(copy.id, parent);
-      }
     }
     setLayout({ ...current, cards: nextCards });
     markDirty();
-    for (const [catalogCardId, sectionId] of patches) sendCardPatch(catalogCardId, sectionId);
   }
 
   function updateFrame(sectionId: string, patch: Partial<FrameRect>) {
