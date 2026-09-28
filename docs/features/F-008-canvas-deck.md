@@ -125,7 +125,7 @@ Critérios de aceite:
 - [x] Seletor volta a ser `Lista | Canvas`; o modo Canvas usa o canvas Konva (US-008-08).
 - [x] Pacote `tldraw` e componentes que o usavam removidos do app.
 - [x] `GET|PUT /api/decks/[id]/canvas` lê/grava só `deck_canvas_konva` (sem parâmetro `engine`).
-- [x] A tabela antiga `deck_canvas` não é mais criada em bancos novos nem lida; bancos existentes a mantêm (sem migração dos layouts tldraw, sem drop).
+- [x] A tabela antiga `deck_canvas` (layouts tldraw) é removida por `sql/migrate_drop_deck_canvas.sql`; os layouts não são migrados para o Konva.
 
 ## Regras
 
