@@ -1,16 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { HOVER_PREVIEW_DELAY_MS, PREVIEW_W, imageSrc, type CanvasCard } from "@/lib/deck-canvas-model";
+import { useEffect, useMemo, useState } from "react";
+import { useCardHoverPreview } from "@/components/card-hover-preview";
+import { HOVER_PREVIEW_DELAY_MS, imageSrc, type CanvasCard } from "@/lib/deck-canvas-model";
 import { formatBRLFromCents } from "@/lib/money-br";
 import { useLatestRef } from "@/lib/use-latest-ref";
-
-type HoverPreview = {
-  src: string;
-  name: string;
-  x: number;
-  y: number;
-};
 
 type CardContextMenu = {
   x: number;
@@ -37,28 +31,11 @@ export function useCardOverlays({
   const cardsByIdRef = useLatestRef(cardsById);
   const onEditCardMetaRef = useLatestRef(onEditCardMeta);
 
-  const hoverTimerRef = useRef<number | null>(null);
-  const hoverKeyRef = useRef<string | null>(null);
-  const hoverPreviewVisibleRef = useRef(false);
-  const pointerRef = useRef({ x: 0, y: 0 });
-  const [hoverPreview, setHoverPreview] = useState<HoverPreview | null>(null);
+  const preview = useCardHoverPreview(HOVER_PREVIEW_DELAY_MS);
+  const hideHoverPreview = preview.hide;
   const [contextMenu, setContextMenu] = useState<CardContextMenu | null>(null);
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
   const contextMenuOpenRef = useLatestRef(Boolean(contextMenu));
-
-  function clearHoverTimer() {
-    if (hoverTimerRef.current !== null) {
-      window.clearTimeout(hoverTimerRef.current);
-      hoverTimerRef.current = null;
-    }
-  }
-
-  function hideHoverPreview() {
-    clearHoverTimer();
-    hoverKeyRef.current = null;
-    hoverPreviewVisibleRef.current = false;
-    setHoverPreview(null);
-  }
 
   function closeContextMenu() {
     setContextMenu(null);
@@ -67,39 +44,12 @@ export function useCardOverlays({
 
   /** Chamar a cada movimento do ponteiro sobre uma carta (`key` identifica a cópia). */
   function hoverCard(key: string, catalogId: string, clientX: number, clientY: number) {
-    pointerRef.current = { x: clientX, y: clientY };
     if (contextMenuOpenRef.current) {
       hideHoverPreview();
       return;
     }
-    if (hoverKeyRef.current === key) {
-      if (hoverPreviewVisibleRef.current) {
-        setHoverPreview((prev) =>
-          prev ? { ...prev, x: pointerRef.current.x, y: pointerRef.current.y } : prev,
-        );
-      }
-      return;
-    }
-    clearHoverTimer();
-    hoverKeyRef.current = key;
-    hoverPreviewVisibleRef.current = false;
-    setHoverPreview(null);
-    hoverTimerRef.current = window.setTimeout(() => {
-      const card = cardsByIdRef.current.get(catalogId);
-      const src = card ? imageSrc(card) : null;
-      if (!src || !card) {
-        setHoverPreview(null);
-        return;
-      }
-      hoverPreviewVisibleRef.current = true;
-      setHoverPreview({
-        src,
-        name: card.name_pt ?? card.name_en,
-        x: pointerRef.current.x,
-        y: pointerRef.current.y,
-      });
-      hoverTimerRef.current = null;
-    }, HOVER_PREVIEW_DELAY_MS);
+    const card = cardsByIdRef.current.get(catalogId);
+    preview.hover(key, card ? imageSrc(card) : null, card ? (card.name_pt ?? card.name_en) : "", clientX, clientY);
   }
 
   function openContextMenu(catalogId: string, clientX: number, clientY: number) {
@@ -138,10 +88,6 @@ export function useCardOverlays({
   }
 
   useEffect(() => {
-    return () => clearHoverTimer();
-  }, []);
-
-  useEffect(() => {
     if (!contextMenu) return;
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") closeContextMenu();
@@ -161,25 +107,7 @@ export function useCardOverlays({
 
   const overlays = (
     <>
-      {hoverPreview ? (
-        <div
-          className="pointer-events-none fixed z-[120]"
-          style={{
-            left: hoverPreview.x,
-            top: hoverPreview.y,
-            transform: "translate(-50%, -50%)",
-          }}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={hoverPreview.src}
-            alt={hoverPreview.name}
-            width={PREVIEW_W}
-            className="border border-black shadow-2xl"
-            style={{ width: PREVIEW_W, height: "auto" }}
-          />
-        </div>
-      ) : null}
+      {preview.overlay}
       {contextMenu ? (
         <div
           data-card-context-menu

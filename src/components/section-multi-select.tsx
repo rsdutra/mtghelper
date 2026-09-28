@@ -13,6 +13,8 @@ type SectionMultiSelectProps = {
   onChange: (nextIds: string[]) => void;
   disabled?: boolean;
   label?: string;
+  /** Só ícone + contagem, para a coluna de ações das grids (F-010 / US-010-03). */
+  compact?: boolean;
 };
 
 export function SectionMultiSelect({
@@ -21,6 +23,7 @@ export function SectionMultiSelect({
   onChange,
   disabled = false,
   label = "Sessões",
+  compact = false,
 }: SectionMultiSelectProps) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -58,6 +61,7 @@ export function SectionMultiSelect({
         : `${selectedIds.length} sessões`;
 
   if (sections.length === 0) {
+    if (compact) return null;
     return (
       <span
         className="text-[10px] text-muted"
@@ -70,18 +74,35 @@ export function SectionMultiSelect({
 
   return (
     <div ref={rootRef} className="relative">
-      <button
-        type="button"
-        className="ui-btn-outline h-6 max-w-[11rem] truncate px-1.5 text-[10px] text-muted disabled:opacity-50"
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        aria-controls={listId}
-        disabled={disabled}
-        onClick={() => setOpen((value) => !value)}
-        title={label}
-      >
-        {label}: {summary}
-      </button>
+      {compact ? (
+        <button
+          type="button"
+          className="flex h-6 w-6 items-center justify-center gap-px text-[9px] text-muted hover:text-ink disabled:opacity-50"
+          aria-haspopup="listbox"
+          aria-expanded={open}
+          aria-controls={listId}
+          aria-label={`${label}: ${summary}`}
+          disabled={disabled}
+          onClick={() => setOpen((value) => !value)}
+          title={`${label}: ${summary}`}
+        >
+          <TagIcon />
+          {selectedIds.length ? <span className="tabular-nums">{selectedIds.length}</span> : null}
+        </button>
+      ) : (
+        <button
+          type="button"
+          className="ui-btn-outline h-6 max-w-[11rem] truncate px-1.5 text-[10px] text-muted disabled:opacity-50"
+          aria-haspopup="listbox"
+          aria-expanded={open}
+          aria-controls={listId}
+          disabled={disabled}
+          onClick={() => setOpen((value) => !value)}
+          title={label}
+        >
+          {label}: {summary}
+        </button>
+      )}
       {open ? (
         <ul
           id={listId}
@@ -109,5 +130,14 @@ export function SectionMultiSelect({
         </ul>
       ) : null}
     </div>
+  );
+}
+
+function TagIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M3 3h8l10 10-8 8L3 11V3Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+      <circle cx="7.5" cy="7.5" r="1.5" fill="currentColor" />
+    </svg>
   );
 }

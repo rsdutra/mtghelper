@@ -4,15 +4,23 @@ import { useParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { CardMetaModal, type CardMetaValues } from "@/components/card-meta-modal";
-import { CardQuantityControls } from "@/components/card-quantity-controls";
 import { CardScanner } from "@/components/card-scanner";
 import { CardSearch, type Suggestion } from "@/components/card-search";
 import { DeckCanvas, type DeckCanvasHandle } from "@/components/deck-canvas";
 import { DeckCoverageBadge } from "@/components/deck-coverage-badge";
 import { DeckExportMenu } from "@/components/deck-export-menu";
 import { DeckStatsCharts } from "@/components/deck-stats-charts";
+import { DeckCardActions } from "@/components/deck-views/deck-card-actions";
+import { DeckCardView } from "@/components/deck-views/deck-card-view";
+import {
+  DECK_LIST_VIEWS,
+  DECK_LIST_VIEW_STORAGE_KEY,
+  parseDeckListView,
+  type DeckListView,
+  type DeckViewGroup,
+  type DeckViewItem,
+} from "@/components/deck-views/deck-view-types";
 import { LoadingModal } from "@/components/loading-modal";
-import { SectionMultiSelect } from "@/components/section-multi-select";
 import { groupCardsByType } from "@/lib/card-types";
 import type { DeckCoverageSummary } from "@/lib/deck-coverage";
 import { FORMATS } from "@/lib/formats";
@@ -81,6 +89,7 @@ export default function DeckPage() {
   const [groupByType, setGroupByType] = useState<boolean | null>(null);
   const [groupByCost, setGroupByCost] = useState<boolean | null>(null);
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(() => new Set());
+  const [listView, setListView] = useState<DeckListView | null>(null);
   const [autoSectionsSyncing, setAutoSectionsSyncing] = useState(false);
   const [canvasToolsOpen, setCanvasToolsOpen] = useState(false);
   const [metaCard, setMetaCard] = useState<CardRow | null>(null);
@@ -126,7 +135,13 @@ export default function DeckPage() {
       setGroupByType(false);
       setGroupByCost(false);
     }
+    setListView(parseDeckListView(window.localStorage.getItem(DECK_LIST_VIEW_STORAGE_KEY)));
   }, []);
+
+  function changeListView(next: DeckListView) {
+    setListView(next);
+    window.localStorage.setItem(DECK_LIST_VIEW_STORAGE_KEY, next);
+  }
 
   useEffect(() => {
     if (groupByType === null || groupByCost === null) return;
@@ -435,48 +450,66 @@ export default function DeckPage() {
     await load();
   }
 
-  function renderCardRow(card: CardRow) {
+  function toViewItem(card: CardRow): DeckViewItem {
     const tags = userSections.filter((section) => card.section_ids.includes(section.id));
-    const userTagIds = tags.map((tag) => tag.id);
+    const label = card.name_pt ?? card.name_en;
     const priceLabel = formatBRLFromCents(card.price_cents ?? null);
-    return (
-      <CardQuantityControls
-        quantity={card.quantity}
-        label={card.name_pt ?? card.name_en}
-        secondary={card.name_pt ? card.name_en : null}
-        imageSrc={card.image_small ?? card.image_normal}
-        previewSrc={card.image_normal}
-        meta={[card.set_code, ...tags.map((tag) => tag.name), priceLabel || null].filter(Boolean).join(" · ")}
-        onDecrement={() => void removeCard(card.id)}
-        onIncrement={() => void addOneCopy(card)}
-        onRemoveAll={() => void removeCard(card.id, true)}
-        onInspect={() => setMetaCard(card)}
-        inspectTitle="Detalhes da carta (preço e nota)"
-        coverage={
-          card.included && card.needed != null
-            ? { owned: card.owned ?? 0, needed: card.needed, missing: card.missing ?? 0 }
-            : null
-        }
-        extraActions={
-          <>
-            <label className="flex items-center gap-1 text-[11px] text-muted">
-              <input
-                type="checkbox"
-                checked={card.included}
-                onChange={(event) => void setIncluded(card.id, event.target.checked)}
-              />
-              No deck
-            </label>
-            <SectionMultiSelect
-              sections={userSections}
-              selectedIds={userTagIds}
-              onChange={(nextIds) => void setCardUserSections(card.id, nextIds)}
-            />
-          </>
-        }
-      />
-    );
+    return {
+      id: card.id,
+      quantity: card.quantity,
+      label,
+      secondary: card.name_pt ? card.name_en : null,
+      meta: [card.set_code, ...tags.map((tag) => tag.name), priceLabel || null].filter(Boolean).join(" · "),
+      imageSrc: card.image_normal ?? card.image_small,
+      renderActions: (layout) => (
+        <DeckCardActions
+          layout={layout}
+          label={label}
+          quantity={card.quantity}
+          onDecrement={() => void removeCard(card.id)}
+          onIncrement={() => void addOneCopy(card)}
+          onRemoveAll={() => void removeCard(card.id, true)}
+          onInspect={() => setMetaCard(card)}
+          coverage={
+            card.included && card.needed != null
+              ? { owned: card.owned ?? 0, needed: card.needed, missing: card.missing ?? 0 }
+              : null
+          }
+          included={card.included}
+          onIncludedChange={(included) => void setIncluded(card.id, included)}
+          sections={userSections}
+          selectedTagIds={tags.map((tag) => tag.id)}
+          onTagsChange={(nextIds) => void setCardUserSections(card.id, nextIds)}
+        />
+      ),
+    };
   }
+
+  const includedGroups: DeckViewGroup[] = groupByType
+    ? groupedIncluded.map((bucket) => ({ key: bucket.group, label: bucket.label, items: bucket.cards.map(toViewItem) }))
+    : groupByCost
+      ? groupedByCost.map((bucket) => ({ key: bucket.key, label: bucket.label, items: bucket.cards.map(toViewItem) }))
+      : [{ key: "included", label: null, items: includedCards.map(toViewItem) }];
+  const workingGroups: DeckViewGroup[] = [{ key: "working", label: null, items: workingCards.map(toViewItem) }];
+
+  const listViewSelect = (
+    <label className="flex items-center gap-2 text-sm">
+      Visualização
+      <select
+        aria-label="Visualização"
+        value={listView ?? "texto"}
+        disabled={listView === null}
+        onChange={(event) => changeListView(event.target.value as DeckListView)}
+        className="ui-input h-8 w-auto"
+      >
+        {DECK_LIST_VIEWS.map((option) => (
+          <option key={option.id} value={option.id}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
 
   const tools = (
     <div className="space-y-5">
@@ -732,7 +765,10 @@ export default function DeckPage() {
 
         <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
           <div className="space-y-5">
-            {groupingToggles}
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              {groupingToggles}
+              {listViewSelect}
+            </div>
             <p className="text-[12px] text-muted">
               Só “No deck”. Cartas já em sessão manual (tag) não mudam de sessão ao agrupar por tipo/custo. Os modos são exclusivos.
             </p>
@@ -748,73 +784,14 @@ export default function DeckPage() {
               </h2>
               {includedCards.length === 0 ? (
                 <div className="border border-ink px-3 py-4 text-[13px] text-muted">Nenhuma carta incluída.</div>
-              ) : groupByType ? (
-                <div className="space-y-3">
-                  {groupedIncluded.map((bucket) => {
-                    const collapsed = collapsedGroups.has(bucket.group);
-                    const qty = bucket.cards.reduce((n, c) => n + c.quantity, 0);
-                    return (
-                      <div key={bucket.group} className="border border-ink">
-                        <button
-                          type="button"
-                          className="flex w-full items-center gap-2 border-b border-border-line bg-surface-container-low px-3 py-2 text-left text-[13px] font-semibold uppercase tracking-wide"
-                          aria-expanded={!collapsed}
-                          onClick={() => toggleCollapsedGroup(bucket.group)}
-                        >
-                          <span className="w-4 shrink-0 text-muted" aria-hidden>
-                            {collapsed ? "▸" : "▾"}
-                          </span>
-                          <span className="flex-1">{bucket.label}</span>
-                          <span className="font-mono text-[11px] font-normal text-muted">{qty}</span>
-                        </button>
-                        {collapsed ? null : (
-                          <ul className="divide-y">
-                            {bucket.cards.map((card) => (
-                              <li key={card.id}>{renderCardRow(card)}</li>
-                            ))}
-                          </ul>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : groupByCost ? (
-                <div className="space-y-3">
-                  {groupedByCost.map((bucket) => {
-                    const collapsed = collapsedGroups.has(bucket.key);
-                    const qty = bucket.cards.reduce((n, c) => n + c.quantity, 0);
-                    return (
-                      <div key={bucket.key} className="border border-ink">
-                        <button
-                          type="button"
-                          className="flex w-full items-center gap-2 border-b border-border-line bg-surface-container-low px-3 py-2 text-left text-[13px] font-semibold uppercase tracking-wide"
-                          aria-expanded={!collapsed}
-                          onClick={() => toggleCollapsedGroup(bucket.key)}
-                        >
-                          <span className="w-4 shrink-0 text-muted" aria-hidden>
-                            {collapsed ? "▸" : "▾"}
-                          </span>
-                          <span className="flex-1">{bucket.label}</span>
-                          <span className="font-mono text-[11px] font-normal text-muted">{qty}</span>
-                        </button>
-                        {collapsed ? null : (
-                          <ul className="divide-y">
-                            {bucket.cards.map((card) => (
-                              <li key={card.id}>{renderCardRow(card)}</li>
-                            ))}
-                          </ul>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <ul className="divide-y border border-black">
-                  {includedCards.map((card) => (
-                    <li key={card.id}>{renderCardRow(card)}</li>
-                  ))}
-                </ul>
-              )}
+              ) : listView ? (
+                <DeckCardView
+                  view={listView}
+                  groups={includedGroups}
+                  collapsedGroups={collapsedGroups}
+                  onToggleGroup={toggleCollapsedGroup}
+                />
+              ) : null}
             </section>
 
             <section className="space-y-2">
@@ -824,13 +801,15 @@ export default function DeckPage() {
               <p className="text-xs text-neutral-500">Cartas para upgrade, corte ou consideração — ainda não entram no deck.</p>
               {workingCards.length === 0 ? (
                 <div className="border border-black px-3 py-4 text-sm text-neutral-500">Nenhuma carta em trabalho.</div>
-              ) : (
-                <ul className="divide-y border border-dashed border-neutral-400">
-                  {workingCards.map((card) => (
-                    <li key={card.id}>{renderCardRow(card)}</li>
-                  ))}
-                </ul>
-              )}
+              ) : listView ? (
+                <DeckCardView
+                  view={listView}
+                  groups={workingGroups}
+                  collapsedGroups={collapsedGroups}
+                  onToggleGroup={toggleCollapsedGroup}
+                  tone="working"
+                />
+              ) : null}
             </section>
           </div>
           <div className="border border-black p-4">{tools}</div>
