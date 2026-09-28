@@ -13,6 +13,7 @@ Cada mudança de produto neste repositório deve referenciar uma **feature** (`F
 | F-007 | Escaneamento de cartas (OCR local) | [F-007-escaneamento-ocr.md](./F-007-escaneamento-ocr.md) |
 | F-008 | Canvas de deck | [F-008-canvas-deck.md](./F-008-canvas-deck.md) |
 | F-009 | UI / layout Stitch | [F-009-ui-stitch.md](./F-009-ui-stitch.md) |
+| F-010 | Tipos de visualização do deck | [F-010-visualizacao-deck.md](./F-010-visualizacao-deck.md) |
 
 ## Como criar uma feature
 

@@ -73,7 +73,7 @@ Critérios de aceite:
 Critérios de aceite:
 
 - [x] Painel direito (busca/lista/tags) começa fechado ou pode ser fechado; botão flutuante à direita abre/fecha.
-- [x] Ao manter o mouse ~1,5s sobre uma carta, preview maior aparece junto ao cursor.
+- [x] Ao manter o mouse ~1,5s sobre uma carta, preview maior aparece junto ao cursor (mesmo componente das views da lista, F-010 / US-010-05).
 - [x] Mover rápido entre cartas não dispara preview (delay reinicia); sair da carta esconde o preview.
 
 ### US-008-05 — Copiar nome no botão direito

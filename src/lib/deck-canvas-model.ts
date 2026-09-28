@@ -36,7 +36,6 @@ export const COLS = 8;
 export const OUT_OF_DECK_OPACITY = 0.84;
 /** Delay antes do preview ampliado (F-008 / US-008-04). */
 export const HOVER_PREVIEW_DELAY_MS = 1500;
-export const PREVIEW_W = 280;
 
 export function expand(cards: CanvasCard[]) {
   const copies: CardCopy[] = [];
