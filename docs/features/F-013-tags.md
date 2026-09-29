@@ -17,7 +17,6 @@ Marcar cartas do deck e da coleção com tags coloridas, guardadas numa coluna s
 
 - Tag compartilhada entre deck e coleção.
 - Renomear uma tag em todas as cartas de uma vez.
-- Filtro dedicado só de tags no deck.
 
 ## User stories
 
@@ -44,15 +43,43 @@ Critérios de aceite:
 - [x] O nome identifica a tag: o mesmo nome reutiliza a cor já usada naquele deck ou coleção.
 - [x] A carta não é gravada com duas tags de mesmo nome.
 
+### US-013-03 — Filtrar o deck por tag
+
+**Como** jogador **quero** escolher uma tag numa lista com as cores **para** ver só as cartas do deck marcadas com ela.
+
+Critérios de aceite:
+
+- [x] Na edição, um botão de ícone “Tags” fica logo abaixo do botão “Gráficos”, na coluna de botões à direita.
+- [x] Na visualização, a mesma coluna de botões aparece só com o botão “Tags”.
+- [x] O botão abre um painel com as tags usadas no deck, cada uma com a bolinha da sua cor e o nome.
+- [x] Clicar numa tag filtra “No deck”, “Sideboard” e “Fora do deck”: só aparecem as cartas com aquela tag.
+- [x] Uma tag por vez: clicar em outra troca o filtro; clicar na tag ativa desliga o filtro.
+- [x] “Limpar filtro” volta a mostrar todas as cartas.
+- [x] Deck sem tags mostra um aviso no painel em vez da lista.
+
+Decisões (confirmadas com o usuário):
+
+1. O filtro vale na edição e na visualização.
+2. Uma tag por vez.
+3. O filtro atinge “No deck”, “Sideboard” e “Fora do deck”. Os gráficos, o tamanho do deck e os totais dos painéis continuam contando o deck inteiro.
+4. O filtro é só da lista; o canvas (F-008) não é filtrado. O filtro não é salvo: recarregar a página mostra o deck inteiro.
+
 ## Regras
 
 - Formato da coluna: `Nome|#rrggbb` separado por vírgula. Exemplo: `Ramp|#16a34a,Draw|#2563eb`.
 - Nome com até 32 caracteres, sem vírgula e sem `|`.
 - Cor em hexadecimal de 6 dígitos.
 - A busca da coleção também olha o nome da tag.
+- Filtro do deck (US-013-03): fica só no cliente. Com o filtro ativo, a barra de agrupamento mostra “Filtrando pela tag X”; painel sem cartas com a tag mostra “Nenhuma carta com a tag X.”. Se a tag some do deck, o filtro desliga.
+- A tela do deck tem recuo à direita para a coluna de botões fixa não cobrir os controles.
+
+## Testes
+
+- `tests/f013-tags.spec.ts`: US-013-01 e US-013-02.
+- `tests/f013-tag-filter.spec.ts`: US-013-03 na edição e na visualização.
 
 ## Superfície
 
-- UI: menu da carta no deck, cartas da coleção, bolinhas ao lado da quantidade
+- UI: menu da carta no deck, cartas da coleção, bolinhas ao lado da quantidade, botão/painel “Tags” do deck (`src/components/deck-detail/deck-tag-filter.tsx`, `deck-detail.tsx`)
 - API: `PATCH /api/decks/[id]/cards` e `PATCH /api/collections/[id]/cards` com `tags`
 - Dados: `deck_cards.tags`, `collection_items.tags`

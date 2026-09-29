@@ -9,6 +9,7 @@ import { DeckCanvas, type DeckCanvasHandle } from "@/components/deck-canvas";
 import { DeckCoverageBadge } from "@/components/deck-coverage-badge";
 import { DeckEditHeader } from "@/components/deck-detail/deck-edit-header";
 import { DeckEditTools } from "@/components/deck-detail/deck-edit-tools";
+import { DeckTagFilterPanel } from "@/components/deck-detail/deck-tag-filter";
 import {
   DECK_VIEW_OPTIONS,
   deckHref,
@@ -35,7 +36,7 @@ import { evaluateDeckSize } from "@/lib/deck-size";
 import { FORMATS, sideboardLimit } from "@/lib/formats";
 import { groupCardsByManaCost } from "@/lib/mana-cost-groups";
 import { formatBRLFromCents } from "@/lib/money-br";
-import { addTag, collectTags, toggleTag } from "@/lib/tags";
+import { addTag, collectTags, sameTag, toggleTag } from "@/lib/tags";
 
 type Props = {
   deckId: string;
@@ -63,6 +64,8 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
   const [canvasToolsOpen, setCanvasToolsOpen] = useState(false);
   const [toolsOpen, setToolsOpen] = useState(false);
   const [chartsOpen, setChartsOpen] = useState(false);
+  const [tagsOpen, setTagsOpen] = useState(false);
+  const [tagFilter, setTagFilter] = useState<string | null>(null);
   const [metaCard, setMetaCard] = useState<CardRow | null>(null);
   const [tagCard, setTagCard] = useState<CardRow | null>(null);
   const [canvasSnapshot, setCanvasSnapshot] = useState<unknown>(null);
@@ -188,8 +191,15 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
     () => (allowsSideboard ? includedCards.filter((card) => card.place === "side") : []),
     [includedCards, allowsSideboard],
   );
-  const groupedIncluded = useMemo(() => groupCardsByType(mainCards), [mainCards]);
-  const groupedByCost = useMemo(() => groupCardsByManaCost(mainCards), [mainCards]);
+  const activeTag = useMemo(
+    () => (tagFilter ? (knownTags.find((tag) => sameTag(tag.name, tagFilter)) ?? null) : null),
+    [knownTags, tagFilter],
+  );
+  const shownMain = useMemo(() => filterByTag(mainCards, activeTag?.name), [mainCards, activeTag]);
+  const shownSideboard = useMemo(() => filterByTag(sideboardCards, activeTag?.name), [sideboardCards, activeTag]);
+  const shownWorking = useMemo(() => filterByTag(workingCards, activeTag?.name), [workingCards, activeTag]);
+  const groupedIncluded = useMemo(() => groupCardsByType(shownMain), [shownMain]);
+  const groupedByCost = useMemo(() => groupCardsByManaCost(shownMain), [shownMain]);
   const sizeStatus = useMemo(() => {
     const sum = (rows: CardRow[]) => rows.reduce((total, card) => total + card.quantity, 0);
     return evaluateDeckSize(format, sum(mainCards), sum(sideboardCards));
@@ -289,8 +299,8 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
     ? groupedIncluded.map((bucket) => ({ key: bucket.group, label: bucket.label, items: bucket.cards.map(toViewItem) }))
     : groupByCost
       ? groupedByCost.map((bucket) => ({ key: bucket.key, label: bucket.label, items: bucket.cards.map(toViewItem) }))
-      : [{ key: "included", label: null, items: mainCards.map(toViewItem) }];
-  const workingGroups: DeckViewGroup[] = [{ key: "working", label: null, items: workingCards.map(toViewItem) }];
+      : [{ key: "included", label: null, items: shownMain.map(toViewItem) }];
+  const workingGroups: DeckViewGroup[] = [{ key: "working", label: null, items: shownWorking.map(toViewItem) }];
 
   const listViewSelect = (
     <label className="flex items-center gap-2 text-[13px]">
@@ -470,7 +480,10 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
   const includedCount = mainCards.reduce((total, card) => total + card.quantity, 0);
   const sideboardCount = sideboardCards.reduce((total, card) => total + card.quantity, 0);
   const workingCount = workingCards.reduce((total, card) => total + card.quantity, 0);
-  const sideboardGroups: DeckViewGroup[] = [{ key: "sideboard", label: null, items: sideboardCards.map(toViewItem) }];
+  const sideboardGroups: DeckViewGroup[] = [{ key: "sideboard", label: null, items: shownSideboard.map(toViewItem) }];
+  const filteredOut = activeTag ? (
+    <p className="px-4 py-4 text-[13px] text-muted">Nenhuma carta com a tag {activeTag.name}.</p>
+  ) : null;
 
   const deckPanel = (
     <ListPanel title="No deck" count={includedCount}>
@@ -478,6 +491,8 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
         <p className="px-4 py-4 text-[13px] text-muted">
           Nenhuma carta incluída.{editing ? "" : " Use Editar para adicionar cartas."}
         </p>
+      ) : shownMain.length === 0 ? (
+        filteredOut
       ) : listView ? (
         <DeckCardView
           view={listView}
@@ -500,6 +515,8 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
     >
       {sideboardCards.length === 0 ? (
         <p className="px-4 py-4 text-[13px] text-muted">Nenhuma carta no sideboard.</p>
+      ) : shownSideboard.length === 0 ? (
+        filteredOut
       ) : listView ? (
         <DeckCardView
           view={listView}
@@ -522,6 +539,8 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
       >
         {workingCards.length === 0 ? (
           <p className="px-4 py-4 text-[13px] text-muted">Nenhuma carta fora do deck.</p>
+        ) : shownWorking.length === 0 ? (
+          filteredOut
         ) : listView ? (
           <DeckCardView
             view={listView}
@@ -534,9 +553,29 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
       </ListPanel>
     ) : null;
 
+  const tagsButton = (
+    <ToggleIconButton label="Tags" pressed={tagsOpen} onClick={() => setTagsOpen((open) => !open)}>
+      <TagIcon />
+    </ToggleIconButton>
+  );
+  const tagsPanelRight = 4.5 + (editing && toolsOpen ? 20.5 : 0) + (editing && chartsOpen ? 26.5 : 0);
+  const tagsPanel = tagsOpen ? (
+    <aside
+      className="fixed top-20 z-40 max-h-[calc(100vh-6rem)] w-64 overflow-auto border border-ink bg-surface-container-lowest p-4 shadow-[4px_4px_0_#09090b]"
+      style={{ right: `${tagsPanelRight}rem` }}
+    >
+      <DeckTagFilterPanel
+        tags={knownTags}
+        active={activeTag?.name ?? null}
+        onSelect={setTagFilter}
+        onClear={() => setTagFilter(null)}
+      />
+    </aside>
+  ) : null;
+
   return (
     <AppShell wide>
-      <div className="space-y-4">
+      <div className="space-y-4 pr-12">
         <div className="flex flex-col gap-4 border-b border-outline-variant pb-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-3">
             {editing ? (
@@ -569,6 +608,16 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
                 Só “No deck”. Os modos são exclusivos.
               </span>
             ) : null}
+            {activeTag ? (
+              <span className="flex items-center gap-1.5 text-[13px] font-semibold" data-testid="deck-tag-filter-active">
+                <span
+                  aria-hidden="true"
+                  className="inline-block h-2.5 w-2.5 rounded-full border border-ink"
+                  style={{ backgroundColor: activeTag.color }}
+                />
+                Filtrando pela tag {activeTag.name}
+              </span>
+            ) : null}
           </div>
           {listViewSelect}
         </div>
@@ -593,6 +642,7 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
               >
                 <ChartIcon />
               </ToggleIconButton>
+              {tagsButton}
             </div>
             {toolsOpen ? (
               <aside className="fixed top-20 right-16 z-40 max-h-[calc(100vh-6rem)] w-80 overflow-auto border border-ink bg-surface-container-lowest p-4 shadow-[4px_4px_0_#09090b]">
@@ -607,6 +657,7 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
                 <DeckStatsCharts cards={includedCards} stacked />
               </aside>
             ) : null}
+            {tagsPanel}
           </div>
         ) : (
           <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
@@ -618,6 +669,8 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
             <aside className="min-w-0">
               <DeckStatsCharts cards={includedCards} stacked />
             </aside>
+            <div className="fixed top-20 right-4 z-40 flex flex-col gap-2">{tagsButton}</div>
+            {tagsPanel}
           </div>
         )}
       </div>
@@ -691,6 +744,20 @@ function ChartIcon() {
       <path d="M8 15v-3M12 15V8M16 15v-5" stroke="currentColor" strokeWidth="1.8" />
     </svg>
   );
+}
+
+function TagIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M3.5 12.5V4h8.5l8.5 8.5-8.5 8.5z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="miter" />
+      <circle cx="8" cy="8.5" r="1.5" fill="currentColor" />
+    </svg>
+  );
+}
+
+function filterByTag(cards: CardRow[], tagName: string | undefined) {
+  if (!tagName) return cards;
+  return cards.filter((card) => (card.tags ?? []).some((tag) => sameTag(tag.name, tagName)));
 }
 
 function ListPanel({
