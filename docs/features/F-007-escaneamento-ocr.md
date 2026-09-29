@@ -66,7 +66,7 @@ Critérios de aceite:
 
 Critérios de aceite:
 
-- [x] No contexto de deck: adiciona ao deck ou à seção selecionada (F-004).
+- [x] No contexto de deck: adiciona ao deck ou à seção selecionada (F-004). **Pausado:** o botão saiu da edição do deck (F-004 / US-004-18) e volta numa próxima versão.
 - [x] No contexto de coleção: adiciona à coleção atual (F-005).
 - [x] Quantidade default 1 (editável antes de confirmar).
 
@@ -105,7 +105,7 @@ Critérios de aceite:
 
 ## Superfície
 
-- UI: `src/components/card-scanner.tsx` em `/decks/[id]/edit` e `/colecao/[id]`
+- UI: `src/components/card-scanner.tsx` em `/colecao/[id]` (no deck, pausado desde US-004-18)
 - Lib cliente: `src/lib/ocr/` (`clean`, `crop`, `worker`)
 - API: reutiliza `/api/cards/suggest`, endpoints de deck/coleção (`set` opcional no deck)
 - Dados: nenhum schema novo na V1 (usa `catalog_cards` + destino)
