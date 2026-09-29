@@ -168,7 +168,9 @@ docker exec mtghelper-web-1 node scripts/migrate.mjs --status
 
 Mostra cada arquivo como `aplicada` (com data), `pendente`, `ALTERADA` ou `sem arquivo` (registrada no banco, mas removida do repo).
 
-Local: `npm run db:status` e `npm run db:migrate` (lêem `DATABASE_URL` do `.env`).
+Local: `npm run db:status` e `npm run db:migrate` (lêem `DATABASE_URL` do `.env`). Com o `.env` apontando para o stage, esses comandos atualizam o banco de stage.
+
+No push para `main`, o job `migrate-stage` roda o mesmo runner contra o stage, usando o secret `STAGE_DATABASE_URL` (URL completa, sem commitar). O deploy de produção continua migrando o Postgres de produção no start do container. Os dois bancos são atualizados no mesmo merge.
 
 ---
 

@@ -75,6 +75,17 @@ Critérios de aceite:
 - [x] No primeiro start com o runner, as migrations atuais rodam uma vez (são idempotentes) e ficam registradas.
 - [x] Testado no banco local e num banco novo vazio.
 
+### US-014-06 — Stage no merge da main
+
+**Como** dev **quero** que o banco de stage receba as migrations no merge da `main` **para** desenvolver contra o mesmo schema sem rodar o comando na mão.
+
+Critérios de aceite:
+
+- [ ] O job `migrate-stage` roda `scripts/migrate.mjs` em todo push na `main`.
+- [ ] A conexão vem do secret `STAGE_DATABASE_URL`, sem entrar no repositório.
+- [ ] O job falha se o secret não estiver configurado.
+- [x] O stage atual foi migrado e as migrations ficaram registradas em `schema_migrations`.
+
 ## Decisões (confirmadas com o usuário)
 
 1. Runner em **Node**, com o pacote `postgres` que o app já usa: o mesmo código roda no container e no Windows (`npm run db:migrate`).
@@ -92,7 +103,7 @@ Sem Playwright: não há fluxo de UI. Validado com o runner real:
 
 ## Superfície
 
-- `scripts/docker-entrypoint.sh`, `Dockerfile`, runner em `scripts/`, `package.json` (script `db:migrate`).
+- `scripts/docker-entrypoint.sh`, `Dockerfile`, runner em `scripts/`, `package.json` (script `db:migrate`), job `migrate-stage` em `.github/workflows/publish-ghcr.yml`.
 - Dados: tabela `schema_migrations`.
 - Docs: `docs/deploy-hostinger-vps.md`.
 
