@@ -63,7 +63,7 @@ Critérios de aceite:
 
 - [x] Nome e formato editáveis + Salvar, como hoje.
 - [x] Linhas com todas as ações atuais, no estilo Stitch (stepper com borda, lixeira, “No deck”, tags).
-- [x] Painel lateral (Stitch 4/12) com busca, escanear, lista, seção, tags, em trabalho + tag, coleção.
+- [x] Painel lateral (Stitch 4/12) com busca (botão Adicionar, US-004-18), lista, seção, tags, em trabalho + tag, coleção. O escanear saiu da edição do deck (US-004-18).
 - [x] Botão para voltar à visualização.
 - [x] Canvas (F-008) editável como hoje; na visualização, canvas somente leitura.
 

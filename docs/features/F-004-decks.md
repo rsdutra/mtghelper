@@ -58,6 +58,20 @@ Critérios de aceite:
 ### US-004-02 — Adicionar cartas
 - [x] Resolvedor compartilhado; quantidades somam na mesma linha.
 
+### US-004-18 — Adicionar carta pela busca com botão
+
+**Como** jogador **quero** escolher a carta e o destino antes de adicionar **para** não incluir a carta errada só por clicar numa sugestão.
+
+Critérios de aceite:
+
+- [x] Na edição, clicar numa sugestão da busca só seleciona a carta; nada é gravado.
+- [x] A carta selecionada aparece abaixo da busca, com miniatura, nome e um botão para limpar a seleção.
+- [x] O botão **Adicionar** fica onde estava “Escanear carta” e só habilita com uma carta selecionada.
+- [x] Clicar em **Adicionar** grava 1 cópia no destino do seletor (No deck, Sideboard ou Fora do deck) e limpa a seleção.
+- [x] O botão “Escanear carta” sai da edição do deck. O escaneamento continua na coleção (F-007).
+
+Testes: `tests/f004-busca-adicionar.spec.ts`; `tests/f007-scan.spec.ts` confere que o deck não tem mais o botão e que a coleção ainda abre o scanner.
+
 ### US-004-08 — Incluída no deck (boolean)
 
 **Como** jogador **quero** marcar se a carta está no deck ou só em trabalho **para** planejar upgrades sem poluir a lista oficial.

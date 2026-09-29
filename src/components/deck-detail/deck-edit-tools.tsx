@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { CardScanner } from "@/components/card-scanner";
 import { CardSearch, type Suggestion } from "@/components/card-search";
 import type { DeckPlace } from "@/components/deck-detail/deck-detail-types";
 import { LoadingModal } from "@/components/loading-modal";
@@ -122,7 +121,8 @@ export function DeckEditTools({ deckId, allowsSideboard, status, setStatus, addT
   const [listTarget, setListTarget] = useState<DeckPlace>("main");
   const [lists, setLists] = useState<Record<DeckPlace, string>>({ main: "", side: "", out: "" });
   const [listImporting, setListImporting] = useState(false);
-  const [scannerOpen, setScannerOpen] = useState(false);
+  const [selected, setSelected] = useState<Suggestion | null>(null);
+  const [adding, setAdding] = useState(false);
   const [collectionOpen, setCollectionOpen] = useState(false);
   const [includeMain, setIncludeMain] = useState(true);
   const [includeOut, setIncludeOut] = useState(false);
@@ -132,8 +132,16 @@ export function DeckEditTools({ deckId, allowsSideboard, status, setStatus, addT
 
   const destination = allowsSideboard || place !== "side" ? place : "main";
 
-  async function addSuggestion(suggestion: Suggestion) {
-    await addText(`1 ${suggestion.namePt ?? suggestion.nameEn}`, undefined, destination);
+  /** US-004-18: a sugestão só seleciona; gravar exige o botão Adicionar. */
+  async function addSelected() {
+    if (!selected) return;
+    setAdding(true);
+    try {
+      await addText(`1 ${selected.namePt ?? selected.nameEn}`, undefined, destination);
+      setSelected(null);
+    } finally {
+      setAdding(false);
+    }
   }
 
   async function saveLists() {
@@ -227,7 +235,7 @@ export function DeckEditTools({ deckId, allowsSideboard, status, setStatus, addT
       <Module title="Busca">
         <div className="flex">
           <div className="min-w-0 flex-1 [&_input]:border-r-0">
-            <CardSearch onSelect={(item) => void addSuggestion(item)} />
+            <CardSearch onSelect={setSelected} />
           </div>
           <DestinationMenu
             value={destination}
@@ -235,8 +243,39 @@ export function DeckEditTools({ deckId, allowsSideboard, status, setStatus, addT
             onChange={setPlace}
           />
         </div>
-        <button type="button" className="ui-btn-outline h-8 w-full" onClick={() => setScannerOpen(true)}>
-          Escanear carta
+        {selected ? (
+          <div
+            className="flex items-center gap-3 border border-outline-variant px-2 py-1.5"
+            data-testid="search-selected-card"
+          >
+            {selected.imageSmall ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={selected.imageSmall} alt="" className="h-10 w-7 object-cover" />
+            ) : (
+              <span className="h-10 w-7 border border-border-line" />
+            )}
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[13px] font-medium text-ink">{selected.namePt ?? selected.nameEn}</span>
+              {selected.namePt ? <span className="block truncate text-[12px] text-muted">{selected.nameEn}</span> : null}
+            </span>
+            <button
+              type="button"
+              aria-label="Limpar carta selecionada"
+              title="Limpar carta selecionada"
+              className="flex h-7 w-7 shrink-0 items-center justify-center text-muted hover:bg-surface-container hover:text-ink"
+              onClick={() => setSelected(null)}
+            >
+              ×
+            </button>
+          </div>
+        ) : null}
+        <button
+          type="button"
+          className="ui-btn h-8 w-full disabled:opacity-50"
+          disabled={!selected || adding}
+          onClick={() => void addSelected()}
+        >
+          Adicionar
         </button>
       </Module>
       <Module title="Lista">
@@ -250,13 +289,6 @@ export function DeckEditTools({ deckId, allowsSideboard, status, setStatus, addT
         </button>
       </Module>
       {status ? <p className="text-[12px] text-muted">{status}</p> : null}
-      <CardScanner
-        open={scannerOpen}
-        onClose={() => setScannerOpen(false)}
-        onConfirm={async (payload) => {
-          await addText(`${payload.quantity} ${payload.name}`, payload.set, "main");
-        }}
-      />
       {listOpen ? (
         <div className="fixed inset-0 z-[160] flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true" aria-labelledby="list-modal-title">
           <div className="flex h-[min(80vh,760px)] w-[min(960px,94vw)] flex-col border border-ink bg-surface-container-lowest shadow-[6px_6px_0_#09090b]">

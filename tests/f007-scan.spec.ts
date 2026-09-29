@@ -7,7 +7,7 @@ test("F-007 limpa texto OCR", () => {
   expect(cleanOcrText("Sol Ring ★")).toBe("Sol Ring");
 });
 
-test("F-007 abre o scanner no deck", async ({ page }) => {
+test("F-007 abre o scanner na coleção e não no deck", async ({ page }) => {
   const stamp = Date.now();
   await page.goto("/cadastro");
   await page.getByLabel("Login").fill(`scan${stamp}`);
@@ -20,13 +20,16 @@ test("F-007 abre o scanner no deck", async ({ page }) => {
   await page.getByRole("button", { name: "Criar" }).click();
   await expect(page).toHaveURL(/\/decks\/[^/]+\/edit$/);
 
-  // Na edição, as ferramentas ficam no painel lateral "Busca".
-  await expect(page.getByRole("button", { name: "Busca", exact: true })).toBeVisible();
-  if ((await page.getByRole("button", { name: "Escanear carta" }).count()) === 0) {
-    await page.getByRole("button", { name: "Busca", exact: true }).click();
-  }
-  await page.getByRole("button", { name: "Escanear carta" }).click();
-  await expect(page.getByRole("dialog", { name: "Escanear carta" })).toBeVisible();
+  // F-004 / US-004-18: o escaneamento está pausado na edição do deck.
+  await page.getByRole("button", { name: "Busca", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Adicionar", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Escanear carta" })).toHaveCount(0);
+
+  await page.goto("/colecao");
+  await page.getByRole("link", { name: /Minha coleção/ }).click();
+  await page.getByRole("button", { name: "Editar coleção" }).click();
+  await page.getByRole("button", { name: "Escanear", exact: true }).click();
+  await expect(page.getByRole("dialog", { name: "Escanear para a coleção" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Usar câmera" })).toBeVisible();
   await expect(page.getByText("Enviar imagem")).toBeVisible();
 });
