@@ -23,13 +23,7 @@ until psql "$DATABASE_URL" -c "SELECT 1" >/dev/null 2>&1; do
 done
 
 echo "Applying SQL schema/migrations..."
-psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f sql/schema.sql
-for f in sql/migrate_*.sql; do
-  if [ -f "$f" ]; then
-    echo "  -> $f"
-    psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$f"
-  fi
-done
+node scripts/migrate.mjs
 
 echo "Starting Next.js..."
 exec node server.js
