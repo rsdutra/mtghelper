@@ -35,8 +35,8 @@ Hoje o `scripts/docker-entrypoint.sh` roda `sql/schema.sql` e **todas** as `sql/
 
 Critérios de aceite:
 
-- [ ] Tabela `schema_migrations` (`filename` PK, `checksum`, `applied_at`).
-- [ ] Criada pelo próprio runner se não existir.
+- [x] Tabela `schema_migrations` (`filename` PK, `checksum`, `applied_at`).
+- [x] Criada pelo próprio runner se não existir.
 
 ### US-014-02 — Aplicar só as pendentes
 
@@ -44,10 +44,10 @@ Critérios de aceite:
 
 Critérios de aceite:
 
-- [ ] Ordem: nome do arquivo, comparação ordinal (a mesma do `sh` hoje).
-- [ ] Cada arquivo roda numa transação; o registro em `schema_migrations` entra na mesma transação.
-- [ ] Falha: rollback do arquivo, erro com o nome da migration, start interrompido (app não sobe com schema pela metade).
-- [ ] Migrations já registradas não rodam de novo.
+- [x] Ordem: nome do arquivo, comparação ordinal (a mesma do `sh` hoje).
+- [x] Cada arquivo roda numa transação; o registro em `schema_migrations` entra na mesma transação.
+- [x] Falha: rollback do arquivo, erro com o nome da migration, start interrompido (app não sobe com schema pela metade).
+- [x] Migrations já registradas não rodam de novo.
 
 ### US-014-03 — Mesmo runner em produção e local
 
@@ -55,8 +55,8 @@ Critérios de aceite:
 
 Critérios de aceite:
 
-- [ ] Entrypoint do container usa o runner antes de subir o Next.
-- [ ] Comando local (`npm run db:migrate`) lendo `DATABASE_URL` do `.env`, sem exibir credenciais.
+- [x] Entrypoint do container usa o runner antes de subir o Next.
+- [x] Comando local (`npm run db:migrate`) lendo `DATABASE_URL` do `.env`, sem exibir credenciais.
 
 ### US-014-04 — Status
 
@@ -64,7 +64,7 @@ Critérios de aceite:
 
 Critérios de aceite:
 
-- [ ] Comando de status lista aplicadas (com data), pendentes e alteradas depois de aplicadas (checksum diferente).
+- [x] Comando de status lista aplicadas (com data), pendentes e alteradas depois de aplicadas (checksum diferente).
 
 ### US-014-05 — Adoção nos bancos existentes
 
@@ -72,14 +72,23 @@ Critérios de aceite:
 
 Critérios de aceite:
 
-- [ ] No primeiro start com o runner, as migrations atuais rodam uma vez (são idempotentes) e ficam registradas.
-- [ ] Testado no banco local e num banco novo vazio.
+- [x] No primeiro start com o runner, as migrations atuais rodam uma vez (são idempotentes) e ficam registradas.
+- [x] Testado no banco local e num banco novo vazio.
 
 ## Decisões (confirmadas com o usuário)
 
 1. Runner em **Node**, com o pacote `postgres` que o app já usa: o mesmo código roda no container e no Windows (`npm run db:migrate`).
 2. Checksum de migration aplicada mudou: **só avisa** no log e segue; aparece como “alterada” no status.
 3. `sql/schema.sql` **continua rodando a cada start**, antes das migrations (base idempotente, sem registro).
+
+## Testes
+
+Sem Playwright: não há fluxo de UI. Validado com o runner real:
+
+- Banco local já migrado pelo método antigo: status com 11 pendentes → `db:migrate` roda e registra as 11 → segunda execução “Nenhuma migration pendente”.
+- Banco vazio temporário: schema completo (mesmas tabelas do local); migration de teste com erro no meio revertida inteira (tabela criada antes do erro não existe, arquivo não registrado, exit 1).
+- Checksum alterado: `AVISO` no migrate, `ALTERADA` no status; registro sem arquivo aparece como `sem arquivo`.
+- Layout da imagem simulado a partir do build standalone: o standalone **não** traz o pacote `postgres` (Turbopack empacota no bundle), por isso o `Dockerfile` copia `node_modules/postgres`; com a cópia, o runner roda.
 
 ## Superfície
 

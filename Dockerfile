@@ -27,6 +27,9 @@ RUN apk add --no-cache postgresql-client wget \
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --chown=nextjs:nodejs sql ./sql
+# O runner de migrations (F-014) importa `postgres` direto, fora do trace do standalone.
+COPY --from=deps --chown=nextjs:nodejs /app/node_modules/postgres ./node_modules/postgres
+COPY --chown=nextjs:nodejs scripts/migrate.mjs ./scripts/migrate.mjs
 COPY --chown=nextjs:nodejs scripts/docker-entrypoint.sh ./docker-entrypoint.sh
 RUN chmod +x ./docker-entrypoint.sh
 

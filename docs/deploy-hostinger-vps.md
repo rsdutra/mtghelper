@@ -45,7 +45,8 @@ A Hostinger publica wildcard DNS `*.srv1919186.hstgr.cloud` → IP da VPS. É o 
 | `.dockerignore` | Enxuga o contexto de build |
 | `docker-compose.yml` | Projeto `mtghelper`: serviço `web` + labels Traefik |
 | `deploy/postgres/docker-compose.yml` | Projeto `mtghelper-db`: Postgres 16 + rede `mtghelper-db` |
-| `scripts/docker-entrypoint.sh` | Espera o banco, aplica `sql/schema.sql` e `sql/migrate_*.sql`, sobe o Next |
+| `scripts/docker-entrypoint.sh` | Espera o banco, roda `scripts/migrate.mjs`, sobe o Next |
+| `scripts/migrate.mjs` | Aplica `sql/schema.sql` e só as `sql/migrate_*.sql` pendentes (F-014) |
 | `.github/workflows/publish-ghcr.yml` | Build/push no GHCR + deploy na VPS |
 
 ---
@@ -149,6 +150,28 @@ A action só **inicia** o deploy. Acompanhe no hPanel → Docker Manager ou pelo
 
 ---
 
+## Migrations (F-014)
+
+A cada start, o entrypoint roda `node scripts/migrate.mjs`:
+
+1. `sql/schema.sql` (base idempotente, sempre).
+2. Cada `sql/migrate_*.sql` ainda não registrada na tabela `schema_migrations`, em ordem de nome, **uma transação por arquivo**. O registro entra na mesma transação.
+3. Se uma migration falha, ela é revertida inteira, o log mostra o arquivo e o container não sobe o Next.
+
+Migration já aplicada que mudou depois (checksum diferente) só gera `AVISO` no log e **não roda de novo**. Para mudar o schema, crie uma migration nova em vez de editar uma aplicada.
+
+Ver o estado do banco de produção (na VPS):
+
+```bash
+docker exec mtghelper-web-1 node scripts/migrate.mjs --status
+```
+
+Mostra cada arquivo como `aplicada` (com data), `pendente`, `ALTERADA` ou `sem arquivo` (registrada no banco, mas removida do repo).
+
+Local: `npm run db:status` e `npm run db:migrate` (lêem `DATABASE_URL` do `.env`).
+
+---
+
 ## Checklist rápido
 
 - [ ] Projeto `mtghelper-db` rodando (cria a rede `mtghelper-db`)
@@ -166,7 +189,7 @@ A action só **inicia** o deploy. Acompanhe no hPanel → Docker Manager ou pelo
 | Sintoma | O que checar |
 |---------|----------------|
 | `network mtghelper-db declared as external, but could not be found` | Projeto `mtghelper-db` não está no ar — suba o Passo 1 primeiro |
-| App sobe e cai | Logs do `web` — `AUTH_SECRET` / conexão com `mtghelper-postgres` / migrate |
+| App sobe e cai | Logs do `web` — `AUTH_SECRET` / conexão com `mtghelper-postgres` / `Falha em migrate_….sql` (migration revertida; corrija com uma migration nova ou ajuste a pendente) |
 | `password authentication failed` | `POSTGRES_PASSWORD` do app diferente da usada na **primeira** criação do volume do banco |
 | 404 / conexão recusada | Labels Traefik, host exato, container `web` up |
 | Certificado não emite | Portas 80/443, firewall synced, logs do Traefik; espere 1–3 min |
