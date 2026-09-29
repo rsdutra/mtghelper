@@ -14,11 +14,31 @@ function isPlace(value: unknown): value is Place {
 
 type Params = { params: Promise<{ id: string }> };
 
+type QuantityRow = {
+  id: string;
+  quantity_main: number;
+  quantity_side: number;
+  quantity_out: number;
+};
+
+function quantitiesFor(place: Place, quantity: number) {
+  return {
+    main: place === "main" ? quantity : 0,
+    side: place === "side" ? quantity : 0,
+    out: place === "out" ? quantity : 0,
+  };
+}
+
 async function ownedDeck(userId: string, deckId: string) {
   const [deck] = await sql<{ id: string }[]>`
     SELECT id FROM decks WHERE id = ${deckId} AND user_id = ${userId}
   `;
   return deck ?? null;
+}
+
+async function allowsSide(deckId: string) {
+  const [deck] = await sql<{ format: string }[]>`SELECT format FROM decks WHERE id = ${deckId}`;
+  return Boolean(deck && sideboardLimit(deck.format) != null);
 }
 
 export async function POST(request: Request, { params }: Params) {
@@ -35,11 +55,8 @@ export async function POST(request: Request, { params }: Params) {
     place?: Place;
   };
   const place: Place = isPlace(body.place) ? body.place : "main";
-  if (place === "side") {
-    const [deck] = await sql<{ format: string }[]>`SELECT format FROM decks WHERE id = ${id}`;
-    if (!deck || sideboardLimit(deck.format) == null) {
-      return NextResponse.json({ error: "Este formato não tem sideboard." }, { status: 400 });
-    }
+  if (place === "side" && !(await allowsSide(id))) {
+    return NextResponse.json({ error: "Este formato não tem sideboard." }, { status: 400 });
   }
   const lines = parseCardList(body.text ?? "");
   const missing = [];
@@ -52,13 +69,15 @@ export async function POST(request: Request, { params }: Params) {
       continue;
     }
 
+    const qty = quantitiesFor(place, line.quantity);
     await sql`
-      INSERT INTO deck_cards (deck_id, catalog_card_id, quantity, place)
-      VALUES (${id}, ${card.id}, ${line.quantity}, ${place})
+      INSERT INTO deck_cards (deck_id, catalog_card_id, quantity_main, quantity_side, quantity_out)
+      VALUES (${id}, ${card.id}, ${qty.main}, ${qty.side}, ${qty.out})
       ON CONFLICT (deck_id, catalog_card_id)
       DO UPDATE SET
-        quantity = deck_cards.quantity + EXCLUDED.quantity,
-        place = EXCLUDED.place
+        quantity_main = deck_cards.quantity_main + EXCLUDED.quantity_main,
+        quantity_side = deck_cards.quantity_side + EXCLUDED.quantity_side,
+        quantity_out = deck_cards.quantity_out + EXCLUDED.quantity_out
     `;
     added += 1;
   }
@@ -76,6 +95,7 @@ export async function PATCH(request: Request, { params }: Params) {
 
   const body = (await request.json()) as {
     catalogCardId?: string;
+    from?: Place;
     place?: Place;
     priceCents?: number | null;
     note?: string | null;
@@ -86,23 +106,55 @@ export async function PATCH(request: Request, { params }: Params) {
     return NextResponse.json({ error: "Carta obrigatória." }, { status: 400 });
   }
 
-  const [row] = await sql<{ id: string }[]>`
-    SELECT id FROM deck_cards WHERE deck_id = ${id} AND catalog_card_id = ${catalogCardId}
+  const [row] = await sql<QuantityRow[]>`
+    SELECT id, quantity_main, quantity_side, quantity_out
+    FROM deck_cards
+    WHERE deck_id = ${id} AND catalog_card_id = ${catalogCardId}
   `;
   if (!row) return NextResponse.json({ error: "Carta não está no deck." }, { status: 404 });
 
   if (isPlace(body.place)) {
-    if (body.place === "side") {
-      const [deck] = await sql<{ format: string }[]>`SELECT format FROM decks WHERE id = ${id}`;
-      if (!deck || sideboardLimit(deck.format) == null) {
-        return NextResponse.json({ error: "Este formato não tem sideboard." }, { status: 400 });
-      }
+    if (!isPlace(body.from)) {
+      return NextResponse.json({ error: "Origem obrigatória." }, { status: 400 });
     }
-    await sql`
-      UPDATE deck_cards
-      SET place = ${body.place}
-      WHERE id = ${row.id}
-    `;
+    if (body.place === "side" && !(await allowsSide(id))) {
+      return NextResponse.json({ error: "Este formato não tem sideboard." }, { status: 400 });
+    }
+    if (body.from !== body.place) {
+      const from = body.from;
+      const to = body.place;
+      await sql`
+        UPDATE deck_cards
+        SET quantity_main = CASE
+              WHEN ${from} = 'main' THEN 0
+              WHEN ${to} = 'main' THEN quantity_main + CASE ${from}
+                WHEN 'side' THEN quantity_side
+                WHEN 'out' THEN quantity_out
+                ELSE 0
+              END
+              ELSE quantity_main
+            END,
+            quantity_side = CASE
+              WHEN ${from} = 'side' THEN 0
+              WHEN ${to} = 'side' THEN quantity_side + CASE ${from}
+                WHEN 'main' THEN quantity_main
+                WHEN 'out' THEN quantity_out
+                ELSE 0
+              END
+              ELSE quantity_side
+            END,
+            quantity_out = CASE
+              WHEN ${from} = 'out' THEN 0
+              WHEN ${to} = 'out' THEN quantity_out + CASE ${from}
+                WHEN 'main' THEN quantity_main
+                WHEN 'side' THEN quantity_side
+                ELSE 0
+              END
+              ELSE quantity_out
+            END
+        WHERE id = ${row.id}
+      `;
+    }
   }
 
   if (body.priceCents !== undefined) {
@@ -139,6 +191,7 @@ export async function DELETE(request: Request, { params }: Params) {
 
   const body = (await request.json()) as {
     catalogCardId?: string;
+    place?: Place;
     quantity?: number;
     all?: boolean;
   };
@@ -146,32 +199,44 @@ export async function DELETE(request: Request, { params }: Params) {
   if (!catalogCardId) {
     return NextResponse.json({ error: "Carta obrigatória." }, { status: 400 });
   }
+  if (!isPlace(body.place)) {
+    return NextResponse.json({ error: "Lugar obrigatório." }, { status: 400 });
+  }
 
   const removeAll = body.all === true;
   const quantity = Math.max(1, body.quantity ?? 1);
+  const place = body.place;
 
-  if (removeAll) {
-    await sql`
-      DELETE FROM deck_cards
-      WHERE deck_id = ${id} AND catalog_card_id = ${catalogCardId}
-    `;
-  } else {
-    const [row] = await sql<{ quantity: number }[]>`
-      SELECT quantity FROM deck_cards
-      WHERE deck_id = ${id} AND catalog_card_id = ${catalogCardId}
-    `;
-    if (!row) return NextResponse.json({ error: "Carta não está no deck." }, { status: 404 });
-    if (row.quantity <= quantity) {
-      await sql`
-        DELETE FROM deck_cards
-        WHERE deck_id = ${id} AND catalog_card_id = ${catalogCardId}
-      `;
-    } else {
-      await sql`
-        UPDATE deck_cards SET quantity = quantity - ${quantity}
-        WHERE deck_id = ${id} AND catalog_card_id = ${catalogCardId}
-      `;
-    }
+  const [row] = await sql<QuantityRow[]>`
+    SELECT id, quantity_main, quantity_side, quantity_out
+    FROM deck_cards
+    WHERE deck_id = ${id} AND catalog_card_id = ${catalogCardId}
+  `;
+  if (!row) return NextResponse.json({ error: "Carta não está no deck." }, { status: 404 });
+
+  const current = place === "main" ? row.quantity_main : place === "side" ? row.quantity_side : row.quantity_out;
+  if (current <= 0) return NextResponse.json({ error: "Carta não está nesse lugar." }, { status: 404 });
+
+  const [updated] = await sql<QuantityRow[]>`
+    UPDATE deck_cards
+    SET quantity_main = CASE
+          WHEN ${place} = 'main' THEN CASE WHEN ${removeAll} THEN 0 ELSE GREATEST(quantity_main - ${quantity}, 0) END
+          ELSE quantity_main
+        END,
+        quantity_side = CASE
+          WHEN ${place} = 'side' THEN CASE WHEN ${removeAll} THEN 0 ELSE GREATEST(quantity_side - ${quantity}, 0) END
+          ELSE quantity_side
+        END,
+        quantity_out = CASE
+          WHEN ${place} = 'out' THEN CASE WHEN ${removeAll} THEN 0 ELSE GREATEST(quantity_out - ${quantity}, 0) END
+          ELSE quantity_out
+        END
+    WHERE id = ${row.id}
+    RETURNING id, quantity_main, quantity_side, quantity_out
+  `;
+
+  if (updated && updated.quantity_main + updated.quantity_side + updated.quantity_out === 0) {
+    await sql`DELETE FROM deck_cards WHERE id = ${row.id}`;
   }
 
   return NextResponse.json({ ok: true });

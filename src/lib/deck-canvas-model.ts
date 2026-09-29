@@ -48,7 +48,8 @@ export function expand(cards: CanvasCard[]) {
 }
 
 export function cardKey(card: CardCopy) {
-  return `card:${card.id}:${card.copy}`;
+  if (card.place === "main") return `card:${card.id}:${card.copy}`;
+  return `card:${card.id}:${card.place}:${card.copy}`;
 }
 
 export function imageSrc(card: CanvasCard) {

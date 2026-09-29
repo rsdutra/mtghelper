@@ -6,6 +6,13 @@ Criar e editar decks por formato, adicionar cartas (individual ou lista), marcar
 
 ## Modelo de dados (atual)
 
+- Uma linha em `deck_cards` por carta (`UNIQUE (deck_id, catalog_card_id)`).
+- `quantity_main`, `quantity_side` e `quantity_out` guardam as cópias de cada lugar. A mesma carta pode estar no deck, no sideboard e fora ao mesmo tempo.
+- Importar uma lista soma só a coluna do destino. Preço e nota são da carta. Tags também são da carta.
+- O spot (F-012) usa só as cópias de `quantity_main`.
+
+Histórico, já substituído:
+
 - Uma linha em `deck_cards` por carta do workspace do deck.
 - `included = true` → faz parte do deck (conta no Processar coleção, lista “No deck”).
 - `included = false` → carta em trabalho (upgrade / cortar / considerar); ainda ligada ao deck, mas não “entra” na lista principal.

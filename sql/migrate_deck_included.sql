@@ -5,6 +5,9 @@ BEGIN
   IF EXISTS (
     SELECT 1 FROM information_schema.columns
     WHERE table_schema = 'public' AND table_name = 'deck_cards' AND column_name = 'place'
+  ) OR EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'deck_cards' AND column_name = 'quantity_main'
   ) THEN
     RETURN;
   END IF;

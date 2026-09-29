@@ -1,10 +1,18 @@
 -- Troca included + in_sideboard por place. Não apaga linhas de deck_cards.
-
-ALTER TABLE deck_cards
-  ADD COLUMN IF NOT EXISTS place text;
+-- Banco já no modelo de quantidades por lugar (schema.sql atual) não recria place.
 
 DO $$
 BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'deck_cards' AND column_name = 'quantity_main'
+  ) THEN
+    RETURN;
+  END IF;
+
+  ALTER TABLE deck_cards
+    ADD COLUMN IF NOT EXISTS place text;
+
   IF EXISTS (
     SELECT 1 FROM information_schema.columns
     WHERE table_schema = 'public' AND table_name = 'deck_cards' AND column_name = 'included'
@@ -24,16 +32,16 @@ BEGIN
   UPDATE deck_cards
   SET place = 'main'
   WHERE place IS NULL OR place NOT IN ('main', 'side', 'out');
+
+  ALTER TABLE deck_cards ALTER COLUMN place SET DEFAULT 'main';
+  ALTER TABLE deck_cards ALTER COLUMN place SET NOT NULL;
+
+  ALTER TABLE deck_cards DROP CONSTRAINT IF EXISTS deck_cards_place_check;
+  ALTER TABLE deck_cards
+    ADD CONSTRAINT deck_cards_place_check CHECK (place IN ('main', 'side', 'out'));
+
+  CREATE INDEX IF NOT EXISTS deck_cards_place_idx ON deck_cards (deck_id, place);
+
+  ALTER TABLE deck_cards DROP COLUMN IF EXISTS in_sideboard;
+  ALTER TABLE deck_cards DROP COLUMN IF EXISTS included;
 END $$;
-
-ALTER TABLE deck_cards ALTER COLUMN place SET DEFAULT 'main';
-ALTER TABLE deck_cards ALTER COLUMN place SET NOT NULL;
-
-ALTER TABLE deck_cards DROP CONSTRAINT IF EXISTS deck_cards_place_check;
-ALTER TABLE deck_cards
-  ADD CONSTRAINT deck_cards_place_check CHECK (place IN ('main', 'side', 'out'));
-
-CREATE INDEX IF NOT EXISTS deck_cards_place_idx ON deck_cards (deck_id, place);
-
-ALTER TABLE deck_cards DROP COLUMN IF EXISTS in_sideboard;
-ALTER TABLE deck_cards DROP COLUMN IF EXISTS included;

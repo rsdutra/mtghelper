@@ -21,15 +21,49 @@ export async function GET(_request: Request, { params }: Params) {
   const deck = await ownedDeck(user.id, id);
   if (!deck) return NextResponse.json({ error: "Deck não encontrado." }, { status: 404 });
 
-  const cards = await sql`
-    SELECT dc.id AS deck_card_id, dc.quantity, dc.place, dc.price_cents, dc.note, dc.tags,
+  type StoredCard = {
+    deck_card_id: string;
+    quantity_main: number;
+    quantity_side: number;
+    quantity_out: number;
+    price_cents: number | null;
+    note: string | null;
+    tags: string;
+    id: string;
+    oracle_id: string | null;
+    name_en: string;
+    name_pt: string | null;
+    set_code: string;
+    set_name: string | null;
+    image_normal: string | null;
+    image_small: string | null;
+    mana_cost: string | null;
+    type_line: string | null;
+  };
+  const stored = await sql<StoredCard[]>`
+    SELECT dc.id AS deck_card_id, dc.quantity_main, dc.quantity_side, dc.quantity_out,
+           dc.price_cents, dc.note, dc.tags,
            c.id, c.oracle_id, c.name_en, c.name_pt, c.set_code, c.set_name,
            c.image_normal, c.image_small, c.mana_cost, c.type_line
     FROM deck_cards dc
     JOIN catalog_cards c ON c.id = dc.catalog_card_id
     WHERE dc.deck_id = ${id}
-    ORDER BY CASE dc.place WHEN 'main' THEN 0 WHEN 'side' THEN 1 ELSE 2 END, c.name_en
+    ORDER BY c.name_en
   `;
+  const placeOrder = { main: 0, side: 1, out: 2 } as const;
+  const cards = stored.flatMap((row) => {
+    const quantities = [
+      ["main", Number(row.quantity_main)],
+      ["side", Number(row.quantity_side)],
+      ["out", Number(row.quantity_out)],
+    ] as const;
+    return quantities
+      .filter(([, quantity]) => quantity > 0)
+      .map(([place, quantity]) => ({ ...row, place, quantity }));
+  });
+  cards.sort(
+    (a, b) => placeOrder[a.place] - placeOrder[b.place] || String(a.name_en).localeCompare(String(b.name_en)),
+  );
   const coverageRows = await sql<CoverageRow[]>`
     WITH owned AS (
       SELECT COALESCE(cat.oracle_id, cat.id::text) AS card_key,
@@ -42,10 +76,10 @@ export async function GET(_request: Request, { params }: Params) {
     ),
     needed AS (
       SELECT COALESCE(cat.oracle_id, cat.id::text) AS card_key,
-             SUM(dc.quantity)::int AS needed
+             SUM(dc.quantity_main + dc.quantity_side)::int AS needed
       FROM deck_cards dc
       JOIN catalog_cards cat ON cat.id = dc.catalog_card_id
-      WHERE dc.deck_id = ${id} AND dc.place IN ('main', 'side')
+      WHERE dc.deck_id = ${id} AND (dc.quantity_main > 0 OR dc.quantity_side > 0)
       GROUP BY 1
     )
     SELECT n.card_key, n.needed, COALESCE(o.owned, 0)::int AS owned
@@ -91,8 +125,10 @@ export async function PATCH(request: Request, { params }: Params) {
   `;
   if (sideboardLimit(format) == null) {
     await sql`
-      UPDATE deck_cards SET place = 'main'
-      WHERE deck_id = ${id} AND place = 'side'
+      UPDATE deck_cards
+      SET quantity_main = quantity_main + quantity_side,
+          quantity_side = 0
+      WHERE deck_id = ${id} AND quantity_side > 0
     `;
   }
   return NextResponse.json({ deck: updated });
