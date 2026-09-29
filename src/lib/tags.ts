@@ -75,6 +75,18 @@ export function addTag(current: CardTag[], tag: CardTag, known: CardTag[]) {
   return [...current, resolved];
 }
 
+export function isTagColor(color: string) {
+  return COLOR.test(color);
+}
+
+export function renameTag(current: CardTag[], name: string, next: CardTag) {
+  return current.map((tag) => (sameTag(tag.name, name) ? next : tag));
+}
+
+export function removeTag(current: CardTag[], name: string) {
+  return current.filter((tag) => !sameTag(tag.name, name));
+}
+
 export function toggleTag(current: CardTag[], tag: CardTag) {
   if (current.some((item) => sameTag(item.name, tag.name))) {
     return current.filter((item) => !sameTag(item.name, tag.name));

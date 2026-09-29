@@ -96,6 +96,37 @@ export function useDeckCardMutations({ deckId, cards, setStatus, setCards, load 
     return run;
   }
 
+  /** Troca a tag em todas as cartas do deck (US-013-04). Devolve a mensagem de erro, se houver. */
+  async function renameDeckTag(name: string, next: CardTag) {
+    await tagWrites.current;
+    const response = await fetch(`/api/decks/${deckId}/tags`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, newName: next.name, color: next.color }),
+    });
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      return typeof data.error === "string" ? data.error : "Não foi possível salvar a tag.";
+    }
+    await load();
+    return null;
+  }
+
+  async function deleteDeckTag(name: string) {
+    await tagWrites.current;
+    const response = await fetch(`/api/decks/${deckId}/tags`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name }),
+    });
+    if (!response.ok) {
+      setStatus("Não foi possível excluir a tag.");
+      return false;
+    }
+    await load();
+    return true;
+  }
+
   async function saveCardMeta(catalogCardId: string, values: CardMetaValues) {
     const response = await fetch(cardsUrl, {
       method: "PATCH",
@@ -106,5 +137,14 @@ export function useDeckCardMutations({ deckId, cards, setStatus, setCards, load 
     await load();
   }
 
-  return { addText, removeCard, addOneCopy, moveCard, saveCardMeta, updateCardTags };
+  return {
+    addText,
+    removeCard,
+    addOneCopy,
+    moveCard,
+    saveCardMeta,
+    updateCardTags,
+    renameDeckTag,
+    deleteDeckTag,
+  };
 }

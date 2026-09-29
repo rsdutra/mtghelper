@@ -9,7 +9,7 @@ import { DeckCanvas, type DeckCanvasHandle } from "@/components/deck-canvas";
 import { DeckCoverageBadge } from "@/components/deck-coverage-badge";
 import { DeckEditHeader } from "@/components/deck-detail/deck-edit-header";
 import { DeckEditTools } from "@/components/deck-detail/deck-edit-tools";
-import { DeckTagFilterPanel } from "@/components/deck-detail/deck-tag-filter";
+import { DeckTagFilterPanel, TagDeleteModal, TagEditModal } from "@/components/deck-detail/deck-tag-filter";
 import {
   DECK_VIEW_OPTIONS,
   deckHref,
@@ -36,7 +36,7 @@ import { evaluateDeckSize } from "@/lib/deck-size";
 import { FORMATS, sideboardLimit } from "@/lib/formats";
 import { groupCardsByManaCost } from "@/lib/mana-cost-groups";
 import { formatBRLFromCents } from "@/lib/money-br";
-import { addTag, collectTags, sameTag, toggleTag } from "@/lib/tags";
+import { addTag, collectTags, sameTag, toggleTag, type CardTag } from "@/lib/tags";
 
 type Props = {
   deckId: string;
@@ -66,6 +66,12 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
   const [chartsOpen, setChartsOpen] = useState(false);
   const [tagsOpen, setTagsOpen] = useState(false);
   const [tagFilter, setTagFilter] = useState<string | null>(null);
+  const [editingTag, setEditingTag] = useState<CardTag | null>(null);
+  const [deletingTag, setDeletingTag] = useState<CardTag | null>(null);
+  const closeTagModals = useCallback(() => {
+    setEditingTag(null);
+    setDeletingTag(null);
+  }, []);
   const [metaCard, setMetaCard] = useState<CardRow | null>(null);
   const [tagCard, setTagCard] = useState<CardRow | null>(null);
   const [canvasSnapshot, setCanvasSnapshot] = useState<unknown>(null);
@@ -560,17 +566,44 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
   );
   const tagsPanelRight = 4.5 + (editing && toolsOpen ? 20.5 : 0) + (editing && chartsOpen ? 26.5 : 0);
   const tagsPanel = tagsOpen ? (
-    <aside
-      className="fixed top-20 z-40 max-h-[calc(100vh-6rem)] w-64 overflow-auto border border-ink bg-surface-container-lowest p-4 shadow-[4px_4px_0_#09090b]"
-      style={{ right: `${tagsPanelRight}rem` }}
-    >
-      <DeckTagFilterPanel
-        tags={knownTags}
-        active={activeTag?.name ?? null}
-        onSelect={setTagFilter}
-        onClear={() => setTagFilter(null)}
-      />
-    </aside>
+    <>
+      <aside
+        className="fixed top-20 z-40 max-h-[calc(100vh-6rem)] w-72 overflow-auto border border-ink bg-surface-container-lowest p-4 shadow-[4px_4px_0_#09090b]"
+        style={{ right: `${tagsPanelRight}rem` }}
+      >
+        <DeckTagFilterPanel
+          tags={knownTags}
+          active={activeTag?.name ?? null}
+          onSelect={setTagFilter}
+          onClear={() => setTagFilter(null)}
+          onEdit={editing ? setEditingTag : undefined}
+          onDelete={editing ? setDeletingTag : undefined}
+        />
+      </aside>
+      {editing && editingTag ? (
+        <TagEditModal
+          key={editingTag.name}
+          tag={editingTag}
+          onClose={closeTagModals}
+          onSave={async (next) => {
+            const error = await mutations.renameDeckTag(editingTag.name, next);
+            if (!error && activeTag && sameTag(activeTag.name, editingTag.name)) setTagFilter(next.name);
+            return error;
+          }}
+        />
+      ) : null}
+      {editing && deletingTag ? (
+        <TagDeleteModal
+          key={deletingTag.name}
+          tag={deletingTag}
+          onClose={closeTagModals}
+          onConfirm={async () => {
+            const deleted = await mutations.deleteDeckTag(deletingTag.name);
+            if (deleted && activeTag && sameTag(activeTag.name, deletingTag.name)) setTagFilter(null);
+          }}
+        />
+      ) : null}
+    </>
   ) : null;
 
   return (
