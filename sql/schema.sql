@@ -56,29 +56,23 @@ CREATE TABLE IF NOT EXISTS decks (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
+-- Uma linha por carta. As quantidades de deck, sideboard e fora do deck são colunas.
 CREATE TABLE IF NOT EXISTS deck_cards (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   deck_id uuid NOT NULL REFERENCES decks (id) ON DELETE CASCADE,
   catalog_card_id uuid NOT NULL REFERENCES catalog_cards (id),
-  quantity integer NOT NULL CHECK (quantity > 0),
-  place text NOT NULL DEFAULT 'main',
-  CONSTRAINT deck_cards_place_check CHECK (place IN ('main', 'side', 'out')),
+  quantity_main integer NOT NULL DEFAULT 0,
+  quantity_side integer NOT NULL DEFAULT 0,
+  quantity_out integer NOT NULL DEFAULT 0,
   price_cents integer CHECK (price_cents IS NULL OR price_cents >= 0),
   note text,
   tags text NOT NULL DEFAULT '',
-  UNIQUE (deck_id, catalog_card_id)
+  UNIQUE (deck_id, catalog_card_id),
+  CONSTRAINT deck_cards_quantity_main_check CHECK (quantity_main >= 0),
+  CONSTRAINT deck_cards_quantity_side_check CHECK (quantity_side >= 0),
+  CONSTRAINT deck_cards_quantity_out_check CHECK (quantity_out >= 0),
+  CONSTRAINT deck_cards_quantity_present CHECK (quantity_main + quantity_side + quantity_out > 0)
 );
-
--- Índice só quando a coluna já existe. Bancos antigos recebem place em migrate_replace_deck_flags.sql.
-DO $$
-BEGIN
-  IF EXISTS (
-    SELECT 1 FROM information_schema.columns
-    WHERE table_schema = 'public' AND table_name = 'deck_cards' AND column_name = 'place'
-  ) THEN
-    CREATE INDEX IF NOT EXISTS deck_cards_place_idx ON deck_cards (deck_id, place);
-  END IF;
-END $$;
 
 CREATE TABLE IF NOT EXISTS deck_canvas_konva (
   deck_id uuid PRIMARY KEY REFERENCES decks (id) ON DELETE CASCADE,

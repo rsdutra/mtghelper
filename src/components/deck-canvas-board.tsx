@@ -362,11 +362,14 @@ export function DeckCanvasBoard({
   function deleteSelectedCards() {
     const keys = [...selectedRef.current].filter((key) => key in layoutRef.current.cards);
     if (!keys.length) return;
-    const counts = new Map<string, number>();
+    const counts = new Map<string, { catalogCardId: string; place: CardCopy["place"]; quantity: number }>();
     for (const key of keys) {
       const copy = copiesByKey.get(key);
       if (!copy) continue;
-      counts.set(copy.id, (counts.get(copy.id) ?? 0) + 1);
+      const group = `${copy.id}:${copy.place}`;
+      const current = counts.get(group);
+      if (current) current.quantity += 1;
+      else counts.set(group, { catalogCardId: copy.id, place: copy.place, quantity: 1 });
     }
     const nextCards = { ...layoutRef.current.cards };
     for (const key of keys) delete nextCards[key];
@@ -374,11 +377,15 @@ export function DeckCanvasBoard({
     setSelected(new Set());
     markDirty();
     void Promise.all(
-      [...counts].map(([catalogCardId, quantity]) =>
+      [...counts.values()].map((item) =>
         fetch(`/api/decks/${deckIdRef.current}/cards`, {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ catalogCardId, quantity }),
+          body: JSON.stringify({
+            catalogCardId: item.catalogCardId,
+            place: item.place,
+            quantity: item.quantity,
+          }),
         }),
       ),
     ).then(() => onDomainChangeRef.current?.());

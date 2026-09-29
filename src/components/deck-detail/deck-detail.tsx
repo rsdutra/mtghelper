@@ -265,9 +265,9 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
             layout={layout}
             label={label}
             quantity={card.quantity}
-            onDecrement={() => void mutations.removeCard(card.id)}
+            onDecrement={() => void mutations.removeCard(card.id, card.place)}
             onIncrement={() => void mutations.addOneCopy(card)}
-            onRemoveAll={() => void mutations.removeCard(card.id, true)}
+            onRemoveAll={() => void mutations.removeCard(card.id, card.place, true)}
             onInspect={() => setMetaCard(card)}
             coverage={
               card.place !== "out" && card.needed != null
@@ -275,7 +275,7 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
                 : null
             }
             allowsSideboard={allowsSideboard}
-            onMove={(place) => void mutations.moveCard(card.id, place)}
+            onMove={(place) => void mutations.moveCard(card.id, card.place, place)}
             tags={card.tags ?? []}
             knownTags={knownTags}
             onToggleTag={(tag) => void mutations.updateCardTags(card.id, (current) => toggleTag(current, tag))}

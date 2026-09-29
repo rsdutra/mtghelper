@@ -76,7 +76,7 @@ Critérios de aceite:
 - Estar sem spot não é um registro. É a ausência de associação. A seção **Sem spot** só existe na lista do deck quando o agrupamento está ligado e há carta `main` sem spot.
 - Spot não entra na contagem de 60/100 nem na de sideboard.
 - Formatos sem sideboard não ganham um spot de sideboard. Sideboard continua sendo `place = side`.
-- Há uma linha de `deck_cards` por carta do deck. O spot aponta para essa linha.
+- Há uma linha de `deck_cards` por carta do deck, com `quantity_main`, `quantity_side` e `quantity_out`. O spot aponta para essa linha e vale só enquanto `quantity_main > 0`. Zerar o deck tira o spot; sideboard e fora do deck continuam na mesma linha.
 
 ## Superfície
 
@@ -91,3 +91,4 @@ Critérios de aceite:
 3. Se `place` deixar de ser `main`, a associação é apagada e a carta fica sem spot. Se a carta for removida do deck, o registro dela e o do spot são apagados.
 4. **Agrupar por spot** entra na barra, exclusivo com tipo e custo.
 5. Spot vazio aparece no agrupamento. **Sem spot** só aparece se houver carta `main` sem spot, por último, na ordem de criação dos demais.
+6. `place = main` nesta spec é `quantity_main > 0`. A carta não muda de linha quando também está no sideboard ou fora do deck.

@@ -35,11 +35,11 @@ export function useDeckCardMutations({ deckId, cards, setStatus, setCards, load 
     await load();
   }
 
-  async function removeCard(catalogCardId: string, all = false) {
+  async function removeCard(catalogCardId: string, place: DeckPlace, all = false) {
     const response = await fetch(cardsUrl, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ catalogCardId, quantity: 1, all }),
+      body: JSON.stringify({ catalogCardId, place, quantity: 1, all }),
     });
     if (!response.ok) {
       setStatus("Não foi possível remover a carta.");
@@ -54,11 +54,12 @@ export function useDeckCardMutations({ deckId, cards, setStatus, setCards, load 
     await addText(`1 ${card.name_pt ?? card.name_en}`, undefined, place);
   }
 
-  async function moveCard(catalogCardId: string, place: DeckPlace) {
+  async function moveCard(catalogCardId: string, from: DeckPlace, place: DeckPlace) {
+    if (from === place) return;
     const response = await fetch(cardsUrl, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ catalogCardId, place }),
+      body: JSON.stringify({ catalogCardId, from, place }),
     });
     if (!response.ok) {
       const data = await response.json().catch(() => ({}));

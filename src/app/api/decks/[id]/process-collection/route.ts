@@ -43,7 +43,10 @@ export async function POST(request: Request, { params }: Params) {
     }
     const rows = await sql<PreviewRow[]>`
       SELECT dc.catalog_card_id,
-             dc.quantity,
+             (
+               CASE WHEN ${includeMain} THEN dc.quantity_main + dc.quantity_side ELSE 0 END
+               + CASE WHEN ${includeOut} THEN dc.quantity_out ELSE 0 END
+             )::int AS quantity,
              c.name_pt,
              c.name_en,
              COALESCE((
@@ -58,8 +61,8 @@ export async function POST(request: Request, { params }: Params) {
       JOIN catalog_cards c ON c.id = dc.catalog_card_id
       WHERE dc.deck_id = ${id}
         AND (
-          (${includeMain} AND dc.place IN ('main', 'side'))
-          OR (${includeOut} AND dc.place = 'out')
+          (${includeMain} AND (dc.quantity_main > 0 OR dc.quantity_side > 0))
+          OR (${includeOut} AND dc.quantity_out > 0)
         )
       ORDER BY c.name_en
     `;
