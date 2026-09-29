@@ -27,4 +27,6 @@ BEGIN
 END $$;
 
 DROP TABLE IF EXISTS deck_card_sections;
+-- Tabela do modelo anterior à F-004 US-004-08; bancos antigos ainda a têm e ela referencia deck_sections.
+DROP TABLE IF EXISTS deck_section_cards;
 DROP TABLE IF EXISTS deck_sections;
