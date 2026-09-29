@@ -34,5 +34,5 @@ export type DeckViewItem = {
   renderActions: (layout: ActionsLayout) => ReactNode;
 };
 
-/** `label: null` = lista sem agrupamento. */
-export type DeckViewGroup = { key: string; label: string | null; items: DeckViewItem[] };
+/** `label: null` = lista sem agrupamento. `color`: bolinha no cabeçalho (agrupar por tag, US-013-05). */
+export type DeckViewGroup = { key: string; label: string | null; color?: string | null; items: DeckViewItem[] };

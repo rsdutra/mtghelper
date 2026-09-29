@@ -75,6 +75,32 @@ export function addTag(current: CardTag[], tag: CardTag, known: CardTag[]) {
   return [...current, resolved];
 }
 
+export type TagGroup<T> = { key: string; label: string; color: string | null; cards: T[] };
+
+/** US-013-05: um grupo por tag (A–Z); 2+ tags vão só para Multitag; sem tag, por último. */
+export function groupCardsByTag<T extends { tags?: CardTag[] }>(cards: T[]): TagGroup<T>[] {
+  const byTag = new Map<string, TagGroup<T>>();
+  const multi: T[] = [];
+  const untagged: T[] = [];
+  for (const card of cards) {
+    const tags = card.tags ?? [];
+    if (tags.length === 0) untagged.push(card);
+    else if (tags.length > 1) multi.push(card);
+    else {
+      const key = `tag-${tags[0].name.trim().toLowerCase()}`;
+      const group = byTag.get(key) ?? { key, label: tags[0].name, color: tags[0].color, cards: [] };
+      group.cards.push(card);
+      byTag.set(key, group);
+    }
+  }
+  const groups = [...byTag.values()].sort((a, b) =>
+    a.label.localeCompare(b.label, "pt-BR", { sensitivity: "base" }),
+  );
+  if (multi.length) groups.push({ key: "multitag", label: "Multitag", color: null, cards: multi });
+  if (untagged.length) groups.push({ key: "sem-tag", label: "Sem tag", color: null, cards: untagged });
+  return groups;
+}
+
 export function isTagColor(color: string) {
   return COLOR.test(color);
 }
