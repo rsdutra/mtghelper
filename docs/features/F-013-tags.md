@@ -16,7 +16,7 @@ Marcar cartas do deck e da coleção com tags coloridas, guardadas numa coluna s
 ## Fora de escopo
 
 - Tag compartilhada entre deck e coleção.
-- Renomear uma tag em todas as cartas de uma vez.
+- Renomear ou excluir tag da coleção de uma vez (só o deck, US-013-04).
 
 ## User stories
 
@@ -64,6 +64,26 @@ Decisões (confirmadas com o usuário):
 3. O filtro atinge “No deck”, “Sideboard” e “Fora do deck”. Os gráficos, o tamanho do deck e os totais dos painéis continuam contando o deck inteiro.
 4. O filtro é só da lista; o canvas (F-008) não é filtrado. O filtro não é salvo: recarregar a página mostra o deck inteiro.
 
+### US-013-04 — Renomear e excluir tag do deck
+
+**Como** jogador **quero** renomear ou excluir uma tag pelo painel de filtro **para** corrigir a organização do deck sem mexer carta por carta.
+
+Critérios de aceite:
+
+- [x] Na edição, cada linha do painel “Filtrar por tag” tem, à esquerda, os ícones “Editar” e “Excluir”.
+- [x] “Editar” abre uma modal com o nome e a cor atuais; salvar troca nome e cor da tag em todas as cartas do deck.
+- [x] Nome que já é de outra tag do deck é bloqueado com o erro “Já existe uma tag com esse nome.” na modal.
+- [x] “Excluir” abre uma modal pedindo confirmação; confirmar tira a tag de todas as cartas do deck. As cartas continuam no deck.
+- [x] Se a tag editada ou excluída é a do filtro ativo, o filtro acompanha: segue com o nome novo, ou desliga na exclusão.
+- [x] A troca acontece numa única escrita no servidor.
+- [x] Na visualização, o painel continua só filtrando, sem os ícones.
+
+Decisões (confirmadas com o usuário):
+
+1. Ícones só na edição; a visualização continua sem escrita (F-011).
+2. A modal de edição troca nome e cor.
+3. Renomear para um nome de outra tag do deck é bloqueado. Mudar só maiúsculas/minúsculas do próprio nome é permitido.
+
 ## Regras
 
 - Formato da coluna: `Nome|#rrggbb` separado por vírgula. Exemplo: `Ramp|#16a34a,Draw|#2563eb`.
@@ -76,10 +96,10 @@ Decisões (confirmadas com o usuário):
 ## Testes
 
 - `tests/f013-tags.spec.ts`: US-013-01 e US-013-02.
-- `tests/f013-tag-filter.spec.ts`: US-013-03 na edição e na visualização.
+- `tests/f013-tag-filter.spec.ts`: US-013-03 na edição e na visualização; US-013-04 (renomear, nome repetido, cancelar e confirmar exclusão).
 
 ## Superfície
 
-- UI: menu da carta no deck, cartas da coleção, bolinhas ao lado da quantidade, botão/painel “Tags” do deck (`src/components/deck-detail/deck-tag-filter.tsx`, `deck-detail.tsx`)
-- API: `PATCH /api/decks/[id]/cards` e `PATCH /api/collections/[id]/cards` com `tags`
+- UI: menu da carta no deck, cartas da coleção, bolinhas ao lado da quantidade, botão/painel “Tags” do deck com modais de editar/excluir (`src/components/deck-detail/deck-tag-filter.tsx`, `deck-detail.tsx`)
+- API: `PATCH /api/decks/[id]/cards` e `PATCH /api/collections/[id]/cards` com `tags`; `PATCH /api/decks/[id]/tags` (`name`, `newName`, `color`) e `DELETE /api/decks/[id]/tags` (`name`) trocam ou tiram a tag de todas as cartas do deck numa transação
 - Dados: `deck_cards.tags`, `collection_items.tags`

@@ -1,11 +1,33 @@
 import { expect, test, type Page } from "@playwright/test";
 
-/** F-013 / US-013-03 — filtrar o deck por tag, na edição e na visualização. */
+/**
+ * F-013 / US-013-03 — filtrar o deck por tag, na edição e na visualização.
+ * F-013 / US-013-04 — renomear e excluir a tag pelo painel.
+ */
 const stamp = Date.now();
-const login = `tagfilter${stamp}`;
 const password = "senha123";
 
-type DeckCard = { name_en: string; name_pt: string | null };
+type DeckCard = { name_en: string; name_pt: string | null; tags: { name: string; color: string }[] };
+
+async function newDeck(page: Page, login: string, deckName: string) {
+  await page.setViewportSize({ width: 1600, height: 900 });
+  await page.goto("/cadastro");
+  await page.getByLabel("Login").fill(login);
+  await page.getByLabel("Senha").fill(password);
+  await page.getByRole("button", { name: "Cadastrar" }).click();
+  await expect(page).toHaveURL(/\/decks/);
+
+  await page.getByLabel("Nome do deck").fill(deckName);
+  await page.getByRole("button", { name: "Criar" }).click();
+  await expect(page).toHaveURL(/\/decks\/[^/]+\/edit$/);
+  return page.url().split("/decks/")[1].split("/")[0];
+}
+
+async function deckCard(page: Page, deckId: string, nameEn: string) {
+  const response = await page.request.get(`/api/decks/${deckId}`);
+  const data = (await response.json()) as { cards: DeckCard[] };
+  return data.cards.find((item) => item.name_en === nameEn) ?? null;
+}
 
 async function cardLabel(page: Page, deckId: string, nameEn: string) {
   const response = await page.request.get(`/api/decks/${deckId}`);
@@ -45,17 +67,7 @@ async function expectShown(page: Page, shown: string[], hidden: string[]) {
 }
 
 test("filtra o deck por tag e limpa o filtro", async ({ page }) => {
-  await page.setViewportSize({ width: 1600, height: 900 });
-  await page.goto("/cadastro");
-  await page.getByLabel("Login").fill(login);
-  await page.getByLabel("Senha").fill(password);
-  await page.getByRole("button", { name: "Cadastrar" }).click();
-  await expect(page).toHaveURL(/\/decks/);
-
-  await page.getByLabel("Nome do deck").fill("Filtro de tags");
-  await page.getByRole("button", { name: "Criar" }).click();
-  await expect(page).toHaveURL(/\/decks\/[^/]+\/edit$/);
-  const deckId = page.url().split("/decks/")[1].split("/")[0];
+  const deckId = await newDeck(page, `tagfilter${stamp}`, "Filtro de tags");
 
   const tagsButton = page.getByRole("button", { name: "Tags", exact: true });
   const chartsButton = page.getByRole("button", { name: "Gráficos", exact: true });
@@ -86,9 +98,9 @@ test("filtra o deck por tag e limpa o filtro", async ({ page }) => {
   // Painel lista as tags com a cor.
   await tagsButton.click();
   const tagList = page.getByRole("list", { name: "Tags do deck" });
-  await expect(tagList.getByRole("button")).toHaveCount(2);
-  const rampButton = tagList.getByRole("button", { name: "Ramp" });
-  const removalButton = tagList.getByRole("button", { name: "Remoção" });
+  await expect(tagList.locator("li")).toHaveCount(2);
+  const rampButton = tagList.getByRole("button", { name: "Ramp", exact: true });
+  const removalButton = tagList.getByRole("button", { name: "Remoção", exact: true });
   await expect(rampButton.locator("span[aria-hidden]")).toHaveCSS("background-color", "rgb(22, 163, 74)");
   await expect(removalButton.locator("span[aria-hidden]")).toHaveCSS("background-color", "rgb(220, 38, 38)");
 
@@ -120,11 +132,73 @@ test("filtra o deck por tag e limpa o filtro", async ({ page }) => {
   await expect(chartsButton).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Canvas", exact: true })).toBeVisible();
   await tagsButton.click();
-  await page.getByRole("list", { name: "Tags do deck" }).getByRole("button", { name: "Remoção" }).click();
+  await expect(page.getByRole("button", { name: /^(Editar|Excluir) tag / })).toHaveCount(0);
+  await page.getByRole("list", { name: "Tags do deck" }).getByRole("button", { name: "Remoção", exact: true }).click();
   await expectShown(page, [bolt], [ring, island]);
   await page.getByRole("button", { name: "Limpar filtro" }).click();
   await expectShown(page, [ring, bolt, island], []);
   await tagsButton.click();
   await page.getByRole("button", { name: "Canvas", exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`/decks/${deckId}\\?view=canvas$`));
+});
+
+test("renomeia e exclui a tag pelo painel de filtro", async ({ page }) => {
+  const deckId = await newDeck(page, `tagedit${stamp}`, "Editar tags");
+  await addDeckList(page, "1 Sol Ring", "Sol Ring");
+  await addDeckList(page, "1 Lightning Bolt", "Lightning Bolt");
+  const ring = await cardLabel(page, deckId, "Sol Ring");
+  const bolt = await cardLabel(page, deckId, "Lightning Bolt");
+  await tagCard(page, ring, "Ramp", "#16a34a");
+  await tagCard(page, bolt, "Remoção", "#dc2626");
+
+  await page.getByRole("button", { name: "Tags", exact: true }).click();
+  const tagList = page.getByRole("list", { name: "Tags do deck" });
+  await tagList.getByRole("button", { name: "Ramp", exact: true }).click();
+  await expectShown(page, [ring], [bolt]);
+
+  // Ícones à esquerda do nome da tag.
+  const rampRow = tagList.locator("li").filter({ hasText: "Ramp" });
+  const editBox = (await rampRow.getByRole("button", { name: "Editar tag Ramp" }).boundingBox())!;
+  const deleteBox = (await rampRow.getByRole("button", { name: "Excluir tag Ramp" }).boundingBox())!;
+  const nameBox = (await rampRow.getByRole("button", { name: "Ramp", exact: true }).boundingBox())!;
+  expect(editBox.x).toBeLessThan(deleteBox.x);
+  expect(deleteBox.x).toBeLessThan(nameBox.x);
+
+  // Editar: nome repetido é bloqueado; nome e cor novos valem em todas as cartas.
+  await rampRow.getByRole("button", { name: "Editar tag Ramp" }).click();
+  const editDialog = page.getByRole("dialog", { name: "Editar tag" });
+  await expect(editDialog.getByLabel("Nome", { exact: true })).toHaveValue("Ramp");
+  await editDialog.getByLabel("Nome", { exact: true }).fill("remoção");
+  await editDialog.getByRole("button", { name: "Salvar" }).click();
+  await expect(editDialog.getByText("Já existe uma tag com esse nome.")).toBeVisible();  await editDialog.getByLabel("Nome", { exact: true }).fill("Aceleração");
+  await editDialog.getByLabel("Cor", { exact: true }).fill("#9333ea");
+  await editDialog.getByRole("button", { name: "Salvar" }).click();
+  await expect(editDialog).toHaveCount(0);
+
+  const renamed = tagList.getByRole("button", { name: "Aceleração", exact: true });
+  await expect(renamed).toHaveAttribute("aria-pressed", "true");
+  await expect(renamed.locator("span[aria-hidden]")).toHaveCSS("background-color", "rgb(147, 51, 234)");
+  await expect(tagList.getByRole("button", { name: "Ramp", exact: true })).toHaveCount(0);
+  await expect(page.getByTestId("deck-tag-filter-active")).toHaveText(/Aceleração/);
+  await expectShown(page, [ring], [bolt]);
+  expect((await deckCard(page, deckId, "Sol Ring"))?.tags).toEqual([{ name: "Aceleração", color: "#9333ea" }]);
+
+  // Excluir: cancelar não muda nada; confirmar tira a tag e desliga o filtro.
+  await tagList.getByRole("button", { name: "Excluir tag Aceleração" }).click();
+  const deleteDialog = page.getByRole("dialog", { name: "Excluir tag" });
+  await expect(deleteDialog).toContainText("Aceleração");  await deleteDialog.getByRole("button", { name: "Cancelar" }).click();
+  await expect(deleteDialog).toHaveCount(0);
+  await expect(renamed).toBeVisible();
+
+  await tagList.getByRole("button", { name: "Excluir tag Aceleração" }).click();
+  await deleteDialog.getByRole("button", { name: "Excluir" }).click();
+  await expect(deleteDialog).toHaveCount(0);
+  await expect(renamed).toHaveCount(0);
+  await expect(tagList.getByRole("button", { name: "Remoção", exact: true })).toBeVisible();
+  await expect(page.getByTestId("deck-tag-filter-active")).toHaveCount(0);
+  await expectShown(page, [ring, bolt], []);
+  const ringAfter = await deckCard(page, deckId, "Sol Ring");
+  expect(ringAfter).not.toBeNull();
+  expect(ringAfter?.tags).toEqual([]);
+  expect((await deckCard(page, deckId, "Lightning Bolt"))?.tags).toEqual([{ name: "Remoção", color: "#dc2626" }]);
 });
