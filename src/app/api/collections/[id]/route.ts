@@ -3,12 +3,13 @@ import { requireUser } from "@/lib/auth";
 import { upsertScryfallCard } from "@/lib/cards";
 import { sql } from "@/lib/db";
 import { scryfallCollectionByIds } from "@/lib/scryfall";
+import { parseTags } from "@/lib/tags";
 
 type Params = { params: Promise<{ id: string }> };
 
 async function loadItems(collectionId: string) {
   return sql`
-    SELECT ci.id AS item_id, ci.quantity, ci.price_cents, ci.note,
+    SELECT ci.id AS item_id, ci.quantity, ci.price_cents, ci.note, ci.tags,
            c.id, c.scryfall_id, c.name_en, c.name_pt, c.set_code, c.set_name,
            c.image_normal, c.image_small, c.released_at, c.type_line, c.mana_cost, c.lang, c.filters
     FROM collection_items ci
@@ -50,7 +51,8 @@ export async function GET(_request: Request, { params }: Params) {
 
   let items = await loadItems(id);
   if (await hydrateMissingFilters(items)) items = await loadItems(id);
-  return NextResponse.json({ collection, items });
+  const tagged = items.map((item) => ({ ...item, tags: parseTags(item.tags) }));
+  return NextResponse.json({ collection, items: tagged });
 }
 
 export async function DELETE(_request: Request, { params }: Params) {

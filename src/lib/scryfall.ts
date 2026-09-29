@@ -125,10 +125,20 @@ export async function scryfallAutocomplete(query: string) {
 }
 
 export async function scryfallSearch(query: string) {
+  const page = await scryfallSearchPage(query);
+  return page.cards;
+}
+
+export async function scryfallSearchPage(query: string) {
   const data = (await scryfallFetch(
     `/cards/search?q=${encodeURIComponent(query)}&unique=cards&order=name`,
-  )) as { data?: ScryfallCard[] } | null;
-  return data?.data ?? [];
+  )) as { data?: ScryfallCard[]; has_more?: boolean; total_cards?: number } | null;
+  const cards = data?.data ?? [];
+  const total = data?.total_cards ?? cards.length;
+  return {
+    cards,
+    many: Boolean(data?.has_more) || total > 1 || cards.length > 1,
+  };
 }
 
 export async function scryfallNamed(name: string, fuzzy = false) {

@@ -178,7 +178,7 @@ A action só **inicia** o deploy. Acompanhe no hPanel → Docker Manager ou pelo
 ## O que não fazer
 
 - Não commitar `.env` nem senhas.
-- Não expor a porta do Postgres na internet (só `127.0.0.1:5433`).
+- Não expor o Postgres de produção na internet (só `127.0.0.1:5433`). O projeto `mtghelper-stage-db` é a exceção: banco vazio `mtghelper_stage`, porta `5434` publicada e liberada no firewall para desenvolvimento remoto. A senha fica só no `.env` local.
 - Não publicar porta extra do Next (deixe só Traefik em 80/443).
 - Não trocar `POSTGRES_PASSWORD` só no secret: a senha é gravada no volume na primeira inicialização; para trocar, altere no Postgres (`ALTER USER`) e depois no secret.
 - Não versionar `.cursor/mcp.json`.

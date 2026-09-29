@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AppShell } from "@/components/app-shell";
 import { CardMetaModal } from "@/components/card-meta-modal";
+import { TagCreateModal } from "@/components/card-tags";
 import { DeckCanvas, type DeckCanvasHandle } from "@/components/deck-canvas";
 import { DeckCoverageBadge } from "@/components/deck-coverage-badge";
 import { DeckEditHeader } from "@/components/deck-detail/deck-edit-header";
@@ -34,6 +35,7 @@ import { evaluateDeckSize } from "@/lib/deck-size";
 import { FORMATS, sideboardLimit } from "@/lib/formats";
 import { groupCardsByManaCost } from "@/lib/mana-cost-groups";
 import { formatBRLFromCents } from "@/lib/money-br";
+import { addTag, collectTags, toggleTag } from "@/lib/tags";
 
 type Props = {
   deckId: string;
@@ -59,7 +61,10 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(() => new Set());
   const [listView, setListView] = useState<DeckListView | null>(null);
   const [canvasToolsOpen, setCanvasToolsOpen] = useState(false);
+  const [toolsOpen, setToolsOpen] = useState(false);
+  const [chartsOpen, setChartsOpen] = useState(false);
   const [metaCard, setMetaCard] = useState<CardRow | null>(null);
+  const [tagCard, setTagCard] = useState<CardRow | null>(null);
   const [canvasSnapshot, setCanvasSnapshot] = useState<unknown>(null);
   const [canvasLoadedView, setCanvasLoadedView] = useState<DeckView | null>(null);
   const canvasReady = isCanvasView && canvasLoadedView === view;
@@ -76,8 +81,7 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
     setCards(
       (data.cards ?? []).map((card: CardRow) => ({
         ...card,
-        included: Boolean(card.included),
-        in_sideboard: Boolean(card.in_sideboard),
+        place: card.place === "side" || card.place === "out" ? card.place : "main",
       })),
     );
     setCoverage(data.coverage ?? null);
@@ -170,17 +174,18 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
     window.history.replaceState(null, "", deckHref(deckId, mode, next));
   }
 
-  const mutations = useDeckCardMutations({ deckId, setStatus, load });
+  const mutations = useDeckCardMutations({ deckId, cards, setStatus, setCards, load });
 
-  const includedCards = useMemo(() => cards.filter((card) => card.included), [cards]);
-  const workingCards = useMemo(() => cards.filter((card) => !card.included), [cards]);
+  const knownTags = useMemo(() => collectTags(cards.map((card) => card.tags ?? [])), [cards]);
+  const includedCards = useMemo(() => cards.filter((card) => card.place !== "out"), [cards]);
+  const workingCards = useMemo(() => cards.filter((card) => card.place === "out"), [cards]);
   const allowsSideboard = sideboardLimit(format) != null;
   const mainCards = useMemo(
-    () => includedCards.filter((card) => !allowsSideboard || !card.in_sideboard),
+    () => includedCards.filter((card) => !allowsSideboard || card.place !== "side"),
     [includedCards, allowsSideboard],
   );
   const sideboardCards = useMemo(
-    () => (allowsSideboard ? includedCards.filter((card) => card.in_sideboard) : []),
+    () => (allowsSideboard ? includedCards.filter((card) => card.place === "side") : []),
     [includedCards, allowsSideboard],
   );
   const groupedIncluded = useMemo(() => groupCardsByType(mainCards), [mainCards]);
@@ -250,7 +255,7 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
       label,
       secondary: card.name_pt ? card.name_en : null,
       setCode: card.set_code || null,
-      tags: [],
+      tags: card.tags ?? [],
       priceLabel: formatBRLFromCents(card.price_cents ?? null) || null,
       imageSrc: card.image_normal ?? card.image_small,
       thumbSrc: card.image_small ?? card.image_normal,
@@ -265,12 +270,16 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
             onRemoveAll={() => void mutations.removeCard(card.id, true)}
             onInspect={() => setMetaCard(card)}
             coverage={
-              card.included && card.needed != null
+              card.place !== "out" && card.needed != null
                 ? { owned: card.owned ?? 0, needed: card.needed, missing: card.missing ?? 0 }
                 : null
             }
             allowsSideboard={allowsSideboard}
             onMove={(place) => void mutations.moveCard(card.id, place)}
+            tags={card.tags ?? []}
+            knownTags={knownTags}
+            onToggleTag={(tag) => void mutations.updateCardTags(card.id, (current) => toggleTag(current, tag))}
+            onNewTag={() => setTagCard(card)}
           />
         ) : null,
     };
@@ -338,16 +347,27 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
   );
 
   const metaModal = editing ? (
-    <CardMetaModal
-      open={Boolean(metaCard)}
-      title={metaCard ? (metaCard.name_pt ?? metaCard.name_en) : ""}
-      initial={{ priceCents: metaCard?.price_cents ?? null, note: metaCard?.note ?? "" }}
-      onClose={() => setMetaCard(null)}
-      onSave={async (values) => {
-        if (!metaCard) return;
-        await mutations.saveCardMeta(metaCard.id, values);
-      }}
-    />
+    <>
+      <CardMetaModal
+        open={Boolean(metaCard)}
+        title={metaCard ? (metaCard.name_pt ?? metaCard.name_en) : ""}
+        initial={{ priceCents: metaCard?.price_cents ?? null, note: metaCard?.note ?? "" }}
+        onClose={() => setMetaCard(null)}
+        onSave={async (values) => {
+          if (!metaCard) return;
+          await mutations.saveCardMeta(metaCard.id, values);
+        }}
+      />
+      <TagCreateModal
+        open={Boolean(tagCard)}
+        known={knownTags}
+        onClose={() => setTagCard(null)}
+        onCreate={(tag) => {
+          if (!tagCard) return;
+          void mutations.updateCardTags(tagCard.id, (current, known) => addTag(current, tag, known));
+        }}
+      />
+    </>
   ) : null;
 
   const tools = editing ? (
@@ -476,7 +496,7 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
       count={sideboardCount}
       limit={sizeStatus.sideboardLimit ?? undefined}
       over={sizeStatus.overSideboard}
-      note="Faz parte do deck e entra na conta da coleção."
+      note="Teto próprio de 15. Entra na coleção junto com o deck."
     >
       {sideboardCards.length === 0 ? (
         <p className="px-4 py-4 text-[13px] text-muted">Nenhuma carta no sideboard.</p>
@@ -554,14 +574,39 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
         </div>
 
         {editing ? (
-          <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
-            <div className="min-w-0 space-y-5 lg:col-span-8">
-              <DeckStatsCharts cards={includedCards} />
-              {deckPanel}
-              {sideboardPanel}
-              {workingPanel}
+          <div className="relative min-w-0 space-y-5">
+            {deckPanel}
+            {sideboardPanel}
+            {workingPanel}
+            <div className="fixed top-20 right-4 z-40 flex flex-col gap-2">
+              <ToggleIconButton
+                label="Busca"
+                pressed={toolsOpen}
+                onClick={() => setToolsOpen((open) => !open)}
+              >
+                <SearchIcon />
+              </ToggleIconButton>
+              <ToggleIconButton
+                label="Gráficos"
+                pressed={chartsOpen}
+                onClick={() => setChartsOpen((open) => !open)}
+              >
+                <ChartIcon />
+              </ToggleIconButton>
             </div>
-            <aside className="border border-outline-variant bg-surface-container-lowest p-4 lg:col-span-4">{tools}</aside>
+            {toolsOpen ? (
+              <aside className="fixed top-20 right-16 z-40 max-h-[calc(100vh-6rem)] w-80 overflow-auto border border-ink bg-surface-container-lowest p-4 shadow-[4px_4px_0_#09090b]">
+                {tools}
+              </aside>
+            ) : null}
+            {chartsOpen ? (
+              <aside
+                className="fixed top-20 z-40 max-h-[calc(100vh-6rem)] w-[26rem] overflow-auto border border-ink bg-surface-container-lowest p-4 shadow-[4px_4px_0_#09090b]"
+                style={{ right: toolsOpen ? "25rem" : "4.5rem" }}
+              >
+                <DeckStatsCharts cards={includedCards} stacked />
+              </aside>
+            ) : null}
           </div>
         ) : (
           <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
@@ -586,7 +631,6 @@ function DeckSizeStatus({ status }: { status: ReturnType<typeof evaluateDeckSize
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px]">
       <span
         className={`font-mono tabular-nums ${status.overMain ? "font-semibold text-danger" : "text-muted"}`}
-        title={status.sideboardLimit != null ? "Inclui as cartas do sideboard." : undefined}
       >
         Deck {status.mainCount}/{status.mainLimit}
       </span>
@@ -601,6 +645,51 @@ function DeckSizeStatus({ status }: { status: ReturnType<typeof evaluateDeckSize
         </span>
       ))}
     </div>
+  );
+}
+
+function ToggleIconButton({
+  label,
+  pressed,
+  onClick,
+  children,
+}: {
+  label: string;
+  pressed: boolean;
+  onClick: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      aria-pressed={pressed}
+      title={label}
+      onClick={onClick}
+      className={`flex h-10 w-10 items-center justify-center border border-ink shadow-[3px_3px_0_#09090b] ${
+        pressed ? "bg-ink text-white" : "bg-surface-container-lowest text-ink"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function SearchIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="11" cy="11" r="6.5" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M16 16.5 20 20.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="square" />
+    </svg>
+  );
+}
+
+function ChartIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M4 19V5M4 19h16" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M8 15v-3M12 15V8M16 15v-5" stroke="currentColor" strokeWidth="1.8" />
+    </svg>
   );
 }
 

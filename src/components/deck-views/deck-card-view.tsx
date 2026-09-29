@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useCardHoverPreview } from "@/components/card-hover-preview";
+import { TagDots, TagQuantityFill } from "@/components/card-tags";
 import {
   LIST_PREVIEW_DELAY_MS,
   type DeckListView,
@@ -9,12 +10,21 @@ import {
   type DeckViewItem,
 } from "@/components/deck-views/deck-view-types";
 
-const CARD_W = 140;
+const CARD_W = 210;
 const CARD_H = Math.round((CARD_W * 88) / 63);
+/** Grid visual: quantidade à direita da faixa do nome. */
+const CHIP_TOP = Math.round((37 / 241) * CARD_H);
+const CHIP_RIGHT = Math.round(((182 - 162) / 182) * CARD_W);
+/** Onde o nome começa numa carta moderna. */
+const NAME_START_X = Math.round((20 / 488) * CARD_W);
+/** Três pontos: mesma linha da quantidade do grid visual, à esquerda e dentro da imagem. */
+const MENU_LEFT = 8;
+const chipClass =
+  "flex h-6 items-center justify-center rounded-[4px] bg-black font-mono text-[12px] font-bold leading-none text-white";
 /** Grid visual: cada linha cobre a metade de baixo da anterior (US-010-03). */
 const GRID_ROW_H = Math.round(CARD_H / 2);
 /** Grid agrupada: faixa visível de cada carta, o suficiente para o título (US-010-04). */
-const STACK_OFFSET = 30;
+const STACK_OFFSET = 44;
 const STACK_MAX = 12;
 
 type Preview = ReturnType<typeof useCardHoverPreview>;
@@ -58,7 +68,7 @@ export function DeckCardView({ view, groups, collapsedGroups, onToggleGroup, rea
           STACK_MAX,
         ).map((items, index) => ({ key: `stack-${index}`, label: null, items }));
     content = (
-      <div className="flex flex-wrap items-start gap-x-4 gap-y-6 p-4">
+      <div className="flex flex-wrap items-start gap-x-10 gap-y-6 p-4 pl-10">
         {columns.map((column) => {
           const collapsed = column.label !== null && collapsedGroups.has(column.key);
           return (
@@ -209,7 +219,10 @@ function CompactRow({ item, preview }: { item: DeckViewItem; preview: Preview })
       data-testid="deck-card-text"
       {...preview.bind(item.id, item.imageSrc, item.label)}
     >
-      <span className="w-5 shrink-0 text-right font-mono text-[12px] tabular-nums text-muted">{item.quantity}</span>
+      <span className="flex w-auto min-w-5 shrink-0 items-center justify-end gap-1 font-mono text-[12px] tabular-nums text-muted">
+        {item.quantity}
+        <TagDots tags={item.tags} />
+      </span>
       <span className="min-w-0 truncate">{item.label}</span>
     </li>
   );
@@ -230,9 +243,9 @@ function TextList({ items, preview }: { items: DeckViewItem[]; preview: Preview 
           >
             {item.thumbSrc ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={item.thumbSrc} alt="" className="h-14 w-10 shrink-0 border border-ink object-cover" />
+              <img src={item.thumbSrc} alt="" className="h-28 w-20 shrink-0 border border-ink object-cover" />
             ) : (
-              <span className="h-14 w-10 shrink-0 border border-ink bg-surface-container" />
+              <span className="h-28 w-20 shrink-0 border border-ink bg-surface-container" />
             )}
             <div className="min-w-0">
             <p className="flex min-w-0 items-center gap-2 text-[13px] font-semibold text-ink">
@@ -256,31 +269,40 @@ function TextList({ items, preview }: { items: DeckViewItem[]; preview: Preview 
 
 function CardImage({ item, preview }: { item: DeckViewItem; preview: Preview }) {
   return (
-    <div
-      className="relative shrink-0 overflow-hidden rounded-[6px] border border-ink bg-surface-container"
-      style={{ width: CARD_W, height: CARD_H }}
-      {...preview.bind(item.id, item.imageSrc, item.label)}
-    >
-      {item.imageSrc ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={item.imageSrc} alt={item.label} loading="lazy" className="h-full w-full object-cover" />
-      ) : (
-        <span className="block p-2 pt-7 text-[11px] font-medium">{item.label}</span>
-      )}
-      <span
-        aria-label={`Quantidade de ${item.label}`}
-        className="absolute top-1.5 left-1.5 bg-ink/85 px-1.5 font-mono text-[11px] leading-4 text-white"
+    <div className="relative shrink-0" style={{ width: CARD_W, height: CARD_H }}>
+      <div
+        className="h-full w-full overflow-hidden rounded-[6px] border border-ink bg-surface-container"
+        {...preview.bind(item.id, item.imageSrc, item.label)}
       >
-        x{item.quantity}
-      </span>
+        {item.imageSrc ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={item.imageSrc} alt={item.label} loading="lazy" className="h-full w-full object-cover" />
+        ) : (
+          <span className="block p-2 text-[11px] font-medium">{item.label}</span>
+        )}
+      </div>
     </div>
+  );
+}
+
+function CardQuantity({ item, place }: { item: DeckViewItem; place: "title-right" | "name-left" }) {
+  const onName = place === "name-left";
+  return (
+    <span
+      aria-label={`Quantidade de ${item.label}`}
+      className={`${chipClass} absolute min-w-7 overflow-hidden ${onName ? "-translate-x-full" : ""}`}
+      style={onName ? { top: 0, left: NAME_START_X + 8 } : { top: CHIP_TOP, right: CHIP_RIGHT }}
+    >
+      <TagQuantityFill tags={item.tags} />
+      <span className="relative">{item.quantity}</span>
+    </span>
   );
 }
 
 function CardGrid({ items, preview, editable }: { items: DeckViewItem[]; preview: Preview; editable: boolean }) {
   return (
     <div
-      className="grid gap-x-3 p-4"
+      className="grid gap-x-4 p-4"
       style={{
         gridTemplateColumns: `repeat(auto-fill, minmax(${CARD_W}px, 1fr))`,
         gridAutoRows: GRID_ROW_H,
@@ -299,10 +321,11 @@ function GridTile({ item, preview, editable }: { item: DeckViewItem; preview: Pr
   return (
     <div
       data-testid="deck-card-tile"
-      className={`group relative hover:z-20 focus-within:z-20 ${open ? "z-30" : ""}`}
+      className={`group relative ${open ? "z-30" : "z-0"}`}
       style={{ height: CARD_H, width: CARD_W }}
     >
       <CardImage item={item} preview={preview} />
+      <CardQuantity item={item} place="title-right" />
       {editable ? <CardOptionsMenu item={item} open={open} onOpenChange={setOpen} /> : null}
     </div>
   );
@@ -320,9 +343,13 @@ function CardStack({ items, preview, editable }: { items: DeckViewItem[]; previe
           key={item.id}
           data-testid="deck-card-tile"
           className="group absolute left-0"
-          style={{ top: index * STACK_OFFSET, zIndex: openId === item.id ? items.length + 2 : index }}
+          style={{
+            top: index * STACK_OFFSET,
+            zIndex: openId === item.id ? items.length + 2 : index,
+          }}
         >
           <CardImage item={item} preview={preview} />
+          <CardQuantity item={item} place="name-left" />
           {editable ? (
             <CardOptionsMenu
               item={item}
@@ -364,21 +391,23 @@ function CardOptionsMenu({
   }, [open, onOpenChange]);
 
   return (
-    <div ref={rootRef} className={`absolute top-1.5 right-1.5 z-30 ${open ? "opacity-100" : "opacity-0 group-hover:opacity-100 focus-within:opacity-100"}`}>
+    <div ref={rootRef} className="absolute" style={{ top: CHIP_TOP, left: MENU_LEFT }}>
       <button
         type="button"
         aria-label={`Opções de ${item.label}`}
         aria-expanded={open}
-        className="bg-ink/85 px-1.5 font-mono text-[11px] leading-4 text-white"
+        className="flex h-6 w-5 flex-col items-center justify-center gap-0.5 rounded-[4px] bg-black"
         onClick={(event) => {
           event.stopPropagation();
           onOpenChange(!open);
         }}
       >
-        ...
+        <span className="h-[3px] w-[3px] rounded-full bg-white" />
+        <span className="h-[3px] w-[3px] rounded-full bg-white" />
+        <span className="h-[3px] w-[3px] rounded-full bg-white" />
       </button>
       {open ? (
-        <div className="absolute right-0 top-full z-40 mt-1 w-44 border border-ink bg-surface-container-lowest p-1 shadow-[4px_4px_0_#09090b]">
+        <div className="absolute left-0 top-full z-40 mt-1 w-44 border border-ink bg-surface-container-lowest p-1 shadow-[4px_4px_0_#09090b]">
           {item.renderActions("menu")}
         </div>
       ) : null}

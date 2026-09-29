@@ -1,15 +1,23 @@
+import { useRef, type Dispatch, type SetStateAction } from "react";
 import type { CardMetaValues } from "@/components/card-meta-modal";
 import type { CardRow, DeckPlace } from "@/components/deck-detail/deck-detail-types";
+import { unresolvedCardsMessage } from "@/lib/lists";
+import { collectTags, type CardTag } from "@/lib/tags";
 
 type Options = {
   deckId: string;
+  cards: CardRow[];
   setStatus: (status: string) => void;
+  setCards: Dispatch<SetStateAction<CardRow[]>>;
   load: () => Promise<void>;
 };
 
 /** Escritas nas cartas do deck, exclusivas do modo edição (F-011 / US-011-04). */
-export function useDeckCardMutations({ deckId, setStatus, load }: Options) {
+export function useDeckCardMutations({ deckId, cards, setStatus, setCards, load }: Options) {
   const cardsUrl = `/api/decks/${deckId}/cards`;
+  const cardsRef = useRef(cards);
+  cardsRef.current = cards;
+  const tagWrites = useRef(Promise.resolve());
 
   async function addText(text: string, set?: string, place: DeckPlace = "main") {
     setStatus("Buscando cartas…");
@@ -19,11 +27,11 @@ export function useDeckCardMutations({ deckId, setStatus, load }: Options) {
       body: JSON.stringify({ text, set, place }),
     });
     const data = await response.json();
-    setStatus(
-      data.missing?.length
-        ? `Não encontradas: ${data.missing.map((item: { name: string }) => item.name).join(", ")}`
-        : "Cartas adicionadas.",
-    );
+    if (!response.ok) {
+      setStatus(typeof data.error === "string" ? data.error : "Não foi possível importar a lista.");
+      return;
+    }
+    setStatus(unresolvedCardsMessage(data.missing ?? [], data.added ?? 0));
     await load();
   }
 
@@ -42,7 +50,7 @@ export function useDeckCardMutations({ deckId, setStatus, load }: Options) {
   }
 
   async function addOneCopy(card: CardRow) {
-    const place: DeckPlace = !card.included ? "out" : card.in_sideboard ? "side" : "main";
+    const place: DeckPlace = card.place === "side" || card.place === "out" ? card.place : "main";
     await addText(`1 ${card.name_pt ?? card.name_en}`, undefined, place);
   }
 
@@ -60,6 +68,33 @@ export function useDeckCardMutations({ deckId, setStatus, load }: Options) {
     await load();
   }
 
+  function updateCardTags(catalogCardId: string, change: (current: CardTag[], known: CardTag[]) => CardTag[]) {
+    const run = tagWrites.current.then(async () => {
+      const current = cardsRef.current;
+      const card = current.find((item) => item.id === catalogCardId);
+      const known = collectTags(current.map((item) => item.tags ?? []));
+      const next = change(card?.tags ?? [], known);
+      const updated = current.map((item) => (item.id === catalogCardId ? { ...item, tags: next } : item));
+      cardsRef.current = updated;
+      setCards(updated);
+      const response = await fetch(cardsUrl, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ catalogCardId, tags: next }),
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        setStatus(typeof data.error === "string" ? data.error : "Não foi possível salvar a tag.");
+      }
+      await load();
+    });
+    tagWrites.current = run.then(
+      () => undefined,
+      () => undefined,
+    );
+    return run;
+  }
+
   async function saveCardMeta(catalogCardId: string, values: CardMetaValues) {
     const response = await fetch(cardsUrl, {
       method: "PATCH",
@@ -70,5 +105,5 @@ export function useDeckCardMutations({ deckId, setStatus, load }: Options) {
     await load();
   }
 
-  return { addText, removeCard, addOneCopy, moveCard, saveCardMeta };
+  return { addText, removeCard, addOneCopy, moveCard, saveCardMeta, updateCardTags };
 }

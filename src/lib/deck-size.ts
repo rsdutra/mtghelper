@@ -12,25 +12,23 @@ export type DeckSizeStatus = {
 };
 
 /**
- * O sideboard entra na conta de cartas do formato e na coleção.
- * Ele também tem teto próprio de 15. Passar de qualquer teto invalida o deck.
+ * O deck e o sideboard têm tetos separados: 60 + 15 nos formatos com side,
+ * 100 e sem side em Commander, Brawl e Pauper Commander.
  */
 export function evaluateDeckSize(format: string, mainCount: number, sideboardCount: number): DeckSizeStatus {
   const mainLimit = mainDeckLimit(format);
   const sideLimit = sideboardLimit(format);
-  const deckCount = mainCount + (sideLimit == null ? 0 : sideboardCount);
-  const overMain = deckCount > mainLimit;
+  const overMain = mainCount > mainLimit;
   const overSideboard = sideLimit != null && sideboardCount > sideLimit;
   const messages: string[] = [];
   if (overMain) {
-    const including = sideLimit != null ? ", incluindo o sideboard" : "";
-    messages.push(`Deck inválido: ${deckCount} cartas no deck${including} (máximo ${mainLimit}).`);
+    messages.push(`Deck inválido: ${mainCount} cartas no deck (máximo ${mainLimit}).`);
   }
   if (overSideboard) {
     messages.push(`Deck inválido: ${sideboardCount} cartas no sideboard (máximo ${sideLimit}).`);
   }
   return {
-    mainCount: deckCount,
+    mainCount,
     sideboardCount,
     mainLimit,
     sideboardLimit: sideLimit,

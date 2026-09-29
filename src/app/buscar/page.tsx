@@ -92,7 +92,7 @@ export default function SearchPage() {
             ) : null}
           </ul>
           {missing.length ? (
-            <p className="text-[13px] text-error">Não encontradas: {missing.join(", ")}</p>
+            <p className="text-[13px] text-error">Ajuste o nome destas: {missing.join(", ")}</p>
           ) : null}
         </section>
       </div>

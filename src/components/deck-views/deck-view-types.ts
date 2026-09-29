@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import type { CardTag } from "@/lib/tags";
 
 /** F-010 — visualizações do modo Lista de `/decks/[id]`. */
 export type DeckListView = "texto" | "grid" | "pilhas";
@@ -26,7 +27,7 @@ export type DeckViewItem = {
   label: string;
   secondary: string | null;
   setCode: string | null;
-  tags: string[];
+  tags: CardTag[];
   priceLabel: string | null;
   imageSrc: string | null;
   thumbSrc: string | null;

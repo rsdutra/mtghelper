@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { parseTags } from "@/lib/tags";
 import { requireUser } from "@/lib/auth";
 import { coverageByKey, coverageKey, summarizeCoverage, type CoverageRow } from "@/lib/deck-coverage";
 import { isFormat, sideboardLimit } from "@/lib/formats";
@@ -21,13 +22,13 @@ export async function GET(_request: Request, { params }: Params) {
   if (!deck) return NextResponse.json({ error: "Deck não encontrado." }, { status: 404 });
 
   const cards = await sql`
-    SELECT dc.id AS deck_card_id, dc.quantity, dc.included, dc.in_sideboard, dc.price_cents, dc.note,
+    SELECT dc.id AS deck_card_id, dc.quantity, dc.place, dc.price_cents, dc.note, dc.tags,
            c.id, c.oracle_id, c.name_en, c.name_pt, c.set_code, c.set_name,
            c.image_normal, c.image_small, c.mana_cost, c.type_line
     FROM deck_cards dc
     JOIN catalog_cards c ON c.id = dc.catalog_card_id
     WHERE dc.deck_id = ${id}
-    ORDER BY dc.included DESC, c.name_en
+    ORDER BY CASE dc.place WHEN 'main' THEN 0 WHEN 'side' THEN 1 ELSE 2 END, c.name_en
   `;
   const coverageRows = await sql<CoverageRow[]>`
     WITH owned AS (
@@ -44,7 +45,7 @@ export async function GET(_request: Request, { params }: Params) {
              SUM(dc.quantity)::int AS needed
       FROM deck_cards dc
       JOIN catalog_cards cat ON cat.id = dc.catalog_card_id
-      WHERE dc.deck_id = ${id} AND dc.included = true
+      WHERE dc.deck_id = ${id} AND dc.place IN ('main', 'side')
       GROUP BY 1
     )
     SELECT n.card_key, n.needed, COALESCE(o.owned, 0)::int AS owned
@@ -54,13 +55,21 @@ export async function GET(_request: Request, { params }: Params) {
   const byKey = coverageByKey(coverageRows);
   const coverage = summarizeCoverage(coverageRows);
   const cardsWithCoverage = cards.map((card) => {
-    if (!card.included) return card;
-    const key = coverageKey(typeof card.oracle_id === "string" ? card.oracle_id : null, String(card.id));
+    const row = card as {
+      tags?: unknown;
+      place?: string;
+      quantity?: number;
+      oracle_id?: string | null;
+      id?: string;
+    };
+    const tagged = { ...card, tags: parseTags(row.tags) };
+    if (row.place === "out") return tagged;
+    const key = coverageKey(typeof row.oracle_id === "string" ? row.oracle_id : null, String(row.id));
     const item = byKey.get(key);
     if (!item) {
-      return { ...card, owned: 0, needed: Number(card.quantity) || 0, missing: Number(card.quantity) || 0 };
+      return { ...tagged, owned: 0, needed: Number(row.quantity) || 0, missing: Number(row.quantity) || 0 };
     }
-    return { ...card, owned: item.owned, needed: item.needed, missing: item.missing };
+    return { ...tagged, owned: item.owned, needed: item.needed, missing: item.missing };
   });
   return NextResponse.json({ deck, cards: cardsWithCoverage, coverage });
 }
@@ -82,8 +91,8 @@ export async function PATCH(request: Request, { params }: Params) {
   `;
   if (sideboardLimit(format) == null) {
     await sql`
-      UPDATE deck_cards SET in_sideboard = false
-      WHERE deck_id = ${id} AND in_sideboard = true
+      UPDATE deck_cards SET place = 'main'
+      WHERE deck_id = ${id} AND place = 'side'
     `;
   }
   return NextResponse.json({ deck: updated });

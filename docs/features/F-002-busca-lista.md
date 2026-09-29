@@ -28,6 +28,7 @@ Critérios de aceite:
 - [ ] Aceita linhas `1 Lightning Bolt` e `4 Violência Gratuita`.
 - [ ] Ignora linhas vazias e comentários `#` / `//`.
 - [ ] Retorna `resolved` e `missing`.
+- [ ] Nome em português com mais de uma carta diferente não é gravado e entra em `missing`, para o usuário ajustar o nome.
 
 ### US-002-02 — Importar arquivo
 

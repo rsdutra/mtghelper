@@ -26,14 +26,22 @@ test("cadastro, busca Scryfall, deck e coleção", async ({ page }) => {
   await page.getByRole("button", { name: "Criar" }).click();
   await expect(page).toHaveURL(/\/decks\/[^/]+\/edit$/);
 
-  await page.getByPlaceholder("1 Sol Ring").fill("1 Sol Ring");
-  await page.getByRole("button", { name: "Adicionar ao deck" }).click();
+  await page.getByRole("button", { name: "Busca", exact: true }).click();
+  await page.getByRole("button", { name: "Adicionar lista" }).click();
+  await page.getByLabel("Lista no deck").fill("1 Sol Ring");
+  await page.getByRole("dialog").getByRole("button", { name: "Salvar" }).click();
   await expect(page.getByText("Sol Ring").first()).toBeVisible();
   await expect(page.getByLabel(/Mover /).first()).toBeVisible();
 
-  await page.getByRole("checkbox", { name: /Incluir na coleção/ }).check();
-  await page.getByRole("button", { name: "Processar" }).click();
+  await page.getByRole("button", { name: "Incluir na coleção" }).click();
+  await page.getByRole("button", { name: "Verificar" }).click();
   await expect(page.getByText(/enviadas à coleção|enviadas para a coleção/)).toBeVisible();
+
+  await page.getByRole("button", { name: "Incluir na coleção" }).click();
+  await page.getByRole("button", { name: "Verificar" }).click();
+  await expect(page.getByText("Estas cartas já estão na coleção.")).toBeVisible();
+  await page.getByRole("button", { name: "Prosseguir" }).click();
+  await expect(page.getByText("Estas cartas já estão na coleção.")).toHaveCount(0);
 
   await page.goto("/colecao");
   await page.getByRole("link", { name: /Minha coleção/ }).click();

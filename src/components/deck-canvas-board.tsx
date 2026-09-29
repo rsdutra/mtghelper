@@ -729,7 +729,7 @@ export function DeckCanvasBoard({
                       image={image}
                       width={CARD_W}
                       height={CARD_H}
-                      opacity={cardOpacity(copy.included)}
+                      opacity={cardOpacity(copy.place)}
                       cornerRadius={6}
                       perfectDrawEnabled={false}
                     />
@@ -741,7 +741,7 @@ export function DeckCanvasBoard({
                         fill="#fafafa"
                         stroke="#d4d4d4"
                         cornerRadius={6}
-                        opacity={cardOpacity(copy.included)}
+                        opacity={cardOpacity(copy.place)}
                       />
                       <Text
                         text={copy.name_pt ?? copy.name_en}
@@ -753,7 +753,7 @@ export function DeckCanvasBoard({
                       />
                     </>
                   )}
-                  {!copy.included ? (
+                  {copy.place === "out" ? (
                     <Circle x={13} y={13} radius={8} fill="#f97316" stroke="#09090b" strokeWidth={1} />
                   ) : null}
                   {isSelected ? (

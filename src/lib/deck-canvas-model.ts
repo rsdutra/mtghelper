@@ -3,7 +3,7 @@
 export type CanvasCard = {
   id: string;
   quantity: number;
-  included: boolean;
+  place: "out" | "main" | "side";
   section_ids?: string[];
   name_en: string;
   name_pt: string | null;
@@ -66,8 +66,8 @@ export function primarySection(card: CanvasCard, sectionsById: Map<string, Canva
   return ids[0] ?? null;
 }
 
-export function cardOpacity(included: boolean) {
-  return included ? 1 : OUT_OF_DECK_OPACITY;
+export function cardOpacity(place: "out" | "main" | "side") {
+  return place === "out" ? OUT_OF_DECK_OPACITY : 1;
 }
 
 export function defaultUntaggedPos(index: number) {

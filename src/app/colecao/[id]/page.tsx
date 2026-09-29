@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { CardMetaModal, type CardMetaValues } from "@/components/card-meta-modal";
 import { CardScanner } from "@/components/card-scanner";
@@ -17,6 +17,9 @@ import { LoadingModal } from "@/components/loading-modal";
 import { filtersFromCatalog, type CardFilters } from "@/lib/scryfall-filters";
 import { matchScryfallQuery, parseScryfallQuery } from "@/lib/scryfall-query";
 import { formatBRLFromCents } from "@/lib/money-br";
+import { unresolvedCardsMessage } from "@/lib/lists";
+import { addTag, collectTags, toggleTag, type CardTag } from "@/lib/tags";
+import { CardTagButton, TagCreateModal, TagDots } from "@/components/card-tags";
 
 type Item = {
   id: string;
@@ -33,6 +36,7 @@ type Item = {
   filters?: CardFilters | null;
   price_cents?: number | null;
   note?: string | null;
+  tags?: CardTag[];
 };
 
 type CollectionView = "grade" | "lista";
@@ -46,7 +50,7 @@ function itemHasNote(item: Item) {
 function matchesQuery(item: Item, query: string) {
   const q = query.trim().toLowerCase();
   if (!q) return true;
-  return [item.name_en, item.name_pt, item.set_code, item.set_name]
+  return [item.name_en, item.name_pt, item.set_code, item.set_name, ...(item.tags ?? []).map((tag) => tag.name)]
     .filter(Boolean)
     .some((value) => value!.toLowerCase().includes(q));
 }
@@ -63,6 +67,10 @@ export default function CollectionPage() {
   const [collectionCount, setCollectionCount] = useState(1);
   const [deleting, setDeleting] = useState(false);
   const [metaItem, setMetaItem] = useState<Item | null>(null);
+  const [tagItem, setTagItem] = useState<Item | null>(null);
+  const itemsRef = useRef(items);
+  itemsRef.current = items;
+  const tagWrites = useRef(Promise.resolve());
   const [query, setQuery] = useState("");
   const [listText, setListText] = useState("");
   const [editOpen, setEditOpen] = useState(false);
@@ -106,6 +114,8 @@ export default function CollectionPage() {
     });
   }, [items, query, scryfallQuery, parsedQuery]);
 
+  const knownTags = useMemo(() => collectTags(items.map((item) => item.tags ?? [])), [items]);
+
   async function addText(text: string, preferSet?: string) {
     setStatus("Buscando…");
     const response = await fetch(`/api/collections/${params.id}/cards`, {
@@ -114,11 +124,11 @@ export default function CollectionPage() {
       body: JSON.stringify({ text, set: preferSet || setCode || undefined }),
     });
     const data = await response.json();
-    setStatus(
-      data.missing?.length
-        ? `Não encontradas: ${data.missing.map((item: { name: string }) => item.name).join(", ")}`
-        : "Cartas adicionadas.",
-    );
+    if (!response.ok) {
+      setStatus(typeof data.error === "string" ? data.error : "Não foi possível importar a lista.");
+      return;
+    }
+    setStatus(unresolvedCardsMessage(data.missing ?? [], data.added ?? 0));
     await load();
   }
 
@@ -144,6 +154,30 @@ export default function CollectionPage() {
     });
     if (!response.ok) throw new Error("save meta failed");
     await load();
+  }
+
+  function updateTags(catalogCardId: string, change: (current: CardTag[], known: CardTag[]) => CardTag[]) {
+    const run = tagWrites.current.then(async () => {
+      const current = itemsRef.current;
+      const item = current.find((entry) => entry.id === catalogCardId);
+      const known = collectTags(current.map((entry) => entry.tags ?? []));
+      const next = change(item?.tags ?? [], known);
+      const updated = current.map((entry) => (entry.id === catalogCardId ? { ...entry, tags: next } : entry));
+      itemsRef.current = updated;
+      setItems(updated);
+      const response = await fetch(`/api/collections/${params.id}/cards`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ catalogCardId, tags: next }),
+      });
+      if (!response.ok) setStatus("Não foi possível salvar a tag.");
+      await load();
+    });
+    tagWrites.current = run.then(
+      () => undefined,
+      () => undefined,
+    );
+    return run;
   }
 
   async function deleteCollection() {
@@ -342,8 +376,10 @@ export default function CollectionPage() {
                     <span className="h-12 w-[34px] shrink-0 border border-border-line bg-surface-container" aria-hidden />
                   )}
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-medium">
-                      {item.quantity}× {item.name_pt ?? item.name_en}
+                    <p className="flex min-w-0 items-center gap-1 truncate font-medium">
+                      <span className="shrink-0">{item.quantity}×</span>
+                      <TagDots tags={item.tags ?? []} />
+                      <span className="truncate">{item.name_pt ?? item.name_en}</span>
                     </p>
                     <p className="truncate text-[12px] text-muted">
                       {item.name_en}
@@ -353,6 +389,13 @@ export default function CollectionPage() {
                     </p>
                   </div>
                   {renderMetaButton(item, true)}
+                  <CardTagButton
+                    label={item.name_pt ?? item.name_en}
+                    tags={item.tags ?? []}
+                    known={knownTags}
+                    onToggle={(tag) => void updateTags(item.id, (current) => toggleTag(current, tag))}
+                    onNew={() => setTagItem(item)}
+                  />
                 </li>
               );
             })}
@@ -368,14 +411,25 @@ export default function CollectionPage() {
                     <img src={item.image_normal} alt={item.name_en} className="w-full" />
                   ) : null}
                   <div className="space-y-1 p-3 text-[13px]">
-                    <p>
-                      {item.quantity}× {item.name_pt ?? item.name_en}
+                    <p className="flex items-center gap-1">
+                      <span>{item.quantity}×</span>
+                      <TagDots tags={item.tags ?? []} />
+                      <span>{item.name_pt ?? item.name_en}</span>
                     </p>
                     <p className="text-muted">{item.name_en}</p>
                     <p className="uppercase">{item.set_code}</p>
                     {price ? <p className="tabular-nums">{price}</p> : null}
                     {itemHasNote(item) ? <p className="text-[12px] text-muted">Com nota</p> : null}
-                    {renderMetaButton(item)}
+                    <div className="flex items-center gap-2">
+                      {renderMetaButton(item)}
+                      <CardTagButton
+                        label={item.name_pt ?? item.name_en}
+                        tags={item.tags ?? []}
+                        known={knownTags}
+                        onToggle={(tag) => void updateTags(item.id, (current) => toggleTag(current, tag))}
+                        onNew={() => setTagItem(item)}
+                      />
+                    </div>
                   </div>
                 </article>
               );
@@ -407,6 +461,15 @@ export default function CollectionPage() {
         onSave={async (values) => {
           if (!metaItem) return;
           await saveItemMeta(metaItem.id, values);
+        }}
+      />
+      <TagCreateModal
+        open={Boolean(tagItem)}
+        known={knownTags}
+        onClose={() => setTagItem(null)}
+        onCreate={(tag) => {
+          if (!tagItem) return;
+          void updateTags(tagItem.id, (current, known) => addTag(current, tag, known));
         }}
       />
     </AppShell>

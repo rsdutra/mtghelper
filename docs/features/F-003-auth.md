@@ -30,6 +30,7 @@ Critérios de aceite:
 - [ ] Login duplicado retorna erro claro.
 - [ ] Cria coleção "Minha coleção".
 - [ ] Sessão iniciada após cadastro.
+- [ ] Cookie antigo que não corresponde a um usuário no banco não impede abrir `/cadastro`. Sessão válida continua indo para `/`.
 
 ### US-003-02 — Entrar e sair
 

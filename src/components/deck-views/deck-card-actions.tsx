@@ -1,7 +1,9 @@
 "use client";
 
+import { CardTagButton, TagChoices, TagDots } from "@/components/card-tags";
 import type { DeckPlace } from "@/components/deck-detail/deck-detail-types";
 import type { ActionsLayout } from "@/components/deck-views/deck-view-types";
+import type { CardTag } from "@/lib/tags";
 
 type Props = {
   layout: ActionsLayout;
@@ -15,6 +17,10 @@ type Props = {
   coverage: { owned: number; needed: number; missing: number } | null;
   allowsSideboard: boolean;
   onMove: (place: DeckPlace) => void;
+  tags: CardTag[];
+  knownTags: CardTag[];
+  onToggleTag: (tag: CardTag) => void;
+  onNewTag: () => void;
 };
 
 const iconButton = "flex h-6 w-6 items-center justify-center leading-none text-muted";
@@ -33,6 +39,10 @@ export function DeckCardActions({
   coverage,
   allowsSideboard,
   onMove,
+  tags,
+  knownTags,
+  onToggleTag,
+  onNewTag,
 }: Props) {
   const coverageBadge = coverage ? (
     <span
@@ -72,6 +82,7 @@ export function DeckCardActions({
             Sideboard
           </button>
         ) : null}
+        <TagChoices tags={tags} known={knownTags} onToggle={onToggleTag} onNew={onNewTag} />
         {coverageBadge}
       </div>
     );
@@ -91,9 +102,10 @@ export function DeckCardActions({
         </button>
         <span
           aria-label={`Quantidade de ${label}`}
-          className="w-6 text-center font-mono text-[13px] font-semibold tabular-nums text-ink"
+          className="flex w-auto min-w-6 items-center justify-center gap-1 px-1 text-center font-mono text-[13px] font-semibold tabular-nums text-ink"
         >
           {quantity}
+          <TagDots tags={tags} />
         </span>
         <button
           type="button"
@@ -120,6 +132,7 @@ export function DeckCardActions({
         <button type="button" aria-label={inspectTitle} title={inspectTitle} className={`${iconButton} hover:text-ink`} onClick={onInspect}>
           <EyeIcon />
         </button>
+        <CardTagButton label={label} tags={tags} known={knownTags} onToggle={onToggleTag} onNew={onNewTag} />
         {coverageBadge}
       </div>
       <label className="flex items-center gap-2 text-[11px] text-muted">

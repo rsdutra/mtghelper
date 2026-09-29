@@ -2,7 +2,7 @@ export type DeckExportScope = "all" | "included" | "working";
 
 export type DeckExportCard = {
   quantity: number;
-  included: boolean;
+  place: "out" | "main" | "side";
   name_en: string;
 };
 
@@ -13,8 +13,8 @@ export const DECK_EXPORT_OPTIONS: ReadonlyArray<{ scope: DeckExportScope; label:
 ];
 
 export function filterDeckExportCards<T extends DeckExportCard>(cards: readonly T[], scope: DeckExportScope): T[] {
-  if (scope === "included") return cards.filter((card) => card.included);
-  if (scope === "working") return cards.filter((card) => !card.included);
+  if (scope === "included") return cards.filter((card) => card.place !== "out");
+  if (scope === "working") return cards.filter((card) => card.place === "out");
   return [...cards];
 }
 

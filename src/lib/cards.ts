@@ -6,6 +6,7 @@ import {
   scryfallCollection,
   scryfallNamed,
   scryfallSearch,
+  scryfallSearchPage,
   type ScryfallCard,
 } from "@/lib/scryfall";
 
@@ -126,7 +127,7 @@ export async function suggestCards(query: string): Promise<CardSuggestion[]> {
   const merged = [...local];
 
   const englishNames = await scryfallAutocomplete(q);
-  const portuguese = await scryfallSearch(`lang:pt (printed_name:${scryfallTerm(q)} OR name:${scryfallTerm(q)})`);
+  const portuguese = await scryfallSearch(`lang:pt ${scryfallTerm(q)}`);
 
   for (const card of portuguese.slice(0, 8)) {
     const key = card.oracle_id ?? card.id;
@@ -152,45 +153,87 @@ export async function suggestCards(query: string): Promise<CardSuggestion[]> {
   return merged.slice(0, 8).map(toSuggestion);
 }
 
+function foldName(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function nameAliases(name: string) {
+  const aliases = [name];
+  const withoutNote = name.replace(/\s*\([^)]*\)\s*$/, "").trim();
+  if (withoutNote && foldName(withoutNote) !== foldName(name)) aliases.push(withoutNote);
+  return aliases;
+}
+
+function englishNote(name: string) {
+  return name.match(/\(([^)]+)\)\s*$/)?.[1]?.trim() || null;
+}
+
+function sameCardName(card: ScryfallCard, query: string) {
+  const wanted = foldName(query);
+  return [card.name, card.printed_name].some((value) => value && foldName(value) === wanted);
+}
+
+/** Nome exato em português. Várias cartas diferentes viram ambíguo e não são gravadas. */
+async function exactPortuguese(name: string): Promise<ScryfallCard | null | "ambiguous"> {
+  const page = await scryfallSearchPage(`lang:pt !${scryfallTerm(name)}`);
+  if (page.many) return "ambiguous";
+  return page.cards[0] ?? null;
+}
+
+async function uniqueLocal(name: string, preferSet?: string | null) {
+  const rows = await sql<CatalogRow[]>`
+    SELECT * FROM catalog_cards
+    WHERE (
+        lower(name_en) = lower(${name})
+        OR lower(COALESCE(name_pt, '')) = lower(${name})
+      )
+      ${preferSet ? sql`AND lower(set_code) = lower(${preferSet})` : sql``}
+    ORDER BY released_at DESC NULLS LAST
+  `;
+  const identities = new Set(rows.map((row) => row.oracle_id ?? row.id));
+  if (identities.size > 1) return "ambiguous" as const;
+  return rows[0] ?? null;
+}
+
 export async function resolveCardName(name: string, preferSet?: string | null) {
   const trimmed = name.trim();
   if (!trimmed) return null;
 
-  if (preferSet) {
-    const [localSet] = await sql<CatalogRow[]>`
-      SELECT * FROM catalog_cards
-      WHERE lower(set_code) = lower(${preferSet})
-        AND (
-          lower(name_en) = lower(${trimmed})
-          OR lower(COALESCE(name_pt, '')) = lower(${trimmed})
-        )
-      LIMIT 1
-    `;
-    if (localSet) return localSet;
-  }
-
-  const [local] = await sql<CatalogRow[]>`
-    SELECT * FROM catalog_cards
-    WHERE lower(name_en) = lower(${trimmed})
-       OR lower(COALESCE(name_pt, '')) = lower(${trimmed})
-    ORDER BY released_at DESC NULLS LAST
-    LIMIT 1
-  `;
-  if (local && !preferSet) return local;
+  const local = await uniqueLocal(trimmed, preferSet);
+  if (local === "ambiguous") return null;
+  if (local) return local;
 
   let remote = await scryfallNamed(trimmed);
   let namePt: string | null = null;
 
   if (!remote) {
-    const printed = await scryfallSearch(`lang:pt printed_name:${scryfallTerm(trimmed)}`);
-    const fallback = printed[0];
-    if (fallback) {
-      remote = fallback;
-      namePt = fallback.printed_name ?? trimmed;
+    const note = englishNote(trimmed);
+    for (const alias of nameAliases(trimmed)) {
+      const match = await exactPortuguese(alias);
+      if (match === "ambiguous") {
+        const named = note ? await scryfallNamed(note) : null;
+        if (!named) return null;
+        remote = named;
+        namePt = alias;
+        break;
+      }
+      if (match) {
+        remote = match;
+        namePt = match.printed_name ?? alias;
+        break;
+      }
     }
   }
 
-  if (!remote) remote = await scryfallNamed(trimmed, true);
+  if (!remote) {
+    const fuzzy = await scryfallNamed(trimmed, true);
+    if (fuzzy && nameAliases(trimmed).some((alias) => sameCardName(fuzzy, alias))) remote = fuzzy;
+  }
   if (!remote) return null;
 
   if (!namePt) namePt = await attachPortugueseName(remote);

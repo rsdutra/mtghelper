@@ -16,9 +16,14 @@ async function cardLabel(page: Page, deckId: string, nameEn: string) {
 }
 
 async function addToDeck(page: Page, text: string, nameEn: string) {
-  await page.getByPlaceholder("1 Sol Ring").fill(text);
-  await page.getByRole("button", { name: "Adicionar ao deck" }).click();
+  if ((await page.getByRole("button", { name: "Adicionar lista" }).count()) === 0) {
+    await page.getByRole("button", { name: "Busca", exact: true }).click();
+  }
+  await page.getByRole("button", { name: "Adicionar lista" }).click();
+  await page.getByLabel("Lista no deck").fill(text);
+  await page.getByRole("dialog").getByRole("button", { name: "Salvar" }).click();
   await expect(page.getByText(nameEn).first()).toBeVisible();
+  await page.getByRole("button", { name: "Busca", exact: true }).click();
 }
 
 test("visualização somente leitura, colunas condensadas e ida/volta da edição", async ({ page }) => {

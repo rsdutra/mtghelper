@@ -4,6 +4,13 @@ export type ParsedListLine = {
   line: number;
 };
 
+export function unresolvedCardsMessage(missing: Array<{ name: string }>, added = 0) {
+  const names = missing.map((item) => item.name).join(", ");
+  if (!names) return "Cartas adicionadas.";
+  const lead = added > 0 ? "Parte da lista entrou. " : "";
+  return `${lead}Ajuste o nome destas: ${names}`;
+}
+
 export function parseCardList(text: string): ParsedListLine[] {
   const lines = text.split(/\r?\n/);
   const parsed: ParsedListLine[] = [];

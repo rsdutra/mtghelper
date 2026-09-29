@@ -30,7 +30,7 @@ export function ListImport({
     try {
       const result = await onResolved(contents);
       const missing = result?.missing?.length ?? 0;
-      setStatus(missing ? `${missing} carta(s) não encontrada(s).` : doneLabel);
+      setStatus(missing ? `${missing} carta(s) para ajustar o nome.` : doneLabel);
     } catch {
       setStatus("Não foi possível processar a lista.");
     } finally {

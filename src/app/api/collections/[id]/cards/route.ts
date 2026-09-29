@@ -3,6 +3,7 @@ import { requireUser } from "@/lib/auth";
 import { latestPrinting, resolveCardName } from "@/lib/cards";
 import { sql } from "@/lib/db";
 import { parseCardList } from "@/lib/lists";
+import { collectTags, parseTags, sanitizeTagList, serializeTags } from "@/lib/tags";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -54,6 +55,7 @@ export async function PATCH(request: Request, { params }: Params) {
     catalogCardId?: string;
     priceCents?: number | null;
     note?: string | null;
+    tags?: unknown;
   };
   const catalogCardId = body.catalogCardId;
   if (!catalogCardId) {
@@ -76,6 +78,15 @@ export async function PATCH(request: Request, { params }: Params) {
 
   if (body.note !== undefined) {
     await sql`UPDATE collection_items SET note = ${body.note} WHERE id = ${row.id}`;
+  }
+
+  if (body.tags !== undefined) {
+    const others = await sql<{ tags: string }[]>`
+      SELECT tags FROM collection_items WHERE collection_id = ${id} AND id <> ${row.id}
+    `;
+    const next = sanitizeTagList(body.tags, collectTags(others.map((item) => parseTags(item.tags))));
+    if (!next) return NextResponse.json({ error: "Tag inválida." }, { status: 400 });
+    await sql`UPDATE collection_items SET tags = ${serializeTags(next)} WHERE id = ${row.id}`;
   }
 
   return NextResponse.json({ ok: true });

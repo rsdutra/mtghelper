@@ -44,6 +44,7 @@ CREATE TABLE IF NOT EXISTS collection_items (
   quantity integer NOT NULL CHECK (quantity > 0),
   price_cents integer CHECK (price_cents IS NULL OR price_cents >= 0),
   note text,
+  tags text NOT NULL DEFAULT '',
   UNIQUE (collection_id, catalog_card_id)
 );
 
@@ -60,12 +61,24 @@ CREATE TABLE IF NOT EXISTS deck_cards (
   deck_id uuid NOT NULL REFERENCES decks (id) ON DELETE CASCADE,
   catalog_card_id uuid NOT NULL REFERENCES catalog_cards (id),
   quantity integer NOT NULL CHECK (quantity > 0),
-  included boolean NOT NULL DEFAULT true,
-  in_sideboard boolean NOT NULL DEFAULT false,
+  place text NOT NULL DEFAULT 'main',
+  CONSTRAINT deck_cards_place_check CHECK (place IN ('main', 'side', 'out')),
   price_cents integer CHECK (price_cents IS NULL OR price_cents >= 0),
   note text,
+  tags text NOT NULL DEFAULT '',
   UNIQUE (deck_id, catalog_card_id)
 );
+
+-- Índice só quando a coluna já existe. Bancos antigos recebem place em migrate_replace_deck_flags.sql.
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'deck_cards' AND column_name = 'place'
+  ) THEN
+    CREATE INDEX IF NOT EXISTS deck_cards_place_idx ON deck_cards (deck_id, place);
+  END IF;
+END $$;
 
 CREATE TABLE IF NOT EXISTS deck_canvas_konva (
   deck_id uuid PRIMARY KEY REFERENCES decks (id) ON DELETE CASCADE,

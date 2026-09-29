@@ -1,3 +1,5 @@
+import type { CardTag } from "@/lib/tags";
+
 /** F-011 — tipos da tela de deck compartilhados entre visualização e edição. */
 export type DeckMode = "view" | "edit";
 
@@ -14,8 +16,7 @@ export type CardRow = {
   id: string;
   deck_card_id?: string;
   quantity: number;
-  included: boolean;
-  in_sideboard: boolean;
+  place: DeckPlace;
   name_en: string;
   name_pt: string | null;
   set_code: string;
@@ -23,6 +24,7 @@ export type CardRow = {
   mana_cost?: string | null;
   price_cents?: number | null;
   note?: string | null;
+  tags?: CardTag[];
   image_normal: string | null;
   image_small: string | null;
   oracle_id?: string | null;

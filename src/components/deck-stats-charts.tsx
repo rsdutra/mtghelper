@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useRef, useState, type MouseEvent } from "react";
 import { manaCurve, typeDistribution, type ManaBucket, type TypeSlice } from "@/lib/deck-stats";
 
 type CardLike = {
@@ -32,6 +32,8 @@ function piePath(cx: number, cy: number, r: number, start: number, end: number) 
 }
 
 function TypePie({ slices, stacked }: { slices: TypeSlice[]; stacked: boolean }) {
+  const box = useRef<HTMLDivElement>(null);
+  const [hover, setHover] = useState<{ label: string; count: number; x: number; y: number } | null>(null);
   const total = slices.reduce((n, s) => n + s.count, 0);
   if (!total) {
     return <p className="text-sm text-neutral-500">Sem cartas no deck.</p>;
@@ -49,19 +51,43 @@ function TypePie({ slices, stacked }: { slices: TypeSlice[]; stacked: boolean })
     return { ...slice, start, end };
   });
 
+  function show(event: MouseEvent, slice: TypeSlice) {
+    const rect = box.current?.getBoundingClientRect();
+    if (!rect) return;
+    setHover({
+      label: slice.label,
+      count: slice.count,
+      x: event.clientX - rect.left + 10,
+      y: event.clientY - rect.top + 10,
+    });
+  }
+
   return (
     <div className={`flex gap-4 ${stacked ? "items-center" : "flex-col sm:flex-row sm:items-center"}`}>
-      <svg viewBox="0 0 180 180" className={`shrink-0 ${stacked ? "h-32 w-32" : "mx-auto h-44 w-44"}`} role="img" aria-label="Distribuição por tipo">
-        {arcs.map((slice) => (
-          <path
-            key={slice.group}
-            d={piePath(cx, cy, r, slice.start, slice.end)}
-            fill={slice.color}
-            stroke="#fff"
-            strokeWidth={1.5}
-          />
-        ))}
-      </svg>
+      <div ref={box} className="relative shrink-0" onMouseLeave={() => setHover(null)}>
+        <svg viewBox="0 0 180 180" className={stacked ? "h-32 w-32" : "mx-auto h-44 w-44"} role="img" aria-label="Distribuição por tipo">
+          {arcs.map((slice) => (
+            <path
+              key={slice.group}
+              d={piePath(cx, cy, r, slice.start, slice.end)}
+              fill={slice.color}
+              stroke="#fff"
+              strokeWidth={1.5}
+              aria-label={`${slice.label}: ${slice.count}`}
+              onMouseEnter={(event) => show(event, slice)}
+              onMouseMove={(event) => show(event, slice)}
+            />
+          ))}
+        </svg>
+        {hover ? (
+          <div
+            className="pointer-events-none absolute z-10 border border-ink bg-surface-container-lowest px-2 py-1 font-mono text-[12px] text-ink shadow-[2px_2px_0_#09090b]"
+            style={{ left: hover.x, top: hover.y }}
+          >
+            {hover.label}: {hover.count}
+          </div>
+        ) : null}
+      </div>
       <ul className="space-y-1.5 text-sm">
         {slices.map((slice) => (
           <li key={slice.group} className="flex items-center gap-2">
@@ -77,6 +103,7 @@ function TypePie({ slices, stacked }: { slices: TypeSlice[]; stacked: boolean })
 }
 
 function ManaBars({ buckets }: { buckets: ManaBucket[] }) {
+  const [hover, setHover] = useState<number | null>(null);
   const max = Math.max(1, ...buckets.map((b) => b.count));
   const chartH = 140;
   const chartW = 280;
@@ -108,9 +135,18 @@ function ManaBars({ buckets }: { buckets: ManaBucket[] }) {
         const h = (bucket.count / max) * innerH;
         const x = padL + index * (barW + barGap);
         const y = padT + innerH - h;
+        const active = hover === index;
         return (
-          <g key={bucket.label}>
-            <rect x={x} y={y} width={barW} height={Math.max(h, bucket.count ? 2 : 0)} fill="#3b82f6" />
+          <g key={bucket.label} onMouseEnter={() => setHover(index)} onMouseLeave={() => setHover(null)}>
+            <rect x={x} y={padT} width={barW} height={innerH} fill="transparent" />
+            <rect
+              x={x}
+              y={y}
+              width={barW}
+              height={Math.max(h, bucket.count ? 2 : 0)}
+              fill={active ? "#1d4ed8" : "#3b82f6"}
+              aria-label={`${bucket.label}: ${bucket.count}`}
+            />
             <text
               x={x + barW / 2}
               y={chartH - 6}
@@ -120,13 +156,13 @@ function ManaBars({ buckets }: { buckets: ManaBucket[] }) {
             >
               {bucket.label}
             </text>
-            {bucket.count > 0 ? (
+            {active ? (
               <text
                 x={x + barW / 2}
-                y={y - 4}
+                y={Math.max(12, y - 4)}
                 textAnchor="middle"
-                className="fill-neutral-600"
-                style={{ fontSize: 10 }}
+                className="fill-neutral-900"
+                style={{ fontSize: 12, fontWeight: 700 }}
               >
                 {bucket.count}
               </text>

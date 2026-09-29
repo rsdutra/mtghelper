@@ -4,6 +4,7 @@ import { resolveCardName } from "@/lib/cards";
 import { sql } from "@/lib/db";
 import { sideboardLimit } from "@/lib/formats";
 import { parseCardList } from "@/lib/lists";
+import { collectTags, parseTags, sanitizeTagList, serializeTags } from "@/lib/tags";
 
 type Place = "out" | "main" | "side";
 
@@ -40,8 +41,6 @@ export async function POST(request: Request, { params }: Params) {
       return NextResponse.json({ error: "Este formato não tem sideboard." }, { status: 400 });
     }
   }
-  const included = place !== "out";
-  const inSideboard = place === "side";
   const lines = parseCardList(body.text ?? "");
   const missing = [];
   let added = 0;
@@ -54,13 +53,12 @@ export async function POST(request: Request, { params }: Params) {
     }
 
     await sql`
-      INSERT INTO deck_cards (deck_id, catalog_card_id, quantity, included, in_sideboard)
-      VALUES (${id}, ${card.id}, ${line.quantity}, ${included}, ${inSideboard})
+      INSERT INTO deck_cards (deck_id, catalog_card_id, quantity, place)
+      VALUES (${id}, ${card.id}, ${line.quantity}, ${place})
       ON CONFLICT (deck_id, catalog_card_id)
       DO UPDATE SET
         quantity = deck_cards.quantity + EXCLUDED.quantity,
-        included = EXCLUDED.included,
-        in_sideboard = EXCLUDED.in_sideboard
+        place = EXCLUDED.place
     `;
     added += 1;
   }
@@ -81,6 +79,7 @@ export async function PATCH(request: Request, { params }: Params) {
     place?: Place;
     priceCents?: number | null;
     note?: string | null;
+    tags?: unknown;
   };
   const catalogCardId = body.catalogCardId;
   if (!catalogCardId) {
@@ -99,11 +98,9 @@ export async function PATCH(request: Request, { params }: Params) {
         return NextResponse.json({ error: "Este formato não tem sideboard." }, { status: 400 });
       }
     }
-    const included = body.place !== "out";
-    const inSideboard = body.place === "side";
     await sql`
       UPDATE deck_cards
-      SET included = ${included}, in_sideboard = ${inSideboard}
+      SET place = ${body.place}
       WHERE id = ${row.id}
     `;
   }
@@ -118,6 +115,15 @@ export async function PATCH(request: Request, { params }: Params) {
 
   if (body.note !== undefined) {
     await sql`UPDATE deck_cards SET note = ${body.note} WHERE id = ${row.id}`;
+  }
+
+  if (body.tags !== undefined) {
+    const others = await sql<{ tags: string }[]>`
+      SELECT tags FROM deck_cards WHERE deck_id = ${id} AND id <> ${row.id}
+    `;
+    const next = sanitizeTagList(body.tags, collectTags(others.map((item) => parseTags(item.tags))));
+    if (!next) return NextResponse.json({ error: "Tag inválida." }, { status: 400 });
+    await sql`UPDATE deck_cards SET tags = ${serializeTags(next)} WHERE id = ${row.id}`;
   }
 
   return NextResponse.json({ ok: true });

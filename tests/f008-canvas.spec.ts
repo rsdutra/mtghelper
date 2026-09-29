@@ -59,12 +59,16 @@ test("canvas: snapshot, mover carta, deletar e menu", async ({ page }) => {
   await expect(page).toHaveURL(/\/decks\/[^/]+\/edit$/);
   const deckId = page.url().split("/decks/")[1].split("/")[0];
 
-  await page.getByPlaceholder("1 Sol Ring").fill("1 Sol Ring");
-  await page.getByRole("button", { name: "Adicionar ao deck" }).click();
+  await page.getByRole("button", { name: "Busca", exact: true }).click();
+  await page.getByRole("button", { name: "Adicionar lista" }).click();
+  await page.getByLabel("Lista no deck").fill("1 Sol Ring");
+  await page.getByRole("dialog").getByRole("button", { name: "Salvar" }).click();
   await expect(page.getByText("Sol Ring").first()).toBeVisible();
-  await page.getByPlaceholder("1 Sol Ring").fill("3 Lightning Bolt");
-  await page.getByRole("button", { name: "Adicionar ao deck" }).click();
+  await page.getByRole("button", { name: "Adicionar lista" }).click();
+  await page.getByLabel("Lista no deck").fill("3 Lightning Bolt");
+  await page.getByRole("dialog").getByRole("button", { name: "Salvar" }).click();
   await expect(page.getByText("Lightning Bolt").first()).toBeVisible();
+  await page.getByRole("button", { name: "Busca", exact: true }).click();
 
   await page.getByRole("button", { name: "Canvas", exact: true }).click();
   await expect(page.getByTestId("konva-canvas").locator("canvas").first()).toBeVisible();
@@ -137,5 +141,5 @@ test("canvas: snapshot, mover carta, deletar e menu", async ({ page }) => {
 
   // Voltar para a lista salva o canvas pendente.
   await page.getByRole("button", { name: "Lista", exact: true }).click();
-  await expect(page.getByPlaceholder("1 Sol Ring")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Busca", exact: true })).toBeVisible();
 });

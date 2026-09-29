@@ -16,6 +16,7 @@ Cada mudança de produto neste repositório deve referenciar uma **feature** (`F
 | F-010 | Tipos de visualização do deck | [F-010-visualizacao-deck.md](./F-010-visualizacao-deck.md) |
 | F-011 | Deck: modo visualização e modo edição | [F-011-deck-view-edit.md](./F-011-deck-view-edit.md) |
 | F-012 | Spots de cartas no deck | [F-012-spots.md](./F-012-spots.md) |
+| F-013 | Tags de carta | [F-013-tags.md](./F-013-tags.md) |
 
 ## Como criar uma feature
 

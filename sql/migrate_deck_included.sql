@@ -1,6 +1,17 @@
--- F-004 US-004-08: included + seções como tags
-ALTER TABLE deck_cards
-  ADD COLUMN IF NOT EXISTS included boolean NOT NULL DEFAULT true;
+-- F-004 US-004-08: included + seções como tags.
+-- Com a coluna place, este boolean não é recriado.
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'deck_cards' AND column_name = 'place'
+  ) THEN
+    RETURN;
+  END IF;
+
+  ALTER TABLE deck_cards
+    ADD COLUMN IF NOT EXISTS included boolean NOT NULL DEFAULT true;
+END $$;
 
 -- deck_section_cards só existe em bancos anteriores a esta migração.
 -- Se as seções já foram removidas, não recria as tabelas.
