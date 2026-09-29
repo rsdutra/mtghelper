@@ -49,10 +49,11 @@ test("deck e coleção marcam a carta com bolinha da tag", async ({ page }) => {
     .first()
     .getByTestId("deck-card-tile")
     .filter({ has: page.getByRole("img", { name: /Raio|Lightning Bolt/ }) });
+  const badge = boltTile.getByLabel(/Quantidade de /);
   await boltTile.hover();
   await boltTile.getByRole("button", { name: /Opções de / }).click();
   await page.getByRole("menuitem", { name: "Ramp" }).click();
-  await expect(boltTile.getByTitle("Ramp")).toBeVisible();
+  await expect(badge.getByTitle("Ramp")).toBeVisible();
 
   if ((await page.getByRole("menuitem", { name: "Nova tag…" }).count()) === 0) {
     await boltTile.hover();
@@ -60,7 +61,6 @@ test("deck e coleção marcam a carta com bolinha da tag", async ({ page }) => {
   }
   await createTag(page, "Draw");
   await page.keyboard.press("Escape");
-  const badge = boltTile.getByLabel(/Quantidade de /);
   await expect(badge.getByTitle("Draw")).toBeVisible();
   await expect(badge.getByTitle("Ramp")).toBeVisible();
   await expect(badge.getByTitle("Ramp")).toHaveCSS("background-color", "rgba(37, 99, 235, 0.7)");

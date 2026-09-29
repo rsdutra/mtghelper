@@ -294,7 +294,7 @@ function CardQuantity({ item, place }: { item: DeckViewItem; place: "title-right
       style={onName ? { top: 0, left: NAME_START_X + 8 } : { top: CHIP_TOP, right: CHIP_RIGHT }}
     >
       <TagQuantityFill tags={item.tags} />
-      <span className="relative">{item.quantity}</span>
+      <span className="relative">x{item.quantity}</span>
     </span>
   );
 }

@@ -20,6 +20,11 @@ test("F-007 abre o scanner no deck", async ({ page }) => {
   await page.getByRole("button", { name: "Criar" }).click();
   await expect(page).toHaveURL(/\/decks\/[^/]+\/edit$/);
 
+  // Na edição, as ferramentas ficam no painel lateral "Busca".
+  await expect(page.getByRole("button", { name: "Busca", exact: true })).toBeVisible();
+  if ((await page.getByRole("button", { name: "Escanear carta" }).count()) === 0) {
+    await page.getByRole("button", { name: "Busca", exact: true }).click();
+  }
   await page.getByRole("button", { name: "Escanear carta" }).click();
   await expect(page.getByRole("dialog", { name: "Escanear carta" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Usar câmera" })).toBeVisible();
