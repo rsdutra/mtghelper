@@ -64,6 +64,7 @@ Critérios de aceite:
 - [x] A última carta da pilha aparece inteira.
 - [x] Selo de quantidade na faixa visível de cada carta.
 - [x] Mesmas ações de edição da Grid visual, exibidas ao lado da carta pairada (sem cobrir as faixas das outras).
+- [x] Os três pontos do menu ficam na linha da quantidade, do lado direito da carta, e só aparecem na carta pairada (ou com o menu aberto; com foco pelo teclado também). Assim as cartas de trás da pilha também abrem o menu.
 - [x] Pairar sobre a faixa ou a carta mostra o preview ampliado (US-010-05).
 
 ### US-010-05 — Preview ampliado compartilhado

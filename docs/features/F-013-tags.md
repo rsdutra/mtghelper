@@ -9,7 +9,7 @@ Marcar cartas do deck e da coleção com tags coloridas, guardadas numa coluna s
 - Coluna `tags` em `deck_cards` e `collection_items`.
 - Cada tag tem nome (identificador) e cor.
 - No grid visual, a quantidade é um selo preto com texto branco (`x4`), à direita da faixa do nome. A cor da tag pinta esse selo a 70%. Os três pontos ficam na vertical, na mesma linha, à esquerda e dentro da imagem. A carta sob o mouse fica por cima desses selos.
-- No grid agrupado, a quantidade fica à esquerda do nome, saindo um pouco da carta para cima e para a esquerda. Os três pontos ficam no mesmo lugar do grid visual.
+- No grid agrupado, a quantidade fica à esquerda do nome, saindo um pouco da carta para cima e para a esquerda. Os três pontos ficam na mesma linha da quantidade, espelhados do lado direito da carta, e só aparecem na carta sob o mouse (ou com o menu aberto) — assim as cartas de trás da pilha também têm menu (F-010 / US-010-04).
 - Na lista, várias tags aparecem como bolinhas ao lado da quantidade.
 - No menu da carta, escolher uma tag já usada ou criar uma nova numa modal.
 

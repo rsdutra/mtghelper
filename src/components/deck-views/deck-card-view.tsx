@@ -19,6 +19,8 @@ const CHIP_RIGHT = Math.round(((182 - 162) / 182) * CARD_W);
 const NAME_START_X = Math.round((20 / 488) * CARD_W);
 /** Três pontos: mesma linha da quantidade do grid visual, à esquerda e dentro da imagem. */
 const MENU_LEFT = 8;
+/** Grid agrupada: três pontos na linha da quantidade, espelhados no lado direito da carta. */
+const STACK_MENU_RIGHT = NAME_START_X + 8;
 const chipClass =
   "flex h-6 items-center justify-center rounded-[4px] bg-black font-mono text-[12px] font-bold leading-none text-white";
 /** Grid visual: cada linha cobre a metade de baixo da anterior (US-010-03). */
@@ -376,6 +378,7 @@ function CardStack({ items, preview, editable }: { items: DeckViewItem[]; previe
           {editable ? (
             <CardOptionsMenu
               item={item}
+              placement="stack"
               open={openId === item.id}
               onOpenChange={(open) => setOpenId(open ? item.id : null)}
             />
@@ -386,15 +389,19 @@ function CardStack({ items, preview, editable }: { items: DeckViewItem[]; previe
   );
 }
 
+/** Na grid agrupada, as cartas de trás cobririam os pontos: só a carta pairada (ou com menu aberto) mostra. */
 function CardOptionsMenu({
   item,
   open,
   onOpenChange,
+  placement = "grid",
 }: {
   item: DeckViewItem;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  placement?: "grid" | "stack";
 }) {
+  const stack = placement === "stack";
   const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -414,7 +421,15 @@ function CardOptionsMenu({
   }, [open, onOpenChange]);
 
   return (
-    <div ref={rootRef} className="absolute" style={{ top: CHIP_TOP, left: MENU_LEFT }}>
+    <div
+      ref={rootRef}
+      className={
+        stack
+          ? `absolute translate-x-full ${open ? "visible" : "invisible group-hover:visible group-has-[:focus-visible]:visible"}`
+          : "absolute"
+      }
+      style={stack ? { top: 0, right: STACK_MENU_RIGHT } : { top: CHIP_TOP, left: MENU_LEFT }}
+    >
       <button
         type="button"
         aria-label={`Opções de ${item.label}`}

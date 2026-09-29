@@ -114,21 +114,29 @@ test("visualizações: texto, grid visual e grid visual agrupada", async ({ page
   const instantStack = stacksView
     .getByTestId("deck-card-stack")
     .filter({ has: page.getByAltText(names.bolt) });
+  const stackOptions = instantStack.getByRole("button", { name: `Opções de ${names.bolt}` });
+  await page.mouse.move(5, 5);
+  await expect(stackOptions).toBeHidden();
   await instantStack.getByRole("img", { name: names.bolt }).hover();
-  await instantStack.getByRole("button", { name: `Opções de ${names.bolt}` }).click();
+  await expect(stackOptions).toBeVisible();
+  await stackOptions.click();
   await expect(instantStack.getByTestId("deck-card-actions")).toBeVisible();
   const stackBadge = instantStack.getByLabel(`Quantidade de ${names.bolt}`);
   await expect(stackBadge).toHaveText("x4");
   const stackImg = await instantStack.getByRole("img", { name: names.bolt }).boundingBox();
   const stackBadgeBox = await stackBadge.boundingBox();
-  const stackMenu = await instantStack.getByRole("button", { name: `Opções de ${names.bolt}` }).boundingBox();
+  const stackMenu = await stackOptions.boundingBox();
   expect(stackImg && stackBadgeBox && stackMenu).toBeTruthy();
   if (stackImg && stackBadgeBox && stackMenu) {
     expect(stackBadgeBox.x).toBeLessThan(stackImg.x);
     expect(stackBadgeBox.y).toBeLessThan(stackImg.y);
-    expect(stackMenu.x).toBeGreaterThan(stackImg.x);
-    expect(stackMenu.y).toBeGreaterThan(stackImg.y);
+    // Três pontos na linha da quantidade, do lado direito da carta.
+    expect(Math.abs(stackMenu.y - stackBadgeBox.y)).toBeLessThanOrEqual(1);
+    expect(stackMenu.x).toBeGreaterThan(stackImg.x + stackImg.width / 2);
   }
+  await page.mouse.click(5, 5);
+  await expect(instantStack.getByTestId("deck-card-actions")).toHaveCount(0);
+  await expect(stackOptions).toBeHidden();
 
   // Preferência persiste após recarregar.
   await page.reload();
@@ -143,5 +151,14 @@ test("visualizações: texto, grid visual e grid visual agrupada", async ({ page
   const first = await tiles.nth(0).boundingBox();
   const second = await tiles.nth(1).boundingBox();
   expect(Math.round((second?.y ?? 0) - (first?.y ?? 0))).toBe(44);
+
+  // A carta de trás mostra os três pontos só quando pairada, e dá para abrir o menu.
+  const backOptions = tiles.nth(0).getByRole("button", { name: /Opções de / });
+  const frontOptions = tiles.nth(1).getByRole("button", { name: /Opções de / });
+  await tiles.nth(0).hover({ position: { x: 100, y: 20 } });
+  await expect(backOptions).toBeVisible();
+  await expect(frontOptions).toBeHidden();  await backOptions.click();
+  await expect(tiles.nth(0).getByTestId("deck-card-actions")).toBeVisible();
+  await page.keyboard.press("Escape");
   await expect(page.getByTestId("deck-view-pilhas").nth(1).getByTestId("deck-card-stack")).toHaveCount(1);
 });
