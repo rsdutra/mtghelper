@@ -66,7 +66,7 @@ export function DeckCardView({ view, groups, collapsedGroups, onToggleGroup, rea
       : chunk(
           groups.flatMap((group) => group.items),
           STACK_MAX,
-        ).map((items, index) => ({ key: `stack-${index}`, label: null, items }));
+        ).map((items, index): DeckViewGroup => ({ key: `stack-${index}`, label: null, items }));
     content = (
       <div className="flex flex-wrap items-start gap-x-10 gap-y-6 p-4 pl-10">
         {columns.map((column) => {
@@ -76,6 +76,7 @@ export function DeckCardView({ view, groups, collapsedGroups, onToggleGroup, rea
               {column.label !== null ? (
                 <StackHeader
                   label={column.label}
+                  color={column.color}
                   items={column.items}
                   collapsed={collapsed}
                   onToggle={() => onToggleGroup(column.key)}
@@ -94,6 +95,7 @@ export function DeckCardView({ view, groups, collapsedGroups, onToggleGroup, rea
         <div key={group.key} className="border-b border-outline-variant last:border-b-0">
           <AccordionHeader
             label={group.label ?? ""}
+            color={group.color}
             items={group.items}
             collapsed={collapsed}
             onToggle={() => onToggleGroup(group.key)}
@@ -126,10 +128,28 @@ function Chevron({ collapsed }: { collapsed: boolean }) {
   );
 }
 
-type HeaderProps = { label: string; items: DeckViewItem[]; collapsed: boolean; onToggle: () => void };
+function GroupDot({ color }: { color?: string | null }) {
+  if (!color) return null;
+  return (
+    <span
+      aria-hidden
+      data-testid="group-tag-dot"
+      className="inline-block h-2.5 w-2.5 shrink-0 rounded-full border border-ink"
+      style={{ backgroundColor: color }}
+    />
+  );
+}
+
+type HeaderProps = {
+  label: string;
+  color?: string | null;
+  items: DeckViewItem[];
+  collapsed: boolean;
+  onToggle: () => void;
+};
 
 /** Acordeão do layout Stitch “Detalhes do Deck” (F-011 / US-011-01). */
-function AccordionHeader({ label, items, collapsed, onToggle }: HeaderProps) {
+function AccordionHeader({ label, color, items, collapsed, onToggle }: HeaderProps) {
   return (
     <button
       type="button"
@@ -138,13 +158,14 @@ function AccordionHeader({ label, items, collapsed, onToggle }: HeaderProps) {
       onClick={onToggle}
     >
       <Chevron collapsed={collapsed} />
+      <GroupDot color={color} />
       <span className="flex-1 truncate text-[15px] font-semibold tracking-tight text-ink">{label}</span>
       <span className="font-mono text-[10px] font-semibold text-on-surface-variant">{groupQuantity(items)}</span>
     </button>
   );
 }
 
-function StackHeader({ label, items, collapsed, onToggle }: HeaderProps) {
+function StackHeader({ label, color, items, collapsed, onToggle }: HeaderProps) {
   return (
     <button
       type="button"
@@ -153,6 +174,7 @@ function StackHeader({ label, items, collapsed, onToggle }: HeaderProps) {
       onClick={onToggle}
     >
       <Chevron collapsed={collapsed} />
+      <GroupDot color={color} />
       <span className="flex-1 truncate">{label}</span>
       <span className="font-mono text-[10px] font-normal text-muted">{groupQuantity(items)}</span>
     </button>
@@ -194,6 +216,7 @@ function CompactColumns({
               aria-expanded={!collapsed}
               onClick={() => onToggleGroup(group.key)}
             >
+              <GroupDot color={group.color} />
               <span className="truncate">{group.label}</span>
               <span className="font-normal text-muted">({groupQuantity(group.items)})</span>
               <Chevron collapsed={collapsed} />

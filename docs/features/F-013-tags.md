@@ -84,6 +84,26 @@ Decisões (confirmadas com o usuário):
 2. A modal de edição troca nome e cor.
 3. Renomear para um nome de outra tag do deck é bloqueado. Mudar só maiúsculas/minúsculas do próprio nome é permitido.
 
+### US-013-05 — Agrupar por tag
+
+**Como** jogador **quero** agrupar a lista do deck por tag **para** ver as cartas de cada função juntas, como no agrupamento por tipo.
+
+Critérios de aceite:
+
+- [x] Checkbox **Agrupar por tag** na barra de agrupamento, na edição e na visualização.
+- [x] Exclusivo com “Agrupar por tipo” e “Agrupar por custo”; vale só para “No deck”, como os outros.
+- [x] Um grupo por tag, em ordem alfabética, com a bolinha da cor da tag no cabeçalho.
+- [x] Carta com 2 ou mais tags entra só no grupo **Multitag**.
+- [x] Carta sem tag entra no grupo **Sem tag**, no fim.
+- [x] Grupos recolhíveis nas três views (F-010) e no Texto em colunas da visualização (F-011).
+- [x] A preferência fica salva no navegador, como os outros agrupamentos.
+- [x] Funciona junto com o filtro por tag (US-013-03).
+
+Decisões (confirmadas com o usuário no plano):
+
+1. Ordem: tags em ordem alfabética, depois Multitag, depois Sem tag.
+2. Carta com várias tags não se repete nos grupos das suas tags; fica só em Multitag.
+
 ## Regras
 
 - Formato da coluna: `Nome|#rrggbb` separado por vírgula. Exemplo: `Ramp|#16a34a,Draw|#2563eb`.
@@ -97,9 +117,11 @@ Decisões (confirmadas com o usuário):
 
 - `tests/f013-tags.spec.ts`: US-013-01 e US-013-02.
 - `tests/f013-tag-filter.spec.ts`: US-013-03 na edição e na visualização; US-013-04 (renomear, nome repetido, cancelar e confirmar exclusão).
+- `tests/f013-agrupar-tag.spec.ts`: US-013-05 (grupos, cor, Multitag, Sem tag, recolher, filtro, preferência salva, exclusividade).
 
 ## Superfície
 
-- UI: menu da carta no deck, cartas da coleção, bolinhas ao lado da quantidade, botão/painel “Tags” do deck com modais de editar/excluir (`src/components/deck-detail/deck-tag-filter.tsx`, `deck-detail.tsx`)
+- UI: menu da carta no deck, cartas da coleção, bolinhas ao lado da quantidade, botão/painel “Tags” do deck com modais de editar/excluir (`src/components/deck-detail/deck-tag-filter.tsx`, `deck-detail.tsx`), “Agrupar por tag” (`groupCardsByTag` em `src/lib/tags.ts`, bolinha no cabeçalho em `deck-card-view.tsx`)
+- Preferência: `localStorage` `mtghelper.deck.groupByTag`, junto de `groupByType` / `groupByCost`
 - API: `PATCH /api/decks/[id]/cards` e `PATCH /api/collections/[id]/cards` com `tags`; `PATCH /api/decks/[id]/tags` (`name`, `newName`, `color`) e `DELETE /api/decks/[id]/tags` (`name`) trocam ou tiram a tag de todas as cartas do deck numa transação
 - Dados: `deck_cards.tags`, `collection_items.tags`

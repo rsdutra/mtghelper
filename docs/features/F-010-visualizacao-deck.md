@@ -11,7 +11,7 @@ Oferecer, no modo Lista de `/decks/[id]`, três formas de ver as cartas — **Te
 - View **Grid visual**: só imagens, com quantidade sobreposta, linhas sobrepostas pela metade e ações de edição na vertical ao lado da carta — US-010-03.
 - View **Grid visual agrupada**: pilhas em que cada carta cobre a anterior deixando só a faixa do título visível — US-010-04.
 - Preview ampliado ao pairar **igual em todas as views**, com um único componente/hook reaproveitado (sem duplicar lógica) — US-010-05.
-- Todas as views respeitam “Agrupar por tipo” e “Agrupar por custo” (F-004 / US-004-07, US-004-11), inclusive grupos recolhíveis.
+- Todas as views respeitam “Agrupar por tipo”, “Agrupar por custo” (F-004 / US-004-07, US-004-11) e “Agrupar por tag” (F-013 / US-013-05), inclusive grupos recolhíveis. No agrupamento por tag, o cabeçalho mostra a bolinha da cor.
 
 ## Fora de escopo
 

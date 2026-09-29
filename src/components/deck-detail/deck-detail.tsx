@@ -36,7 +36,21 @@ import { evaluateDeckSize } from "@/lib/deck-size";
 import { FORMATS, sideboardLimit } from "@/lib/formats";
 import { groupCardsByManaCost } from "@/lib/mana-cost-groups";
 import { formatBRLFromCents } from "@/lib/money-br";
-import { addTag, collectTags, sameTag, toggleTag, type CardTag } from "@/lib/tags";
+import { addTag, collectTags, groupCardsByTag, sameTag, toggleTag, type CardTag } from "@/lib/tags";
+
+/** Agrupamentos exclusivos da lista “No deck”: tipo (US-004-07), custo (US-004-11), tag (US-013-05). */
+type GroupMode = "none" | "type" | "cost" | "tag";
+const GROUP_MODES = ["type", "cost", "tag"] as const;
+const GROUP_STORAGE_KEYS: Record<(typeof GROUP_MODES)[number], string> = {
+  type: "mtghelper.deck.groupByType",
+  cost: "mtghelper.deck.groupByCost",
+  tag: "mtghelper.deck.groupByTag",
+};
+const GROUP_LABELS: Record<(typeof GROUP_MODES)[number], string> = {
+  type: "Agrupar por tipo",
+  cost: "Agrupar por custo",
+  tag: "Agrupar por tag",
+};
 
 type Props = {
   deckId: string;
@@ -57,8 +71,7 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
   const [view, setView] = useState<DeckView>(initialView);
   const isCanvasView = view !== "lista";
   const [status, setStatus] = useState("");
-  const [groupByType, setGroupByType] = useState<boolean | null>(null);
-  const [groupByCost, setGroupByCost] = useState<boolean | null>(null);
+  const [groupMode, setGroupMode] = useState<GroupMode | null>(null);
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(() => new Set());
   const [listView, setListView] = useState<DeckListView | null>(null);
   const [canvasToolsOpen, setCanvasToolsOpen] = useState(false);
@@ -101,19 +114,9 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
   }, [load]);
 
   useEffect(() => {
-    const savedType = window.localStorage.getItem("mtghelper.deck.groupByType");
-    const savedCost = window.localStorage.getItem("mtghelper.deck.groupByCost");
-    // Mutuamente exclusivos: tipo tem prioridade se ambos estiverem salvos.
-    if (savedType === "1") {
-      setGroupByType(true);
-      setGroupByCost(false);
-    } else if (savedCost === "1") {
-      setGroupByType(false);
-      setGroupByCost(true);
-    } else {
-      setGroupByType(false);
-      setGroupByCost(false);
-    }
+    // Mutuamente exclusivos: vale o primeiro salvo na ordem tipo, custo, tag.
+    const saved = GROUP_MODES.find((mode) => window.localStorage.getItem(GROUP_STORAGE_KEYS[mode]) === "1");
+    setGroupMode(saved ?? "none");
     setListView(parseDeckListView(window.localStorage.getItem(DECK_LIST_VIEW_STORAGE_KEY)));
   }, []);
 
@@ -123,10 +126,11 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
   }
 
   useEffect(() => {
-    if (groupByType === null || groupByCost === null) return;
-    window.localStorage.setItem("mtghelper.deck.groupByType", groupByType ? "1" : "0");
-    window.localStorage.setItem("mtghelper.deck.groupByCost", groupByCost ? "1" : "0");
-  }, [groupByType, groupByCost]);
+    if (groupMode === null) return;
+    for (const mode of GROUP_MODES) {
+      window.localStorage.setItem(GROUP_STORAGE_KEYS[mode], groupMode === mode ? "1" : "0");
+    }
+  }, [groupMode]);
 
   useEffect(() => {
     if (view === "lista") {
@@ -206,6 +210,7 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
   const shownWorking = useMemo(() => filterByTag(workingCards, activeTag?.name), [workingCards, activeTag]);
   const groupedIncluded = useMemo(() => groupCardsByType(shownMain), [shownMain]);
   const groupedByCost = useMemo(() => groupCardsByManaCost(shownMain), [shownMain]);
+  const groupedByTag = useMemo(() => groupCardsByTag(shownMain), [shownMain]);
   const sizeStatus = useMemo(() => {
     const sum = (rows: CardRow[]) => rows.reduce((total, card) => total + card.quantity, 0);
     return evaluateDeckSize(format, sum(mainCards), sum(sideboardCards));
@@ -221,36 +226,19 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
     });
   }
 
-  function enableGroupByType(checked: boolean) {
-    setGroupByType(checked);
-    if (checked) setGroupByCost(false);
-  }
-
-  function enableGroupByCost(checked: boolean) {
-    setGroupByCost(checked);
-    if (checked) setGroupByType(false);
-  }
-
   const groupingToggles = (
     <div className="flex flex-wrap items-center gap-4 text-[13px] font-semibold">
-      <label className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          checked={Boolean(groupByType)}
-          disabled={groupByType === null}
-          onChange={(event) => enableGroupByType(event.target.checked)}
-        />
-        Agrupar por tipo
-      </label>
-      <label className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          checked={Boolean(groupByCost)}
-          disabled={groupByCost === null}
-          onChange={(event) => enableGroupByCost(event.target.checked)}
-        />
-        Agrupar por custo
-      </label>
+      {GROUP_MODES.map((mode) => (
+        <label key={mode} className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={groupMode === mode}
+            disabled={groupMode === null}
+            onChange={(event) => setGroupMode(event.target.checked ? mode : "none")}
+          />
+          {GROUP_LABELS[mode]}
+        </label>
+      ))}
     </div>
   );
 
@@ -301,11 +289,19 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
     };
   }
 
-  const includedGroups: DeckViewGroup[] = groupByType
-    ? groupedIncluded.map((bucket) => ({ key: bucket.group, label: bucket.label, items: bucket.cards.map(toViewItem) }))
-    : groupByCost
-      ? groupedByCost.map((bucket) => ({ key: bucket.key, label: bucket.label, items: bucket.cards.map(toViewItem) }))
-      : [{ key: "included", label: null, items: shownMain.map(toViewItem) }];
+  const includedGroups: DeckViewGroup[] =
+    groupMode === "type"
+      ? groupedIncluded.map((bucket) => ({ key: bucket.group, label: bucket.label, items: bucket.cards.map(toViewItem) }))
+      : groupMode === "cost"
+        ? groupedByCost.map((bucket) => ({ key: bucket.key, label: bucket.label, items: bucket.cards.map(toViewItem) }))
+        : groupMode === "tag"
+          ? groupedByTag.map((bucket) => ({
+              key: bucket.key,
+              label: bucket.label,
+              color: bucket.color,
+              items: bucket.cards.map(toViewItem),
+            }))
+          : [{ key: "included", label: null, items: shownMain.map(toViewItem) }];
   const workingGroups: DeckViewGroup[] = [{ key: "working", label: null, items: shownWorking.map(toViewItem) }];
 
   const listViewSelect = (
