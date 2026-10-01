@@ -207,37 +207,33 @@ export async function DELETE(request: Request, { params }: Params) {
   const quantity = Math.max(1, body.quantity ?? 1);
   const place = body.place;
 
-  const [row] = await sql<QuantityRow[]>`
-    SELECT id, quantity_main, quantity_side, quantity_out
-    FROM deck_cards
-    WHERE deck_id = ${id} AND catalog_card_id = ${catalogCardId}
-  `;
-  if (!row) return NextResponse.json({ error: "Carta não está no deck." }, { status: 404 });
+  // deck_cards_quantity_present proíbe (0, 0, 0): a linha é apagada em vez de zerada.
+  // FOR UPDATE serializa os DELETEs paralelos do canvas para lugares diferentes da mesma carta.
+  const error = await sql.begin(async (tx) => {
+    const [row] = await tx<QuantityRow[]>`
+      SELECT id, quantity_main, quantity_side, quantity_out
+      FROM deck_cards
+      WHERE deck_id = ${id} AND catalog_card_id = ${catalogCardId}
+      FOR UPDATE
+    `;
+    if (!row) return "Carta não está no deck.";
 
-  const current = place === "main" ? row.quantity_main : place === "side" ? row.quantity_side : row.quantity_out;
-  if (current <= 0) return NextResponse.json({ error: "Carta não está nesse lugar." }, { status: 404 });
+    const next = { main: row.quantity_main, side: row.quantity_side, out: row.quantity_out };
+    if (next[place] <= 0) return "Carta não está nesse lugar.";
+    next[place] = removeAll ? 0 : Math.max(next[place] - quantity, 0);
 
-  const [updated] = await sql<QuantityRow[]>`
-    UPDATE deck_cards
-    SET quantity_main = CASE
-          WHEN ${place} = 'main' THEN CASE WHEN ${removeAll} THEN 0 ELSE GREATEST(quantity_main - ${quantity}, 0) END
-          ELSE quantity_main
-        END,
-        quantity_side = CASE
-          WHEN ${place} = 'side' THEN CASE WHEN ${removeAll} THEN 0 ELSE GREATEST(quantity_side - ${quantity}, 0) END
-          ELSE quantity_side
-        END,
-        quantity_out = CASE
-          WHEN ${place} = 'out' THEN CASE WHEN ${removeAll} THEN 0 ELSE GREATEST(quantity_out - ${quantity}, 0) END
-          ELSE quantity_out
-        END
-    WHERE id = ${row.id}
-    RETURNING id, quantity_main, quantity_side, quantity_out
-  `;
-
-  if (updated && updated.quantity_main + updated.quantity_side + updated.quantity_out === 0) {
-    await sql`DELETE FROM deck_cards WHERE id = ${row.id}`;
-  }
+    if (next.main + next.side + next.out === 0) {
+      await tx`DELETE FROM deck_cards WHERE id = ${row.id}`;
+    } else {
+      await tx`
+        UPDATE deck_cards
+        SET quantity_main = ${next.main}, quantity_side = ${next.side}, quantity_out = ${next.out}
+        WHERE id = ${row.id}
+      `;
+    }
+    return null;
+  });
+  if (error) return NextResponse.json({ error }, { status: 404 });
 
   return NextResponse.json({ ok: true });
 }
