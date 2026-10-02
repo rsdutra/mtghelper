@@ -4,6 +4,7 @@ import {
   imageFromCard,
   scryfallAutocomplete,
   scryfallCollection,
+  scryfallCollectionByIds,
   scryfallNamed,
   scryfallSearch,
   scryfallSearchPage,
@@ -95,6 +96,24 @@ export async function upsertScryfallCard(card: ScryfallCard, namePt?: string | n
     RETURNING *
   `;
   return row;
+}
+
+export function hasStoredFilters(filters: unknown) {
+  return Boolean(filters && typeof filters === "object" && !Array.isArray(filters) && "name" in filters);
+}
+
+/** Busca na Scryfall e grava `filters` das impressões que ainda não têm (F-005, F-015). */
+export async function hydrateMissingFilters(scryfallIds: string[]) {
+  if (!scryfallIds.length) return false;
+  try {
+    for (let index = 0; index < scryfallIds.length; index += 75) {
+      const cards = await scryfallCollectionByIds(scryfallIds.slice(index, index + 75));
+      for (const card of cards) await upsertScryfallCard(card);
+    }
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 async function searchLocal(query: string, limit = 8) {

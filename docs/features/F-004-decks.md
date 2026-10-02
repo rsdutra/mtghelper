@@ -32,7 +32,7 @@ Histórico, já substituído:
 - Quantidade com + / − / lixeira.
 - Seções como tags (criar, marcar, filtrar).
 - Agrupar lista por tipo (US-004-07).
-- Charts de distribuição por tipo e curva de mana (US-004-09) — só cartas `included=true`.
+- Charts de distribuição por tipo e curva de mana (US-004-09) — só cartas `included=true`. Cores de mana (símbolos e terrenos): F-015.
 - Conferência com a coleção na abertura do deck (US-004-17) — só `included=true`, todas as coleções, qualquer impressão (`oracle_id`).
 - Checkbox “incluir na coleção” + Processar (**só `included=true`**).
 - Exportar lista em texto (tudo / no deck / em trabalho) — US-004-15.

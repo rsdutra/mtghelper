@@ -22,6 +22,8 @@ export type CardRow = {
   set_code: string;
   type_line?: string | null;
   mana_cost?: string | null;
+  front_mana_cost?: string | null;
+  produced_mana?: string[] | null;
   price_cents?: number | null;
   note?: string | null;
   tags?: CardTag[];

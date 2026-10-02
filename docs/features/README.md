@@ -18,6 +18,7 @@ Cada mudança de produto neste repositório deve referenciar uma **feature** (`F
 | F-012 | Spots de cartas no deck | [F-012-spots.md](./F-012-spots.md) |
 | F-013 | Tags de carta (inclui filtro do deck por tag) | [F-013-tags.md](./F-013-tags.md) |
 | F-014 | Controle de migrations aplicadas | [F-014-controle-migrations.md](./F-014-controle-migrations.md) |
+| F-015 | Ferramentas de construção de deck (cores de mana) | [F-015-ferramentas-construcao.md](./F-015-ferramentas-construcao.md) |
 
 ## Como criar uma feature
 

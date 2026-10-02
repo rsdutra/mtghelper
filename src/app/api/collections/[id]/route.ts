@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth";
-import { upsertScryfallCard } from "@/lib/cards";
+import { hasStoredFilters, hydrateMissingFilters } from "@/lib/cards";
 import { sql } from "@/lib/db";
-import { scryfallCollectionByIds } from "@/lib/scryfall";
 import { parseTags } from "@/lib/tags";
 
 type Params = { params: Promise<{ id: string }> };
@@ -19,27 +18,6 @@ async function loadItems(collectionId: string) {
   `;
 }
 
-function hasStoredFilters(filters: unknown) {
-  return Boolean(filters && typeof filters === "object" && !Array.isArray(filters) && "name" in filters);
-}
-
-async function hydrateMissingFilters(items: Array<{ filters?: unknown; scryfall_id?: string }>) {
-  const missing = items
-    .filter((item) => !hasStoredFilters(item.filters) && item.scryfall_id)
-    .map((item) => String(item.scryfall_id));
-  if (!missing.length) return false;
-  try {
-    for (let index = 0; index < missing.length; index += 75) {
-      const batch = missing.slice(index, index + 75);
-      const cards = await scryfallCollectionByIds(batch);
-      for (const card of cards) await upsertScryfallCard(card);
-    }
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 export async function GET(_request: Request, { params }: Params) {
   const user = await requireUser().catch(() => null);
   if (!user) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
@@ -50,7 +28,10 @@ export async function GET(_request: Request, { params }: Params) {
   if (!collection) return NextResponse.json({ error: "Coleção não encontrada." }, { status: 404 });
 
   let items = await loadItems(id);
-  if (await hydrateMissingFilters(items)) items = await loadItems(id);
+  const missing = items
+    .filter((item) => !hasStoredFilters(item.filters) && item.scryfall_id)
+    .map((item) => String(item.scryfall_id));
+  if (await hydrateMissingFilters(missing)) items = await loadItems(id);
   const tagged = items.map((item) => ({ ...item, tags: parseTags(item.tags) }));
   return NextResponse.json({ collection, items: tagged });
 }
