@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { parseTags } from "@/lib/tags";
 import { requireUser } from "@/lib/auth";
+import { hydrateMissingFilters } from "@/lib/cards";
 import { coverageByKey, coverageKey, summarizeCoverage, type CoverageRow } from "@/lib/deck-coverage";
 import { isFormat, sideboardLimit } from "@/lib/formats";
 import { sql } from "@/lib/db";
@@ -39,12 +40,23 @@ export async function GET(_request: Request, { params }: Params) {
     image_small: string | null;
     mana_cost: string | null;
     type_line: string | null;
+    front_mana_cost: string | null;
+    produced_mana: string[] | null;
   };
+  const missing = await sql<{ scryfall_id: string }[]>`
+    SELECT c.scryfall_id
+    FROM deck_cards dc
+    JOIN catalog_cards c ON c.id = dc.catalog_card_id
+    WHERE dc.deck_id = ${id} AND (c.filters->>'name') IS NULL
+  `;
+  await hydrateMissingFilters(missing.map((row) => row.scryfall_id));
   const stored = await sql<StoredCard[]>`
     SELECT dc.id AS deck_card_id, dc.quantity_main, dc.quantity_side, dc.quantity_out,
            dc.price_cents, dc.note, dc.tags,
            c.id, c.oracle_id, c.name_en, c.name_pt, c.set_code, c.set_name,
-           c.image_normal, c.image_small, c.mana_cost, c.type_line
+           c.image_normal, c.image_small, c.mana_cost, c.type_line,
+           NULLIF(split_part(c.filters->>'mana_cost', E'\n', 1), '') AS front_mana_cost,
+           c.filters->'produced_mana' AS produced_mana
     FROM deck_cards dc
     JOIN catalog_cards c ON c.id = dc.catalog_card_id
     WHERE dc.deck_id = ${id}

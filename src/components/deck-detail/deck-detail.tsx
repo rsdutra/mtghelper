@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { AppShell } from "@/components/app-shell";
 import { CardMetaModal } from "@/components/card-meta-modal";
 import { TagCreateModal } from "@/components/card-tags";
+import { DeckBuildTools } from "@/components/deck-build-tools/deck-build-tools";
 import { DeckCanvas, type DeckCanvasHandle } from "@/components/deck-canvas";
 import { DeckCoverageBadge } from "@/components/deck-coverage-badge";
 import { DeckEditHeader } from "@/components/deck-detail/deck-edit-header";
@@ -78,6 +79,7 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
   const [toolsOpen, setToolsOpen] = useState(false);
   const [chartsOpen, setChartsOpen] = useState(false);
   const [tagsOpen, setTagsOpen] = useState(false);
+  const [buildToolsOpen, setBuildToolsOpen] = useState(false);
   const [tagFilter, setTagFilter] = useState<string | null>(null);
   const [editingTag, setEditingTag] = useState<CardTag | null>(null);
   const [deletingTag, setDeletingTag] = useState<CardTag | null>(null);
@@ -602,6 +604,24 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
     </>
   ) : null;
 
+  const buildToolsButton = (
+    <ToggleIconButton
+      label="Ferramentas de construção"
+      pressed={buildToolsOpen}
+      onClick={() => setBuildToolsOpen((open) => !open)}
+    >
+      <BuildToolsIcon />
+    </ToggleIconButton>
+  );
+  const buildToolsPanel = buildToolsOpen ? (
+    <aside
+      className="fixed top-20 z-40 max-h-[calc(100vh-6rem)] w-[24rem] overflow-auto border border-ink bg-surface-container-lowest p-4 shadow-[4px_4px_0_#09090b]"
+      style={{ right: `${tagsPanelRight + (tagsOpen ? 18.5 : 0)}rem` }}
+    >
+      <DeckBuildTools cards={includedCards} />
+    </aside>
+  ) : null;
+
   return (
     <AppShell wide>
       <div className="space-y-4 pr-12">
@@ -672,6 +692,7 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
                 <ChartIcon />
               </ToggleIconButton>
               {tagsButton}
+              {buildToolsButton}
             </div>
             {toolsOpen ? (
               <aside className="fixed top-20 right-16 z-40 max-h-[calc(100vh-6rem)] w-80 overflow-auto border border-ink bg-surface-container-lowest p-4 shadow-[4px_4px_0_#09090b]">
@@ -687,6 +708,7 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
               </aside>
             ) : null}
             {tagsPanel}
+            {buildToolsPanel}
           </div>
         ) : (
           <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
@@ -698,8 +720,12 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
             <aside className="min-w-0">
               <DeckStatsCharts cards={includedCards} stacked />
             </aside>
-            <div className="fixed top-20 right-4 z-40 flex flex-col gap-2">{tagsButton}</div>
+            <div className="fixed top-20 right-4 z-40 flex flex-col gap-2">
+              {tagsButton}
+              {buildToolsButton}
+            </div>
             {tagsPanel}
+            {buildToolsPanel}
           </div>
         )}
       </div>
@@ -780,6 +806,15 @@ function TagIcon() {
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path d="M3.5 12.5V4h8.5l8.5 8.5-8.5 8.5z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="miter" />
       <circle cx="8" cy="8.5" r="1.5" fill="currentColor" />
+    </svg>
+  );
+}
+
+function BuildToolsIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M12 4v8l6.5 4.5" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="miter" />
     </svg>
   );
 }

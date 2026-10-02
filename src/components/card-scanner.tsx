@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { CardSearch, type Suggestion } from "@/components/card-search";
+import { Modal } from "@/components/modal";
 import { cleanOcrText } from "@/lib/ocr/clean";
 import { cropTitleBand, loadImageFromFile } from "@/lib/ocr/crop";
 import { recognizeTitle } from "@/lib/ocr/worker";
@@ -211,7 +212,7 @@ export function CardScanner({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 p-4">
+    <Modal>
       <div
         role="dialog"
         aria-label={title}
@@ -382,6 +383,6 @@ export function CardScanner({
           </button>
         </footer>
       </div>
-    </div>
+    </Modal>
   );
 }

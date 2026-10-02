@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Modal } from "@/components/modal";
 import { MoneyInputBr } from "@/components/money-input-br";
 import { NoteEditor } from "@/components/note-editor";
 import { formatBRLFromCents } from "@/lib/money-br";
@@ -57,7 +58,7 @@ export function CardMetaModal({ open, title, initial, onClose, onSave }: Props) 
   }
 
   return (
-    <div className="fixed inset-0 z-[220] flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true">
+    <Modal role="dialog" aria-modal="true">
       <div className="max-h-[90vh] w-full max-w-lg overflow-auto border border-black bg-white p-4 shadow-xl">
         <div className="mb-4 flex items-start justify-between gap-3">
           <div>
@@ -100,6 +101,6 @@ export function CardMetaModal({ open, title, initial, onClose, onSave }: Props) 
           </button>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }

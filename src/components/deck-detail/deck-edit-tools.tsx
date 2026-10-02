@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { CardSearch, type Suggestion } from "@/components/card-search";
 import type { DeckPlace } from "@/components/deck-detail/deck-detail-types";
 import { LoadingModal } from "@/components/loading-modal";
+import { Modal } from "@/components/modal";
 
 type Props = {
   deckId: string;
@@ -290,7 +291,7 @@ export function DeckEditTools({ deckId, allowsSideboard, status, setStatus, addT
       </Module>
       {status ? <p className="text-[12px] text-muted">{status}</p> : null}
       {listOpen ? (
-        <div className="fixed inset-0 z-[160] flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true" aria-labelledby="list-modal-title">
+        <Modal role="dialog" aria-modal="true" aria-labelledby="list-modal-title">
           <div className="flex h-[min(80vh,760px)] w-[min(960px,94vw)] flex-col border border-ink bg-surface-container-lowest shadow-[6px_6px_0_#09090b]">
             <header className="flex items-center justify-between gap-3 border-b border-outline-variant px-5 py-3">
               <h2 id="list-modal-title" className="text-[16px] font-semibold text-ink">
@@ -345,10 +346,10 @@ export function DeckEditTools({ deckId, allowsSideboard, status, setStatus, addT
               </button>
             </footer>
           </div>
-        </div>
+        </Modal>
       ) : null}
       {collectionOpen ? (
-        <div className="fixed inset-0 z-[160] flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true" aria-labelledby="collection-modal-title">
+        <Modal role="dialog" aria-modal="true" aria-labelledby="collection-modal-title">
           <div className="flex max-h-[min(80vh,720px)] w-[min(640px,94vw)] flex-col border border-ink bg-surface-container-lowest shadow-[6px_6px_0_#09090b]">
             <header className="border-b border-outline-variant px-5 py-3">
               <h2 id="collection-modal-title" className="text-[16px] font-semibold text-ink">
@@ -441,7 +442,7 @@ export function DeckEditTools({ deckId, allowsSideboard, status, setStatus, addT
               )}
             </footer>
           </div>
-        </div>
+        </Modal>
       ) : null}
       <LoadingModal
         open={listImporting || collectionBusy}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Modal } from "@/components/modal";
 import { isTagName, sameTag, tagTint, type CardTag } from "@/lib/tags";
 
 /** F-013: cada cor ocupa uma faixa igual do selo de quantidade. */
@@ -170,7 +171,7 @@ export function TagCreateModal({
   }
 
   return (
-    <div className="fixed inset-0 z-[220] flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true" aria-labelledby="tag-modal-title">
+    <Modal role="dialog" aria-modal="true" aria-labelledby="tag-modal-title">
       <div className="w-full max-w-sm border border-black bg-white p-4 shadow-xl">
         <h2 id="tag-modal-title" className="text-base font-semibold">
           Nova tag
@@ -202,7 +203,7 @@ export function TagCreateModal({
           </button>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }
 

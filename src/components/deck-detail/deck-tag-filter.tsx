@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Modal } from "@/components/modal";
 import { isTagName, sameTag, type CardTag } from "@/lib/tags";
 
 /**
@@ -189,19 +190,14 @@ export function TagDeleteModal({
 
 function ModalFrame({ titleId, title, children }: { titleId: string; title: string; children: React.ReactNode }) {
   return (
-    <div
-      className="fixed inset-0 z-[220] flex items-center justify-center bg-black/50 p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby={titleId}
-    >
+    <Modal role="dialog" aria-modal="true" aria-labelledby={titleId}>
       <div className="w-full max-w-sm border border-black bg-white p-4 shadow-xl">
         <h2 id={titleId} className="text-base font-semibold">
           {title}
         </h2>
         {children}
       </div>
-    </div>
+    </Modal>
   );
 }
 

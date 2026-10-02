@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { Modal } from "@/components/modal";
 
 type Props = {
   open: boolean;
@@ -26,8 +27,7 @@ export function LoadingModal({
   if (!open) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 p-4"
+    <Modal
       role="alertdialog"
       aria-modal="true"
       aria-busy="true"
@@ -45,6 +45,6 @@ export function LoadingModal({
           {message}
         </p>
       </div>
-    </div>
+    </Modal>
   );
 }
