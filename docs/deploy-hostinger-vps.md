@@ -59,6 +59,8 @@ A Hostinger publica wildcard DNS `*.srv1919186.hstgr.cloud` → IP da VPS. É o 
 | `AUTH_SECRET` | GitHub Secret | Assinatura do JWT de sessão |
 | `HOSTINGER_API_KEY` | GitHub Secret | Autoriza a Action a chamar a API da VPS |
 | `HOSTINGER_VM_ID` | GitHub Variable (`1919186`) | VPS de destino |
+| `STAGE_DATABASE_URL` | GitHub Secret | URL do banco de stage pela tailnet (`100.68.153.18:5434`), usada pelo job `migrate-stage` |
+| `TS_OAUTH_CLIENT_ID` / `TS_OAUTH_SECRET` | GitHub Secret | OAuth client do Tailscale (escopo de escrita em Auth Keys, tag `tag:ci`) para o runner entrar na tailnet |
 
 Cópia local dos valores de produção: bloco `PROD_*` no `.env` (fora do Git). O prefixo evita que o `next dev` use as credenciais de produção.
 
@@ -172,6 +174,34 @@ Local: `npm run db:status` e `npm run db:migrate` (lêem `DATABASE_URL` do `.env
 
 No push para `main`, o job `migrate-stage` roda o mesmo runner contra o stage, usando o secret `STAGE_DATABASE_URL` (URL completa, sem commitar). O deploy de produção continua migrando o Postgres de produção no start do container. Os dois bancos são atualizados no mesmo merge.
 
+### Stage pela tailnet
+
+A porta 5434 do stage fica fechada no firewall da Hostinger; o banco só é acessível pela tailnet (`srv1919186`, `100.68.153.18`). O job `migrate-stage` entra na tailnet com `tailscale/github-action` como nó efêmero com a tag `tag:ci`, faz `tailscale ping` na VPS e só então roda a migration. O nó some da tailnet no fim do job.
+
+Configuração (uma vez):
+
+1. Na policy do Tailscale, declare a tag e libere só a porta do stage para ela:
+
+   ```json
+   "tagOwners": { "tag:ci": ["autogroup:admin"] },
+   "hosts": { "srv1919186": "100.68.153.18" },
+   "grants": [
+     { "src": ["tag:ci"], "dst": ["srv1919186"], "ip": ["tcp:5434"] }
+   ]
+   ```
+
+   Se a policy ainda tiver a regra padrão que libera tudo para todos (`"src": ["*"], "dst": ["*"]`), o `tag:ci` também alcança os outros dispositivos; restrinja essa regra.
+2. Em **Tailscale admin → Settings → OAuth clients**, crie um client com escopo de escrita em **Auth Keys** e a tag `tag:ci`.
+3. Cadastre os secrets e aponte o stage para o IP da tailnet:
+
+   ```bash
+   gh secret set TS_OAUTH_CLIENT_ID -R rsdutra/mtghelper
+   gh secret set TS_OAUTH_SECRET -R rsdutra/mtghelper
+   gh secret set STAGE_DATABASE_URL -R rsdutra/mtghelper   # postgres://…@100.68.153.18:5434/mtghelper_stage
+   ```
+
+Falha `write CONNECT_TIMEOUT …:5434` no job indica que o runner não está na tailnet ou que a policy não libera `tag:ci` para a porta.
+
 ---
 
 ## Checklist rápido
@@ -203,7 +233,7 @@ No push para `main`, o job `migrate-stage` roda o mesmo runner contra o stage, u
 ## O que não fazer
 
 - Não commitar `.env` nem senhas.
-- Não expor o Postgres de produção na internet (só `127.0.0.1:5433`). O projeto `mtghelper-stage-db` é a exceção: banco vazio `mtghelper_stage`, porta `5434` publicada e liberada no firewall para desenvolvimento remoto. A senha fica só no `.env` local.
+- Não expor o Postgres de produção na internet (só `127.0.0.1:5433`). O stage (`mtghelper-stage-db`, banco `mtghelper_stage`, porta `5434`) também fica fechado no firewall: acesso só pela tailnet, para desenvolvimento remoto e para o job `migrate-stage`. A senha fica só no `.env` local e no secret.
 - Não publicar porta extra do Next (deixe só Traefik em 80/443).
 - Não trocar `POSTGRES_PASSWORD` só no secret: a senha é gravada no volume na primeira inicialização; para trocar, altere no Postgres (`ALTER USER`) e depois no secret.
 - Não versionar `.cursor/mcp.json`.
