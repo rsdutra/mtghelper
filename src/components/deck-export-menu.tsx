@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
+import { Modal } from "@/components/modal";
 import {
   DECK_EXPORT_OPTIONS,
   formatDeckExportList,
@@ -122,7 +123,7 @@ export function DeckExportMenu({ cards, buttonClassName = "ui-btn-outline h-9", 
       ) : null}
 
       {text !== null ? (
-        <div className="fixed inset-0 z-[220] flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true">
+        <Modal role="dialog" aria-modal="true">
           <div className="w-full max-w-lg border border-ink bg-white p-4 shadow-[4px_4px_0_#09090b]">
             <div className="mb-3 flex items-start justify-between gap-3">
               <div>
@@ -153,7 +154,7 @@ export function DeckExportMenu({ cards, buttonClassName = "ui-btn-outline h-9", 
               ) : null}
             </div>
           </div>
-        </div>
+        </Modal>
       ) : null}
     </div>
   );
