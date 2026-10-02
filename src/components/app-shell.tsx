@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { logoutAction } from "@/lib/auth-actions";
 
 const links = [
   { href: "/buscar", label: "Busca" },
@@ -20,7 +21,6 @@ export function AppShell({
 }) {
   const container = wide ? "max-w-[1720px]" : "max-w-[1400px]";
   const pathname = usePathname();
-  const router = useRouter();
   const [login, setLogin] = useState<string | null>(null);
 
   useEffect(() => {
@@ -28,12 +28,6 @@ export function AppShell({
       .then((response) => response.json())
       .then((data) => setLogin(data.user?.login ?? null));
   }, []);
-
-  async function logout() {
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/");
-    router.refresh();
-  }
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-on-surface">
@@ -76,9 +70,11 @@ export function AppShell({
             {login ? (
               <div className="ml-1 flex items-center gap-2 border-l border-border-line pl-3">
                 <span className="hidden font-mono text-[11px] tracking-wide text-muted uppercase sm:inline">{login}</span>
-                <button type="button" onClick={() => void logout()} className="text-ink underline underline-offset-2">
-                  Sair
-                </button>
+                <form action={logoutAction} onSubmit={() => setLogin(null)}>
+                  <button type="submit" className="text-ink underline underline-offset-2">
+                    Sair
+                  </button>
+                </form>
               </div>
             ) : (
               <Link href="/entrar" className="ml-1 border-l border-border-line pl-3 text-ink underline underline-offset-2">
