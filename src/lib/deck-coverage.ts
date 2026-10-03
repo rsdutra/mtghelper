@@ -40,6 +40,28 @@ export function coverageByKey(rows: readonly CoverageRow[]): Map<string, CardCov
   return map;
 }
 
+export type MissingCardSource = {
+  id: string;
+  oracle_id?: string | null;
+  place: "main" | "side" | "out";
+  name_en: string;
+  name_pt: string | null;
+  missing?: number;
+};
+
+export type MissingCard = { key: string; name: string; missing: number };
+
+/** Uma linha por carta que falta (deck + sideboard já somados na API), ordenada pelo nome (US-004-19). */
+export function missingCardList(cards: readonly MissingCardSource[]): MissingCard[] {
+  const byKey = new Map<string, MissingCard>();
+  for (const card of cards) {
+    if (card.place === "out" || !card.missing || card.missing <= 0) continue;
+    const key = coverageKey(card.oracle_id, card.id);
+    if (!byKey.has(key)) byKey.set(key, { key, name: card.name_pt ?? card.name_en, missing: card.missing });
+  }
+  return [...byKey.values()].sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+}
+
 export function summarizeCoverage(rows: readonly CoverageRow[]): DeckCoverageSummary {
   let missingCopies = 0;
   let missingCards = 0;

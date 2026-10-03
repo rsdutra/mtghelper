@@ -42,7 +42,7 @@ Critérios de aceite:
 - [x] Linhas sem −/+, remover, detalhes, “No deck”, tags ou cobertura.
 - [x] Sem painel de busca/lista/seções/tags/coleção à direita.
 - [x] Botão **Editar** leva à rota de edição.
-- [x] Mantém: exportar, cobertura da coleção, gráficos, agrupamento, seletor de visualização (F-010), preview ao pairar.
+- [x] Mantém: exportar (painel à direita, F-016), cobertura da coleção, gráficos, agrupamento, seletor de visualização (F-010), preview ao pairar.
 
 ### US-011-03 — Texto condensado em colunas
 

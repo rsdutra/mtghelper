@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Modal } from "@/components/modal";
 import {
-  DECK_EXPORT_OPTIONS,
+  deckExportOptions,
+  deckExportTitle,
   formatDeckExportList,
   type DeckExportCard,
   type DeckExportScope,
@@ -11,40 +12,15 @@ import {
 
 type Props = {
   cards: readonly DeckExportCard[];
-  buttonClassName?: string;
-  menuAlign?: "left" | "right";
+  allowsSideboard: boolean;
 };
 
-const SCOPE_TITLE: Record<DeckExportScope, string> = {
-  all: "Exportar tudo",
-  included: "Exportar somente no deck",
-  working: "Exportar somente fora do deck",
-};
-
-export function DeckExportMenu({ cards, buttonClassName = "ui-btn-outline h-9", menuAlign = "left" }: Props) {
-  const [menuOpen, setMenuOpen] = useState(false);
+/** Painel de exportação do deck (F-016 / US-016-01): cada opção copia a lista e abre o modal. */
+export function DeckExportPanel({ cards, allowsSideboard }: Props) {
   const [text, setText] = useState<string | null>(null);
-  const [scope, setScope] = useState<DeckExportScope>("all");
+  const [scope, setScope] = useState<DeckExportScope>("main");
   const [copied, setCopied] = useState(false);
-  const rootRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const menuId = useId();
-
-  useEffect(() => {
-    if (!menuOpen) return;
-    function onPointerDown(event: MouseEvent) {
-      if (!rootRef.current?.contains(event.target as Node)) setMenuOpen(false);
-    }
-    function onKey(event: KeyboardEvent) {
-      if (event.key === "Escape") setMenuOpen(false);
-    }
-    document.addEventListener("mousedown", onPointerDown);
-    window.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("mousedown", onPointerDown);
-      window.removeEventListener("keydown", onKey);
-    };
-  }, [menuOpen]);
 
   useEffect(() => {
     if (text === null) return;
@@ -78,56 +54,38 @@ export function DeckExportMenu({ cards, buttonClassName = "ui-btn-outline h-9", 
   }
 
   async function exportScope(nextScope: DeckExportScope) {
-    const list = formatDeckExportList(cards, nextScope);
+    const list = formatDeckExportList(cards, nextScope, allowsSideboard);
     setScope(nextScope);
-    setMenuOpen(false);
     setCopied(false);
     setText(list);
     if (list) await copyText(list);
   }
 
   return (
-    <div ref={rootRef} className="relative">
-      <button
-        type="button"
-        className={buttonClassName}
-        aria-haspopup="menu"
-        aria-expanded={menuOpen}
-        aria-controls={menuId}
-        onClick={() => setMenuOpen((open) => !open)}
-      >
-        Exportar
-      </button>
-      {menuOpen ? (
-        <ul
-          id={menuId}
-          role="menu"
-          aria-label="Exportar deck"
-          className={`absolute z-40 mt-1 min-w-[14rem] border border-ink bg-white py-1 shadow-[4px_4px_0_#09090b] ${
-            menuAlign === "right" ? "right-0" : "left-0"
-          }`}
-        >
-          {DECK_EXPORT_OPTIONS.map((option) => (
-            <li key={option.scope} role="none">
-              <button
-                type="button"
-                role="menuitem"
-                className="block w-full px-3 py-2 text-left text-[13px] hover:bg-surface-container-low"
-                onClick={() => void exportScope(option.scope)}
-              >
-                {option.label}
-              </button>
-            </li>
-          ))}
-        </ul>
-      ) : null}
+    <div className="space-y-3">
+      <h2 className="ui-label text-ink">Exportar</h2>
+      <p className="text-[12px] text-muted">Copia a lista (quantidade + nome em inglês) para a área de transferência.</p>
+      <ul aria-label="Opções de exportação" className="flex flex-col gap-2">
+        {deckExportOptions(allowsSideboard).map((option) => (
+          <li key={option.scope}>
+            <button
+              type="button"
+              aria-label={option.title}
+              className="ui-btn-outline h-9 w-full justify-start"
+              onClick={() => void exportScope(option.scope)}
+            >
+              {option.label}
+            </button>
+          </li>
+        ))}
+      </ul>
 
       {text !== null ? (
-        <Modal role="dialog" aria-modal="true">
+        <Modal role="dialog" aria-modal="true" aria-label={deckExportTitle(scope)}>
           <div className="w-full max-w-lg border border-ink bg-white p-4 shadow-[4px_4px_0_#09090b]">
             <div className="mb-3 flex items-start justify-between gap-3">
               <div>
-                <h2 className="text-[15px] font-semibold text-ink">{SCOPE_TITLE[scope]}</h2>
+                <h2 className="text-[15px] font-semibold text-ink">{deckExportTitle(scope)}</h2>
                 <p className="text-[12px] text-muted">Formato: quantidade + nome em inglês</p>
               </div>
               <button type="button" className="ui-btn-outline h-8 px-2 text-[11px]" onClick={closeModal}>

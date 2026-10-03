@@ -34,8 +34,9 @@ Histórico, já substituído:
 - Agrupar lista por tipo (US-004-07).
 - Charts de distribuição por tipo e curva de mana (US-004-09) — só cartas `included=true`. Cores de mana (símbolos e terrenos): F-015.
 - Conferência com a coleção na abertura do deck (US-004-17) — só `included=true`, todas as coleções, qualquer impressão (`oracle_id`).
+- Adicionar à coleção as cartas que faltam, pelo aviso de cópias faltando (US-004-19).
 - Checkbox “incluir na coleção” + Processar (**só `included=true`**).
-- Exportar lista em texto (tudo / no deck / em trabalho) — US-004-15.
+- Exportar lista em texto (tudo / no deck / em trabalho) — US-004-15. Substituída pelo painel de exportação da F-016.
 - Canvas: ver F-008.
 
 ## Fora de escopo
@@ -199,6 +200,8 @@ Critérios de aceite:
 - [x] Cada opção gera só o conjunto correspondente, uma linha `quantidade nome` (inglês).
 - [x] Lista copiável (clipboard + textarea).
 
+> Substituída pela F-016: o botão do cabeçalho saiu e a exportação (Deck, Sideboard, Fora do deck, Tudo) fica no painel à direita.
+
 ### US-004-17 — Conferência deck × coleção
 
 **Como** jogador **quero** ver, ao abrir o deck, se tenho as cartas **No deck** na coleção **para** saber o que falta comprar.
@@ -212,6 +215,34 @@ Critérios de aceite:
 - [x] Resumo no header: “Coleção: completo” ou “Faltam N cópias · M cartas”.
 - [x] Na linha incluída: `possuídas/necessárias`.
 
+### US-004-19 — Adicionar as cartas faltantes à coleção
+
+**Como** jogador **quero** clicar no aviso “Faltam N cópias” e adicionar à coleção as cartas que faltam **para** completar a coleção sem digitar a lista.
+
+Critérios de aceite:
+
+- [x] Quando faltam cópias, o aviso “Faltam N cópias · M cartas” é um botão (lista e canvas, edição e visualização).
+- [x] Clicar abre um modal com as cartas que faltam, em texto: `quantidade_faltante nome`, uma por linha, com um checkbox ao lado de cada uma.
+- [x] Todos os checkboxes vêm marcados; um checkbox “Marcar todas” marca ou desmarca todos.
+- [x] O botão “Adicionar à coleção” adiciona as cartas marcadas; fica desabilitado sem nenhuma marcada.
+- [x] Depois de adicionar, o modal fecha e a conferência do deck é recalculada (o aviso atualiza ou vira “Coleção: completo”).
+- [x] “Coleção: completo” continua só informativo.
+
+Regras:
+
+- Mesma conta da US-004-17: só “No deck” + Sideboard, todas as coleções, casando por `oracle_id`. Uma linha por carta (a mesma carta no deck e no sideboard soma).
+- Quantidade adicionada = faltantes (necessárias − possuídas), sem edição.
+- Entra na coleção padrão (a primeira do usuário), como o Processar coleção (US-004-04).
+- Impressão: a mais recente do catálogo para aquele `oracle_id` (igual à importação de lista da coleção); sem `oracle_id`, a impressão que está no deck.
+- O servidor recalcula as faltantes na hora de gravar; não confia na quantidade enviada pela tela.
+- Vale na visualização: grava na coleção, não no deck (a regra da F-011 de não gravar vale para o deck).
+
+Decisões (confirmadas com o usuário): user story na F-004; coleção padrão; quantidade = faltantes; todas marcadas; edição e visualização; impressão mais recente.
+
+Testes: `tests/f004-cartas-faltantes.spec.ts` — lista (soma deck + sideboard, ignora “Fora do deck” e o que já tem), marcar/desmarcar, adicionar só as marcadas, impressão mais recente, aviso atualizado, visualização.
+
+Superfície: `src/components/deck-coverage-badge.tsx` (botão), `src/components/deck-detail/deck-missing-cards.tsx` (modal), `missingCardList` em `src/lib/deck-coverage.ts`, `POST /api/decks/[id]/missing-cards`, consulta compartilhada em `src/lib/deck-coverage-db.ts`.
+
 ### US-004-04 — Processar para coleção
 - [x] Só cartas `included=true`.
 
@@ -221,6 +252,6 @@ Critérios de aceite:
 ## Superfície
 
 - UI: `/decks`, `/decks/[id]` (visualização) e `/decks/[id]/edit` (edição — F-011)
-- API: `/api/decks`, `/api/decks/[id]`, `.../cards`, `.../sections` (POST/DELETE), `.../process-collection`
+- API: `/api/decks`, `/api/decks/[id]`, `.../cards`, `.../sections` (POST/DELETE), `.../process-collection`, `.../missing-cards` (US-004-19)
 - Dados: `decks`, `deck_cards` (+ `included`), `deck_sections` (+ `kind` / `type_key`), `deck_card_sections`
 - API: `POST /api/decks/[id]/type-sections` `{ enabled }` — cria/sincroniza ou remove seções `kind=type`
