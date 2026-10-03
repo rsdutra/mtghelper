@@ -7,7 +7,7 @@ Cada mudança de produto neste repositório deve referenciar uma **feature** (`F
 | F-001 | Motor de busca individual | [F-001-busca-individual.md](./F-001-busca-individual.md) |
 | F-002 | Motor de busca por lista | [F-002-busca-lista.md](./F-002-busca-lista.md) |
 | F-003 | Cadastro e autenticação | [F-003-auth.md](./F-003-auth.md) |
-| F-004 | Cadastro de deck | [F-004-decks.md](./F-004-decks.md) |
+| F-004 | Cadastro de deck (inclui adicionar cartas faltantes à coleção) | [F-004-decks.md](./F-004-decks.md) |
 | F-005 | Cadastro de coleção | [F-005-colecao.md](./F-005-colecao.md) |
 | F-006 | Catálogo local de cartas | [F-006-catalogo-local.md](./F-006-catalogo-local.md) |
 | F-007 | Escaneamento de cartas (OCR local) | [F-007-escaneamento-ocr.md](./F-007-escaneamento-ocr.md) |
@@ -19,6 +19,7 @@ Cada mudança de produto neste repositório deve referenciar uma **feature** (`F
 | F-013 | Tags de carta (inclui filtro do deck por tag) | [F-013-tags.md](./F-013-tags.md) |
 | F-014 | Controle de migrations aplicadas | [F-014-controle-migrations.md](./F-014-controle-migrations.md) |
 | F-015 | Ferramentas de construção de deck (cores de mana) | [F-015-ferramentas-construcao.md](./F-015-ferramentas-construcao.md) |
+| F-016 | Exportação do deck (painel lateral) e copiar nome da carta | [F-016-exportacao.md](./F-016-exportacao.md) |
 
 ## Como criar uma feature
 

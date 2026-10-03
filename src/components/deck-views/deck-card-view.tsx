@@ -36,7 +36,7 @@ type Props = {
   groups: DeckViewGroup[];
   collapsedGroups: ReadonlySet<string>;
   onToggleGroup: (key: string) => void;
-  /** Visualização do deck (F-011): sem ações e com o Texto condensado em colunas. */
+  /** Visualização do deck (F-011): Texto condensado em colunas; o menu da carta vem de `renderActions`. */
   readOnly?: boolean;
 };
 
@@ -44,10 +44,9 @@ type Props = {
 export function DeckCardView({ view, groups, collapsedGroups, onToggleGroup, readOnly = false }: Props) {
   const preview = useCardHoverPreview(LIST_PREVIEW_DELAY_MS);
   const grouped = groups.some((group) => group.label !== null);
-  const editable = !readOnly;
 
   function body(items: DeckViewItem[]) {
-    if (view === "grid") return <CardGrid items={items} preview={preview} editable={editable} />;
+    if (view === "grid") return <CardGrid items={items} preview={preview} />;
     return <TextList items={items} preview={preview} />;
   }
 
@@ -84,7 +83,7 @@ export function DeckCardView({ view, groups, collapsedGroups, onToggleGroup, rea
                   onToggle={() => onToggleGroup(column.key)}
                 />
               ) : null}
-              {collapsed ? null : <CardStack items={column.items} preview={preview} editable={editable} />}
+              {collapsed ? null : <CardStack items={column.items} preview={preview} />}
             </div>
           );
         })}
@@ -237,18 +236,22 @@ function CompactColumns({
   );
 }
 
+/** Os três pontos ficam fora da área do preview, para a imagem ampliada não cobrir o menu. */
 function CompactRow({ item, preview }: { item: DeckViewItem; preview: Preview }) {
+  const [open, setOpen] = useState(false);
   return (
     <li
-      className="flex break-inside-avoid items-baseline gap-2 px-1 py-[3px] text-[13px] leading-5 hover:bg-surface-container-low"
+      className="group flex break-inside-avoid items-center gap-2 px-1 py-[3px] text-[13px] leading-5 hover:bg-surface-container-low"
       data-testid="deck-card-text"
-      {...preview.bind(item.id, item.imageSrc, item.label)}
     >
-      <span className="flex w-auto min-w-5 shrink-0 items-center justify-end gap-1 font-mono text-[12px] tabular-nums text-muted">
-        {item.quantity}
-        <TagDots tags={item.tags} />
+      <span className="flex min-w-0 flex-1 items-baseline gap-2" {...preview.bind(item.id, item.imageSrc, item.label)}>
+        <span className="flex w-auto min-w-5 shrink-0 items-center justify-end gap-1 font-mono text-[12px] tabular-nums text-muted">
+          {item.quantity}
+          <TagDots tags={item.tags} />
+        </span>
+        <span className="min-w-0 truncate">{item.label}</span>
       </span>
-      <span className="min-w-0 truncate">{item.label}</span>
+      <CardOptionsMenu item={item} placement="row" open={open} onOpenChange={setOpen} />
     </li>
   );
 }
@@ -324,7 +327,7 @@ function CardQuantity({ item, place }: { item: DeckViewItem; place: "title-right
   );
 }
 
-function CardGrid({ items, preview, editable }: { items: DeckViewItem[]; preview: Preview; editable: boolean }) {
+function CardGrid({ items, preview }: { items: DeckViewItem[]; preview: Preview }) {
   return (
     <div
       className="grid gap-x-4 p-4"
@@ -335,13 +338,13 @@ function CardGrid({ items, preview, editable }: { items: DeckViewItem[]; preview
       }}
     >
       {items.map((item) => (
-        <GridTile key={item.id} item={item} preview={preview} editable={editable} />
+        <GridTile key={item.id} item={item} preview={preview} />
       ))}
     </div>
   );
 }
 
-function GridTile({ item, preview, editable }: { item: DeckViewItem; preview: Preview; editable: boolean }) {
+function GridTile({ item, preview }: { item: DeckViewItem; preview: Preview }) {
   const [open, setOpen] = useState(false);
   return (
     <div
@@ -351,13 +354,13 @@ function GridTile({ item, preview, editable }: { item: DeckViewItem; preview: Pr
     >
       <CardImage item={item} preview={preview} />
       <CardQuantity item={item} place="title-right" />
-      {editable ? <CardOptionsMenu item={item} open={open} onOpenChange={setOpen} /> : null}
+      <CardOptionsMenu item={item} open={open} onOpenChange={setOpen} />
     </div>
   );
 }
 
 /** Ações da carta ativa (pairada) ficam ao lado dela; as demais só mostram a faixa do título. */
-function CardStack({ items, preview, editable }: { items: DeckViewItem[]; preview: Preview; editable: boolean }) {
+function CardStack({ items, preview }: { items: DeckViewItem[]; preview: Preview }) {
   const [openId, setOpenId] = useState<string | null>(null);
   const height = items.length ? (items.length - 1) * STACK_OFFSET + CARD_H : 0;
 
@@ -375,21 +378,22 @@ function CardStack({ items, preview, editable }: { items: DeckViewItem[]; previe
         >
           <CardImage item={item} preview={preview} />
           <CardQuantity item={item} place="name-left" />
-          {editable ? (
-            <CardOptionsMenu
-              item={item}
-              placement="stack"
-              open={openId === item.id}
-              onOpenChange={(open) => setOpenId(open ? item.id : null)}
-            />
-          ) : null}
+          <CardOptionsMenu
+            item={item}
+            placement="stack"
+            open={openId === item.id}
+            onOpenChange={(open) => setOpenId(open ? item.id : null)}
+          />
         </div>
       ))}
     </div>
   );
 }
 
-/** Na grid agrupada, as cartas de trás cobririam os pontos: só a carta pairada (ou com menu aberto) mostra. */
+/**
+ * Na grid agrupada, as cartas de trás cobririam os pontos: só a carta pairada (ou com menu aberto) mostra.
+ * Na linha do texto condensado (visualização), os pontos ficam no fim da linha e também só aparecem ao pairar.
+ */
 function CardOptionsMenu({
   item,
   open,
@@ -399,9 +403,11 @@ function CardOptionsMenu({
   item: DeckViewItem;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  placement?: "grid" | "stack";
+  placement?: "grid" | "stack" | "row";
 }) {
   const stack = placement === "stack";
+  const row = placement === "row";
+  const hoverOnly = open ? "visible" : "invisible group-hover:visible group-has-[:focus-visible]:visible";
   const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -423,18 +429,14 @@ function CardOptionsMenu({
   return (
     <div
       ref={rootRef}
-      className={
-        stack
-          ? `absolute translate-x-full ${open ? "visible" : "invisible group-hover:visible group-has-[:focus-visible]:visible"}`
-          : "absolute"
-      }
-      style={stack ? { top: 0, right: STACK_MENU_RIGHT } : { top: CHIP_TOP, left: MENU_LEFT }}
+      className={row ? `relative shrink-0 ${hoverOnly}` : stack ? `absolute translate-x-full ${hoverOnly}` : "absolute"}
+      style={row ? undefined : stack ? { top: 0, right: STACK_MENU_RIGHT } : { top: CHIP_TOP, left: MENU_LEFT }}
     >
       <button
         type="button"
         aria-label={`Opções de ${item.label}`}
         aria-expanded={open}
-        className="flex h-6 w-5 flex-col items-center justify-center gap-0.5 rounded-[4px] bg-black"
+        className={`flex ${row ? "h-5 w-4" : "h-6 w-5"} flex-col items-center justify-center gap-0.5 rounded-[4px] bg-black`}
         onClick={(event) => {
           event.stopPropagation();
           onOpenChange(!open);
@@ -445,7 +447,7 @@ function CardOptionsMenu({
         <span className="h-[3px] w-[3px] rounded-full bg-white" />
       </button>
       {open ? (
-        <div className="absolute left-0 top-full z-40 mt-1 w-44 border border-ink bg-surface-container-lowest p-1 shadow-[4px_4px_0_#09090b]">
+        <div className={`absolute ${row ? "right-0" : "left-0"} top-full z-40 mt-1 w-44 border border-ink bg-surface-container-lowest p-1 shadow-[4px_4px_0_#09090b]`}>
           {item.renderActions("menu")}
         </div>
       ) : null}

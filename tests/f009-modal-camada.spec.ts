@@ -59,10 +59,10 @@ test("modais ficam por cima dos painéis abertos do deck", async ({ page }) => {
   await expect(listDialog).toHaveCount(0);
   await expect(page.getByText("Shock").first()).toBeVisible();
 
-  // Modal de exportar com os mesmos painéis abertos. O menu suspenso (não é modal) fica sob o painel
-  // de Tags nesta largura, então o item é acionado pelo teclado.
-  await page.getByRole("button", { name: "Exportar" }).click();
-  await page.getByRole("menuitem", { name: "Exportar tudo" }).press("Enter");
+  // Modal de exportar (F-016) com os mesmos painéis abertos. O painel de exportação fica sob os
+  // outros nesta largura, então a opção é acionada pelo teclado.
+  await openPanel(page, "Exportar");
+  await page.getByRole("button", { name: "Exportar tudo" }).press("Enter");
   const exportDialog = page.getByRole("dialog");
   await expect(exportDialog).toBeVisible();
   expect(await coveredPoints(exportDialog)).toBe(0);

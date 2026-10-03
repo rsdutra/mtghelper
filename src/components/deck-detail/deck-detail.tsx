@@ -10,6 +10,7 @@ import { DeckCanvas, type DeckCanvasHandle } from "@/components/deck-canvas";
 import { DeckCoverageBadge } from "@/components/deck-coverage-badge";
 import { DeckEditHeader } from "@/components/deck-detail/deck-edit-header";
 import { DeckEditTools } from "@/components/deck-detail/deck-edit-tools";
+import { DeckMissingCardsModal } from "@/components/deck-detail/deck-missing-cards";
 import { DeckTagFilterPanel, TagDeleteModal, TagEditModal } from "@/components/deck-detail/deck-tag-filter";
 import {
   DECK_VIEW_OPTIONS,
@@ -19,9 +20,9 @@ import {
   type DeckView,
 } from "@/components/deck-detail/deck-detail-types";
 import { useDeckCardMutations } from "@/components/deck-detail/use-deck-card-mutations";
-import { DeckExportMenu } from "@/components/deck-export-menu";
+import { DeckExportPanel } from "@/components/deck-export-panel";
 import { DeckStatsCharts } from "@/components/deck-stats-charts";
-import { DeckCardActions } from "@/components/deck-views/deck-card-actions";
+import { DeckCardActions, DeckCardCopyActions } from "@/components/deck-views/deck-card-actions";
 import { DeckCardView } from "@/components/deck-views/deck-card-view";
 import {
   DECK_LIST_VIEWS,
@@ -80,6 +81,9 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
   const [chartsOpen, setChartsOpen] = useState(false);
   const [tagsOpen, setTagsOpen] = useState(false);
   const [buildToolsOpen, setBuildToolsOpen] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
+  const [missingOpen, setMissingOpen] = useState(false);
+  const closeMissing = useCallback(() => setMissingOpen(false), []);
   const [tagFilter, setTagFilter] = useState<string | null>(null);
   const [editingTag, setEditingTag] = useState<CardTag | null>(null);
   const [deletingTag, setDeletingTag] = useState<CardTag | null>(null);
@@ -270,6 +274,7 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
           <DeckCardActions
             layout={layout}
             label={label}
+            copyName={card.name_en}
             quantity={card.quantity}
             onDecrement={() => void mutations.removeCard(card.id, card.place)}
             onIncrement={() => void mutations.addOneCopy(card)}
@@ -287,7 +292,9 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
             onToggleTag={(tag) => void mutations.updateCardTags(card.id, (current) => toggleTag(current, tag))}
             onNewTag={() => setTagCard(card)}
           />
-        ) : null,
+        ) : (
+          <DeckCardCopyActions copyName={card.name_en} />
+        ),
     };
   }
 
@@ -360,6 +367,11 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
     </>
   );
 
+  const coverageBadge = <DeckCoverageBadge coverage={coverage} onOpenMissing={() => setMissingOpen(true)} />;
+  const missingModal = missingOpen ? (
+    <DeckMissingCardsModal deckId={deckId} cards={cards} onClose={closeMissing} onAdded={load} />
+  ) : null;
+
   const metaModal = editing ? (
     <>
       <CardMetaModal
@@ -403,13 +415,12 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
           <span className="truncate text-[13px] font-semibold text-ink">{name}</span>
           <span className="ui-badge">{formatLabel}</span>
           <DeckSizeStatus status={sizeStatus} />
-          <DeckCoverageBadge coverage={coverage} />
+          {coverageBadge}
           <div className="ml-auto flex items-center gap-3">
             {editing ? groupingToggles : null}
             {editing ? (
               <span className="font-mono text-[10px] tracking-wide text-muted uppercase">{canvasStatusLabel()}</span>
             ) : null}
-            <DeckExportMenu cards={cards} buttonClassName="ui-btn-outline h-8" menuAlign="right" />
             {editing ? (
               <button
                 type="button"
@@ -477,6 +488,7 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
           ) : null}
         </div>
         {metaModal}
+        {missingModal}
       </div>
     );
   }
@@ -613,12 +625,27 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
       <BuildToolsIcon />
     </ToggleIconButton>
   );
+  const buildToolsPanelRight = tagsPanelRight + (tagsOpen ? 18.5 : 0);
   const buildToolsPanel = buildToolsOpen ? (
     <aside
       className="fixed top-20 z-40 max-h-[calc(100vh-6rem)] w-[24rem] overflow-auto border border-ink bg-surface-container-lowest p-4 shadow-[4px_4px_0_#09090b]"
-      style={{ right: `${tagsPanelRight + (tagsOpen ? 18.5 : 0)}rem` }}
+      style={{ right: `${buildToolsPanelRight}rem` }}
     >
       <DeckBuildTools cards={includedCards} />
+    </aside>
+  ) : null;
+
+  const exportButton = (
+    <ToggleIconButton label="Exportar" pressed={exportOpen} onClick={() => setExportOpen((open) => !open)}>
+      <ExportIcon />
+    </ToggleIconButton>
+  );
+  const exportPanel = exportOpen ? (
+    <aside
+      className="fixed top-20 z-40 max-h-[calc(100vh-6rem)] w-64 overflow-auto border border-ink bg-surface-container-lowest p-4 shadow-[4px_4px_0_#09090b]"
+      style={{ right: `${buildToolsPanelRight + (buildToolsOpen ? 24.5 : 0)}rem` }}
+    >
+      <DeckExportPanel cards={cards} allowsSideboard={allowsSideboard} />
     </aside>
   ) : null;
 
@@ -639,9 +666,8 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
             ) : (
               deckTitle
             )}
-            <DeckExportMenu cards={cards} />
             <DeckSizeStatus status={sizeStatus} />
-            <DeckCoverageBadge coverage={coverage} />
+            {coverageBadge}
           </div>
           <div className="flex items-center gap-2 self-start lg:self-auto">
             {modeLink}
@@ -693,6 +719,7 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
               </ToggleIconButton>
               {tagsButton}
               {buildToolsButton}
+              {exportButton}
             </div>
             {toolsOpen ? (
               <aside className="fixed top-20 right-16 z-40 max-h-[calc(100vh-6rem)] w-80 overflow-auto border border-ink bg-surface-container-lowest p-4 shadow-[4px_4px_0_#09090b]">
@@ -709,6 +736,7 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
             ) : null}
             {tagsPanel}
             {buildToolsPanel}
+            {exportPanel}
           </div>
         ) : (
           <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
@@ -723,13 +751,16 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
             <div className="fixed top-20 right-4 z-40 flex flex-col gap-2">
               {tagsButton}
               {buildToolsButton}
+              {exportButton}
             </div>
             {tagsPanel}
             {buildToolsPanel}
+            {exportPanel}
           </div>
         )}
       </div>
       {metaModal}
+      {missingModal}
     </AppShell>
   );
 }
@@ -806,6 +837,15 @@ function TagIcon() {
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path d="M3.5 12.5V4h8.5l8.5 8.5-8.5 8.5z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="miter" />
       <circle cx="8" cy="8.5" r="1.5" fill="currentColor" />
+    </svg>
+  );
+}
+
+function ExportIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M12 15V4M7.5 8.5 12 4l4.5 4.5" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="miter" />
+      <path d="M5 13v7h14v-7" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="miter" />
     </svg>
   );
 }

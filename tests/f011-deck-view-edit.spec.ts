@@ -64,7 +64,7 @@ test("visualização somente leitura, colunas condensadas e ida/volta da ediçã
   await expect(page.getByRole("button", { name: "Escanear carta" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: `Aumentar ${bolt}` })).toHaveCount(0);
   await expect(page.getByRole("checkbox", { name: "No deck", exact: true })).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Exportar", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Exportar", exact: true })).toHaveAttribute("aria-pressed", "false");
 
   // US-011-03: linhas compactas “qtd nome”.
   const textView = page.getByTestId("deck-view-texto").first();
