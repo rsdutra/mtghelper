@@ -16,6 +16,13 @@ type Snapshot = {
 const CARD_W = 146;
 const CARD_H = 204;
 
+async function printedName(page: Page, deckId: string, nameEn: string) {
+  const response = await page.request.get(`/api/decks/${deckId}`);
+  const data = (await response.json()) as { cards: { name_en: string; name_pt: string | null }[] };
+  const card = data.cards.find((item) => item.name_en === nameEn);
+  return card?.name_pt ?? nameEn;
+}
+
 async function deckData(page: Page, deckId: string): Promise<DeckData> {
   const response = await page.request.get(`/api/decks/${deckId}`);
   return (await response.json()) as DeckData;
@@ -63,11 +70,15 @@ test("canvas: snapshot, mover carta, deletar e menu", async ({ page }) => {
   await page.getByRole("button", { name: "Adicionar lista" }).click();
   await page.getByLabel("Lista no deck").fill("1 Sol Ring");
   await page.getByRole("dialog").getByRole("button", { name: "Salvar" }).click();
-  await expect(page.getByText("Sol Ring").first()).toBeVisible();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  const ringLabel = await printedName(page, deckId, "Sol Ring");
+  await expect(page.getByText(ringLabel, { exact: true }).first()).toBeVisible();
   await page.getByRole("button", { name: "Adicionar lista" }).click();
   await page.getByLabel("Lista no deck").fill("3 Lightning Bolt");
   await page.getByRole("dialog").getByRole("button", { name: "Salvar" }).click();
-  await expect(page.getByText("Lightning Bolt").first()).toBeVisible();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  const boltLabel = await printedName(page, deckId, "Lightning Bolt");
+  await expect(page.getByText(boltLabel, { exact: true }).first()).toBeVisible();
   await page.getByRole("button", { name: "Busca", exact: true }).click();
 
   await page.getByRole("button", { name: "Canvas", exact: true }).click();

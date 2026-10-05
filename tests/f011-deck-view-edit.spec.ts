@@ -22,7 +22,10 @@ async function addToDeck(page: Page, text: string, nameEn: string) {
   await page.getByRole("button", { name: "Adicionar lista" }).click();
   await page.getByLabel("Lista no deck").fill(text);
   await page.getByRole("dialog").getByRole("button", { name: "Salvar" }).click();
-  await expect(page.getByText(nameEn).first()).toBeVisible();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  const deckId = page.url().split("/decks/")[1]?.split("/")[0];
+  const label = await cardLabel(page, deckId, nameEn);
+  await expect(page.getByText(label, { exact: true }).first()).toBeVisible();
   await page.getByRole("button", { name: "Busca", exact: true }).click();
 }
 
@@ -45,7 +48,10 @@ test("visualização somente leitura, colunas condensadas e ida/volta da ediçã
   await addToDeck(page, "3 Lightning Bolt", "Lightning Bolt");
   await addToDeck(page, "1 Island", "Island");
   const bolt = await cardLabel(page, deckId, "Lightning Bolt");
-  await expect(page.getByRole("button", { name: `Aumentar ${bolt}` })).toBeVisible();
+  const editBolt = page.getByTestId("deck-card-text").filter({ hasText: bolt }).first();
+  await editBolt.hover();
+  await editBolt.getByRole("button", { name: `Opções de ${bolt}` }).click();
+  await expect(page.getByRole("menuitem", { name: `Aumentar ${bolt}` })).toBeVisible();
 
   // US-011-04: voltar para a visualização.
   await page.getByRole("link", { name: "Concluir edição" }).click();

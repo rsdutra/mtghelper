@@ -29,7 +29,7 @@ type Props = {
 const iconButton = "flex h-6 w-6 items-center justify-center leading-none text-muted";
 const menuButton = "w-full px-2 py-1 text-left text-[13px] hover:bg-surface-container";
 
-/** Ações de edição da carta. No grid ficam no menu; no texto, na linha. */
+/** Ações de edição da carta. Na lista e nas grids ficam no menu (F-017 / F-010). */
 export function DeckCardActions({
   layout,
   label,
@@ -68,13 +68,19 @@ export function DeckCardActions({
   if (layout === "menu") {
     return (
       <div className="flex flex-col" data-testid="deck-card-actions" role="menu">
-        <button type="button" role="menuitem" className={menuButton} onClick={onIncrement}>
+        <button type="button" role="menuitem" aria-label={`Aumentar ${label}`} className={menuButton} onClick={onIncrement}>
           Aumentar
         </button>
-        <button type="button" role="menuitem" className={menuButton} onClick={onDecrement}>
+        <button type="button" role="menuitem" aria-label={`Diminuir ${label}`} className={menuButton} onClick={onDecrement}>
           Diminuir
         </button>
-        <button type="button" role="menuitem" className={`${menuButton} hover:text-danger`} onClick={onRemoveAll}>
+        <button
+          type="button"
+          role="menuitem"
+          aria-label={`Remover todas as cópias de ${label}`}
+          className={`${menuButton} hover:text-danger`}
+          onClick={onRemoveAll}
+        >
           Remover todas
         </button>
         <button type="button" role="menuitem" className={menuButton} onClick={onInspect}>

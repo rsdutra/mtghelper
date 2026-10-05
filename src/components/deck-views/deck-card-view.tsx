@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { useCardHoverPreview } from "@/components/card-hover-preview";
 import { TagDots, TagQuantityFill } from "@/components/card-tags";
+import { ManaCost } from "@/components/mana-cost";
 import {
   LIST_PREVIEW_DELAY_MS,
   type DeckListView,
@@ -38,27 +40,49 @@ type Props = {
   onToggleGroup: (key: string) => void;
   /** Visualização do deck (F-011): Texto condensado em colunas; o menu da carta vem de `renderActions`. */
   readOnly?: boolean;
+  /**
+   * View Texto da edição (F-017): mesmas colunas, sem preview flutuante.
+   * O painel ao lado recebe `onPreviewCard`.
+   */
+  sidePreview?: boolean;
+  previewCardId?: string | null;
+  onPreviewCard?: (id: string) => void;
+  showManaCost?: boolean;
 };
 
 /** Renderiza cartas do deck como Texto, Grid visual ou Grid visual agrupada (F-010). */
-export function DeckCardView({ view, groups, collapsedGroups, onToggleGroup, readOnly = false }: Props) {
+export function DeckCardView({
+  view,
+  groups,
+  collapsedGroups,
+  onToggleGroup,
+  readOnly = false,
+  sidePreview = false,
+  previewCardId = null,
+  onPreviewCard,
+  showManaCost = false,
+}: Props) {
   const preview = useCardHoverPreview(LIST_PREVIEW_DELAY_MS);
   const grouped = groups.some((group) => group.label !== null);
+  const pinPreview = sidePreview && !readOnly && view === "texto";
 
   function body(items: DeckViewItem[]) {
-    if (view === "grid") return <CardGrid items={items} preview={preview} />;
-    return <TextList items={items} preview={preview} />;
+    return <CardGrid items={items} preview={preview} />;
   }
 
   let content: ReactNode;
-  if (view === "texto" && readOnly) {
+  if (view === "texto") {
     content = (
       <CompactColumns
         groups={groups}
         grouped={grouped}
         collapsedGroups={collapsedGroups}
         onToggleGroup={onToggleGroup}
-        preview={preview}
+        preview={pinPreview ? null : preview}
+        previewCardId={pinPreview ? previewCardId : null}
+        onPreviewCard={pinPreview ? onPreviewCard : undefined}
+        showManaCost={pinPreview && showManaCost}
+        optionsPinned={false}
       />
     );
   } else if (view === "pilhas") {
@@ -112,7 +136,7 @@ export function DeckCardView({ view, groups, collapsedGroups, onToggleGroup, rea
   return (
     <div data-testid={`deck-view-${view}`}>
       {content}
-      {preview.overlay}
+      {pinPreview ? null : preview.overlay}
     </div>
   );
 }
@@ -189,28 +213,48 @@ function CompactColumns({
   collapsedGroups,
   onToggleGroup,
   preview,
+  previewCardId,
+  onPreviewCard,
+  showManaCost,
+  optionsPinned,
 }: {
   groups: DeckViewGroup[];
   grouped: boolean;
   collapsedGroups: ReadonlySet<string>;
   onToggleGroup: (key: string) => void;
-  preview: Preview;
+  preview: Preview | null;
+  previewCardId: string | null;
+  onPreviewCard?: (id: string) => void;
+  showManaCost: boolean;
+  optionsPinned: boolean;
 }) {
+  const columns = showManaCost ? "columns-[22rem]" : "columns-[15rem]";
+  function row(item: DeckViewItem) {
+    return (
+      <CompactRow
+        key={item.id}
+        item={item}
+        preview={preview}
+        selected={previewCardId === item.id}
+        showManaCost={showManaCost}
+        optionsPinned={optionsPinned}
+        onActivate={onPreviewCard}
+      />
+    );
+  }
   if (!grouped) {
     return (
-      <ul className="columns-[15rem] gap-x-8 px-4 py-3">
-        {groups.flatMap((group) => group.items).map((item) => (
-          <CompactRow key={item.id} item={item} preview={preview} />
-        ))}
+      <ul className={`${columns} gap-x-8 px-4 py-3`}>
+        {groups.flatMap((group) => group.items).map(row)}
       </ul>
     );
   }
   return (
-    <div className="columns-[15rem] gap-x-8 px-4 py-3">
+    <div className={`${columns} gap-x-8 px-4 py-3`}>
       {groups.map((group) => {
         const collapsed = collapsedGroups.has(group.key);
         return (
-          <div key={group.key} className="mb-4 break-inside-avoid">
+          <div key={group.key} data-testid="deck-text-group" className="mb-4 break-inside-avoid">
             <button
               type="button"
               className="flex w-full items-center gap-1 border-b border-outline-variant pb-1 text-left text-[13px] font-semibold text-ink"
@@ -222,13 +266,7 @@ function CompactColumns({
               <span className="font-normal text-muted">({groupQuantity(group.items)})</span>
               <Chevron collapsed={collapsed} />
             </button>
-            {collapsed ? null : (
-              <ul className="pt-1">
-                {group.items.map((item) => (
-                  <CompactRow key={item.id} item={item} preview={preview} />
-                ))}
-              </ul>
-            )}
+            {collapsed ? null : <ul className="pt-1">{group.items.map(row)}</ul>}
           </div>
         );
       })}
@@ -237,61 +275,55 @@ function CompactColumns({
 }
 
 /** Os três pontos ficam fora da área do preview, para a imagem ampliada não cobrir o menu. */
-function CompactRow({ item, preview }: { item: DeckViewItem; preview: Preview }) {
+function CompactRow({
+  item,
+  preview,
+  selected = false,
+  showManaCost = false,
+  optionsPinned = false,
+  onActivate,
+}: {
+  item: DeckViewItem;
+  preview: Preview | null;
+  selected?: boolean;
+  showManaCost?: boolean;
+  optionsPinned?: boolean;
+  onActivate?: (id: string) => void;
+}) {
   const [open, setOpen] = useState(false);
+  const grid = showManaCost
+    ? "grid-cols-[2.25rem_1.5rem_minmax(0,1fr)_6.5rem_1rem]"
+    : "grid-cols-[2.25rem_1.5rem_minmax(0,1fr)_1rem]";
   return (
     <li
-      className="group flex break-inside-avoid items-center gap-2 px-1 py-[3px] text-[13px] leading-5 hover:bg-surface-container-low"
+      className={`group grid ${grid} items-center gap-x-1.5 break-inside-avoid px-1 py-[3px] text-[13px] leading-5 hover:bg-surface-container-low ${
+        selected ? "bg-surface-container" : ""
+      }`}
       data-testid="deck-card-text"
+      data-active={selected ? "true" : undefined}
+      onPointerEnter={() => onActivate?.(item.id)}
+      onFocusCapture={() => onActivate?.(item.id)}
     >
-      <span className="flex min-w-0 flex-1 items-baseline gap-2" {...preview.bind(item.id, item.imageSrc, item.label)}>
-        <span className="flex w-auto min-w-5 shrink-0 items-center justify-end gap-1 font-mono text-[12px] tabular-nums text-muted">
-          {item.quantity}
-          <TagDots tags={item.tags} />
-        </span>
-        <span className="min-w-0 truncate">{item.label}</span>
+      <span className="flex justify-end">
+        <TagDots tags={item.tags} />
       </span>
-      <CardOptionsMenu item={item} placement="row" open={open} onOpenChange={setOpen} />
+      <span
+        aria-label={`Quantidade de ${item.label}`}
+        className="text-right font-mono text-[12px] tabular-nums text-muted"
+      >
+        {item.quantity}
+      </span>
+      <span
+        className="min-w-0 truncate"
+        {...(preview ? preview.bind(item.id, item.imageSrc, item.label) : {})}
+      >
+        {item.label}
+      </span>
+      {showManaCost ? (
+        <span className="flex justify-end">{item.manaCost ? <ManaCost cost={item.manaCost} /> : null}</span>
+      ) : null}
+      <CardOptionsMenu item={item} placement="row" open={open} onOpenChange={setOpen} pinned={optionsPinned} />
     </li>
-  );
-}
-
-function TextList({ items, preview }: { items: DeckViewItem[]; preview: Preview }) {
-  return (
-    <ul className="divide-y divide-surface-container">
-      {items.map((item) => (
-        <li
-          key={item.id}
-          className="flex flex-col gap-2 px-4 py-2 hover:bg-surface-bright sm:flex-row sm:items-center sm:justify-between"
-        >
-          <div
-            className="flex min-w-0 flex-1 cursor-default items-center gap-3"
-            data-testid="deck-card-text"
-            {...preview.bind(item.id, item.imageSrc, item.label)}
-          >
-            {item.thumbSrc ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={item.thumbSrc} alt="" className="h-28 w-20 shrink-0 border border-ink object-cover" />
-            ) : (
-              <span className="h-28 w-20 shrink-0 border border-ink bg-surface-container" />
-            )}
-            <div className="min-w-0">
-            <p className="flex min-w-0 items-center gap-2 text-[13px] font-semibold text-ink">
-              <span className="truncate">{item.label}</span>
-            </p>
-            <p className="flex min-w-0 items-center gap-2 font-mono text-[10px] tracking-[0.04em] text-on-surface-variant">
-              {item.secondary ? <span className="truncate">{item.secondary}</span> : null}
-              {item.setCode ? (
-                <span className="shrink-0 border border-outline-variant px-1 uppercase">{item.setCode}</span>
-              ) : null}
-              {item.priceLabel ? <span className="shrink-0">{item.priceLabel}</span> : null}
-            </p>
-            </div>
-          </div>
-          {item.renderActions("row")}
-        </li>
-      ))}
-    </ul>
   );
 }
 
@@ -399,21 +431,29 @@ function CardOptionsMenu({
   open,
   onOpenChange,
   placement = "grid",
+  pinned = false,
 }: {
   item: DeckViewItem;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   placement?: "grid" | "stack" | "row";
+  /** Reserva o espaço do ícone mesmo quando ele só aparece no hover. */
+  pinned?: boolean;
 }) {
   const stack = placement === "stack";
   const row = placement === "row";
-  const hoverOnly = open ? "visible" : "invisible group-hover:visible group-has-[:focus-visible]:visible";
+  const hoverOnly = pinned || open ? "visible" : "invisible group-hover:visible group-has-[:focus-visible]:visible";
   const rootRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
 
   useEffect(() => {
     if (!open) return;
     function onPointerDown(event: PointerEvent) {
-      if (!rootRef.current?.contains(event.target as Node)) onOpenChange(false);
+      const target = event.target as Node;
+      if (rootRef.current?.contains(target) || menuRef.current?.contains(target)) return;
+      onOpenChange(false);
     }
     function onKey(event: KeyboardEvent) {
       if (event.key === "Escape") onOpenChange(false);
@@ -426,6 +466,20 @@ function CardOptionsMenu({
     };
   }, [open, onOpenChange]);
 
+  const menu = open ? (
+    <div
+      ref={menuRef}
+      className={
+        row
+          ? "fixed z-[80] max-h-[min(24rem,calc(100vh-1rem))] w-44 overflow-auto border border-ink bg-surface-container-lowest p-1 shadow-[4px_4px_0_#09090b]"
+          : "absolute top-full z-40 mt-1 w-44 border border-ink bg-surface-container-lowest p-1 shadow-[4px_4px_0_#09090b]"
+      }
+      style={row ? (menuPos ?? { top: 0, left: 0 }) : { left: 0 }}
+    >
+      {item.renderActions("menu")}
+    </div>
+  ) : null;
+
   return (
     <div
       ref={rootRef}
@@ -433,26 +487,41 @@ function CardOptionsMenu({
       style={row ? undefined : stack ? { top: 0, right: STACK_MENU_RIGHT } : { top: CHIP_TOP, left: MENU_LEFT }}
     >
       <button
+        ref={buttonRef}
         type="button"
         aria-label={`Opções de ${item.label}`}
         aria-expanded={open}
         className={`flex ${row ? "h-5 w-4" : "h-6 w-5"} flex-col items-center justify-center gap-0.5 rounded-[4px] bg-black`}
         onClick={(event) => {
           event.stopPropagation();
-          onOpenChange(!open);
+          if (open) {
+            onOpenChange(false);
+            return;
+          }
+          if (row && buttonRef.current) setMenuPos(menuPosition(buttonRef.current.getBoundingClientRect()));
+          onOpenChange(true);
         }}
       >
         <span className="h-[3px] w-[3px] rounded-full bg-white" />
         <span className="h-[3px] w-[3px] rounded-full bg-white" />
         <span className="h-[3px] w-[3px] rounded-full bg-white" />
       </button>
-      {open ? (
-        <div className={`absolute ${row ? "right-0" : "left-0"} top-full z-40 mt-1 w-44 border border-ink bg-surface-container-lowest p-1 shadow-[4px_4px_0_#09090b]`}>
-          {item.renderActions("menu")}
-        </div>
-      ) : null}
+      {row ? (open && menuPos && typeof document !== "undefined" ? createPortal(menu, document.body) : null) : menu}
     </div>
   );
+}
+
+/** O menu da linha sai das colunas CSS, que quebram um painel absoluto alto (F-017). */
+function menuPosition(rect: DOMRect) {
+  const width = 176;
+  const margin = 8;
+  let left = rect.right - width;
+  if (left < margin) left = margin;
+  if (left + width > window.innerWidth - margin) left = window.innerWidth - width - margin;
+  let top = rect.bottom + 4;
+  const estimated = 280;
+  if (top + estimated > window.innerHeight - margin) top = Math.max(margin, rect.top - estimated);
+  return { top, left };
 }
 
 function chunk<T>(items: T[], size: number): T[][] {

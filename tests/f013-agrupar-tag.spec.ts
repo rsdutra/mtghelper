@@ -20,7 +20,10 @@ async function addDeckList(page: Page, text: string, nameEn: string) {
   await page.getByRole("button", { name: "Adicionar lista" }).click();
   await page.getByLabel("Lista no deck").fill(text);
   await page.getByRole("dialog").getByRole("button", { name: "Salvar" }).click();
-  await expect(page.getByText(nameEn).first()).toBeVisible();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  const deckId = page.url().split("/decks/")[1]?.split("/")[0];
+  const label = await cardLabel(page, deckId, nameEn);
+  await expect(page.getByText(label, { exact: true }).first()).toBeVisible();
   await page.getByRole("button", { name: "Busca", exact: true }).click();
 }
 
@@ -30,14 +33,15 @@ function cardRow(page: Page, label: string) {
 
 async function openTagMenu(page: Page, label: string) {
   const row = cardRow(page, label);
-  if ((await row.getByRole("menuitem", { name: "Nova tag…" }).count()) === 0) {
-    await row.getByRole("button", { name: /Tags de / }).click();
+  if ((await page.getByRole("menuitem", { name: "Nova tag…" }).count()) === 0) {
+    await row.hover();
+    await row.getByRole("button", { name: /Opções de / }).click();
   }
 }
 
 async function newTag(page: Page, label: string, tag: string, color: string) {
   await openTagMenu(page, label);
-  await cardRow(page, label).getByRole("menuitem", { name: "Nova tag…" }).click();
+  await page.getByRole("menuitem", { name: "Nova tag…" }).click();
   const dialog = page.getByRole("dialog", { name: "Nova tag" });
   await dialog.getByLabel("Nome", { exact: true }).fill(tag);
   await dialog.getByLabel("Cor", { exact: true }).fill(color);
@@ -47,23 +51,27 @@ async function newTag(page: Page, label: string, tag: string, color: string) {
 
 async function existingTag(page: Page, label: string, tag: string) {
   await openTagMenu(page, label);
-  await cardRow(page, label).getByRole("menuitem", { name: tag }).click();
+  await page.getByRole("menuitem", { name: tag }).click();
   await expect(cardRow(page, label).locator("span[aria-label]").getByTitle(tag)).toBeVisible();
   await page.mouse.click(5, 5);
 }
 
-/** Grupos da view Texto na edição: `div` com cabeçalho `button[aria-expanded]` e a lista. */
+/** Grupos da view Texto na edição: colunas com cabeçalho recolhível (F-017). */
 function editGroup(page: Page, name: string) {
   return page
     .getByTestId("deck-view-texto")
     .first()
-    .locator(":scope > div")
-    .filter({ has: page.locator("button[aria-expanded]", { hasText: name }) });
+    .getByTestId("deck-text-group")
+    .filter({ has: page.getByRole("button", { name }) });
 }
 
 async function editGroupHeaders(page: Page) {
-  const headers = page.getByTestId("deck-view-texto").first().locator(":scope > div > button[aria-expanded]");
-  return (await headers.allTextContents()).map((text) => text.replace(/[▸▾\d]/g, "").trim());
+  const headers = page
+    .getByTestId("deck-view-texto")
+    .first()
+    .getByTestId("deck-text-group")
+    .locator(":scope > button[aria-expanded]");
+  return (await headers.allTextContents()).map((text) => text.replace(/[▸▾\d()]/g, "").trim());
 }
 
 test("agrupa por tag com Multitag e Sem tag", async ({ page }) => {

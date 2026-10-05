@@ -141,14 +141,17 @@ test("copia o nome em inglês pelo menu da carta", async ({ page }) => {
   await page.goto(`/decks/${deckId}/edit`);
   const viewSelect = page.getByLabel("Visualização");
 
-  // Lista em texto: botão de ícone na linha.
+  // Lista em texto: “Copiar nome” no menu de opções da linha (F-017).
   await viewSelect.selectOption("texto");
   const row = page.getByTestId("deck-view-texto").first().locator("li").filter({ hasText: label });
   await page.evaluate(() => navigator.clipboard.writeText(""));
-  await row.getByRole("button", { name: `Copiar nome de ${label}` }).click();
-  await expect(row.getByRole("status")).toHaveText("Nome copiado");
+  await row.hover();
+  await row.getByRole("button", { name: `Opções de ${label}` }).click();
+  const editMenu = page.getByRole("menu");
+  await editMenu.getByRole("menuitem", { name: "Copiar nome" }).click();
+  await expect(editMenu.getByRole("status")).toHaveText("Nome copiado");
   expect(await clipboard(page)).toBe("Lightning Bolt");
-  await expect(row.getByRole("status")).toHaveCount(0, { timeout: 5000 });
+  await expect(editMenu.getByRole("status")).toHaveCount(0, { timeout: 5000 });
 
   // Grid: item do menu de três pontos.
   await viewSelect.selectOption("grid");
@@ -170,7 +173,7 @@ test("copia o nome em inglês pelo menu da carta", async ({ page }) => {
   await compactRow.hover();
   await expect(rowOptions).toBeVisible();
   await rowOptions.click();
-  const viewMenu = compactRow.getByTestId("deck-card-actions");
+  const viewMenu = page.getByTestId("deck-card-actions");
   await expect(viewMenu.getByRole("menuitem")).toHaveText(["Copiar nome"]);
   await page.evaluate(() => navigator.clipboard.writeText(""));
   await viewMenu.getByRole("menuitem", { name: "Copiar nome" }).click();

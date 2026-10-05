@@ -24,13 +24,18 @@ import { DeckExportPanel } from "@/components/deck-export-panel";
 import { DeckStatsCharts } from "@/components/deck-stats-charts";
 import { DeckCardActions, DeckCardCopyActions } from "@/components/deck-views/deck-card-actions";
 import { DeckCardView } from "@/components/deck-views/deck-card-view";
+import { DeckSidePreview } from "@/components/deck-views/deck-side-preview";
+import { TextListOptions } from "@/components/deck-views/text-list-options";
 import {
   DECK_LIST_VIEWS,
   DECK_LIST_VIEW_STORAGE_KEY,
   parseDeckListView,
+  parseTextListOptions,
+  TEXT_LIST_OPTIONS_STORAGE_KEY,
   type DeckListView,
   type DeckViewGroup,
   type DeckViewItem,
+  type TextListOption,
 } from "@/components/deck-views/deck-view-types";
 import { groupCardsByType } from "@/lib/card-types";
 import type { DeckCoverageSummary } from "@/lib/deck-coverage";
@@ -76,6 +81,8 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
   const [groupMode, setGroupMode] = useState<GroupMode | null>(null);
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(() => new Set());
   const [listView, setListView] = useState<DeckListView | null>(null);
+  const [textOptions, setTextOptions] = useState<TextListOption[] | null>(null);
+  const [previewCardId, setPreviewCardId] = useState<string | null>(null);
   const [canvasToolsOpen, setCanvasToolsOpen] = useState(false);
   const [toolsOpen, setToolsOpen] = useState(false);
   const [chartsOpen, setChartsOpen] = useState(false);
@@ -124,7 +131,13 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
     const saved = GROUP_MODES.find((mode) => window.localStorage.getItem(GROUP_STORAGE_KEYS[mode]) === "1");
     setGroupMode(saved ?? "none");
     setListView(parseDeckListView(window.localStorage.getItem(DECK_LIST_VIEW_STORAGE_KEY)));
+    setTextOptions(parseTextListOptions(window.localStorage.getItem(TEXT_LIST_OPTIONS_STORAGE_KEY)));
   }, []);
+
+  function changeTextOptions(next: TextListOption[]) {
+    setTextOptions(next);
+    window.localStorage.setItem(TEXT_LIST_OPTIONS_STORAGE_KEY, JSON.stringify(next));
+  }
 
   function changeListView(next: DeckListView) {
     setListView(next);
@@ -267,6 +280,7 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
       setCode: card.set_code || null,
       tags: card.tags ?? [],
       priceLabel: formatBRLFromCents(card.price_cents ?? null) || null,
+      manaCost: card.mana_cost || card.front_mana_cost || null,
       imageSrc: card.image_normal ?? card.image_small,
       thumbSrc: card.image_small ?? card.image_normal,
       renderActions: (layout) =>
@@ -330,6 +344,15 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
         ))}
       </select>
     </label>
+  );
+
+  const listToolbar = (
+    <div className="flex flex-wrap items-center justify-end gap-3">
+      {listViewSelect}
+      {editing ? (
+        <TextListOptions value={textOptions ?? []} disabled={textOptions === null} onChange={changeTextOptions} />
+      ) : null}
+    </div>
   );
 
   const viewToggle = (
@@ -501,6 +524,27 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
     <p className="px-4 py-4 text-[13px] text-muted">Nenhuma carta com a tag {activeTag.name}.</p>
   ) : null;
 
+  const showManaCost = textOptions?.includes("mana") ?? false;
+  const previewSource = previewCardId ? (cards.find((card) => card.id === previewCardId) ?? null) : null;
+  const showSidePreview = editing && listView === "texto";
+
+  function renderCardView(groups: DeckViewGroup[]) {
+    if (!listView) return null;
+    return (
+      <DeckCardView
+        view={listView}
+        groups={groups}
+        collapsedGroups={collapsedGroups}
+        onToggleGroup={toggleCollapsedGroup}
+        readOnly={!editing}
+        sidePreview={editing}
+        previewCardId={previewCardId}
+        onPreviewCard={setPreviewCardId}
+        showManaCost={showManaCost}
+      />
+    );
+  }
+
   const deckPanel = (
     <ListPanel title="No deck" count={includedCount}>
       {mainCards.length === 0 ? (
@@ -509,15 +553,9 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
         </p>
       ) : shownMain.length === 0 ? (
         filteredOut
-      ) : listView ? (
-        <DeckCardView
-          view={listView}
-          groups={includedGroups}
-          collapsedGroups={collapsedGroups}
-          onToggleGroup={toggleCollapsedGroup}
-          readOnly={!editing}
-        />
-      ) : null}
+      ) : (
+        renderCardView(includedGroups)
+      )}
     </ListPanel>
   );
 
@@ -533,15 +571,9 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
         <p className="px-4 py-4 text-[13px] text-muted">Nenhuma carta no sideboard.</p>
       ) : shownSideboard.length === 0 ? (
         filteredOut
-      ) : listView ? (
-        <DeckCardView
-          view={listView}
-          groups={sideboardGroups}
-          collapsedGroups={collapsedGroups}
-          onToggleGroup={toggleCollapsedGroup}
-          readOnly={!editing}
-        />
-      ) : null}
+      ) : (
+        renderCardView(sideboardGroups)
+      )}
     </ListPanel>
   ) : null;
 
@@ -557,15 +589,9 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
           <p className="px-4 py-4 text-[13px] text-muted">Nenhuma carta fora do deck.</p>
         ) : shownWorking.length === 0 ? (
           filteredOut
-        ) : listView ? (
-          <DeckCardView
-            view={listView}
-            groups={workingGroups}
-            collapsedGroups={collapsedGroups}
-            onToggleGroup={toggleCollapsedGroup}
-            readOnly={!editing}
-          />
-        ) : null}
+        ) : (
+          renderCardView(workingGroups)
+        )}
       </ListPanel>
     ) : null;
 
@@ -694,11 +720,24 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
               </span>
             ) : null}
           </div>
-          {listViewSelect}
+          {listToolbar}
         </div>
 
         {editing ? (
-          <div className="relative min-w-0 space-y-5">
+          <div className={showSidePreview ? "flex flex-col gap-5 sm:flex-row sm:items-start" : "relative min-w-0 space-y-5"}>
+            {showSidePreview ? (
+              <DeckSidePreview
+                card={
+                  previewSource
+                    ? {
+                        label: previewSource.name_pt ?? previewSource.name_en,
+                        imageSrc: previewSource.image_normal ?? previewSource.image_small,
+                      }
+                    : null
+                }
+              />
+            ) : null}
+            <div className="relative min-w-0 flex-1 space-y-5">
             {deckPanel}
             {sideboardPanel}
             {workingPanel}
@@ -737,6 +776,7 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
             {tagsPanel}
             {buildToolsPanel}
             {exportPanel}
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">

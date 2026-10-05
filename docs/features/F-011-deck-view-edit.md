@@ -62,7 +62,7 @@ Critérios de aceite:
 Critérios de aceite:
 
 - [x] Nome e formato editáveis + Salvar, como hoje.
-- [x] Linhas com todas as ações atuais, no estilo Stitch (stepper com borda, lixeira, “No deck”, tags).
+- [x] Linhas com todas as ações atuais. Na view Texto da edição, essas ações ficam no ícone de opções (F-017). Grid e grid agrupada continuam no menu da carta.
 - [x] Painel lateral (Stitch 4/12) com busca (botão Adicionar, US-004-18), lista, seção, tags, em trabalho + tag, coleção. O escanear saiu da edição do deck (US-004-18).
 - [x] Botão para voltar à visualização.
 - [x] Canvas (F-008) editável como hoje; na visualização, canvas somente leitura.
@@ -112,3 +112,4 @@ Critérios de aceite:
 - F-008: canvas.
 - F-009: design system Stitch (tokens).
 - F-010: seletor de visualização e preview compartilhado.
+- F-017: view Texto da edição (colunas, preview ao lado, menu de opções, custo de mana).

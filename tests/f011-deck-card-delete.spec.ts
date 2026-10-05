@@ -29,6 +29,17 @@ function panel(page: Page, title: string) {
   return page.locator("section").filter({ has: page.getByRole("heading", { level: 2, name: title, exact: true }) });
 }
 
+async function openRowMenu(panelLocator: Locator, label: string) {
+  const row = panelLocator.getByTestId("deck-card-text").filter({ hasText: label });
+  const menu = panelLocator.page().getByRole("menu");
+  await row.hover();
+  await row.getByRole("button", { name: `Opções de ${label}` }).click();
+  if ((await menu.count()) === 0) {
+    await row.getByRole("button", { name: `Opções de ${label}` }).click();
+  }
+  return menu;
+}
+
 async function clickAndExpectDelete(page: Page, deckId: string, button: Locator) {
   const deleted = page.waitForResponse(
     (response) => response.url().endsWith(`/api/decks/${deckId}/cards`) && response.request().method() === "DELETE",
@@ -64,39 +75,37 @@ test("remover cópias e a carta inteira na lista de edição", async ({ page }) 
   await page.goto(`/decks/${deckId}/edit`);
   const deckPanel = panel(page, "No deck");
   const outPanel = panel(page, "Fora do deck");
-  await expect(deckPanel.getByRole("button", { name: `Diminuir ${bolt}` })).toBeVisible();
+  const boltMenu = await openRowMenu(deckPanel, bolt);
+  await expect(boltMenu.getByRole("menuitem", { name: `Diminuir ${bolt}` })).toBeVisible();
 
   // Diminuir tira 1 cópia.
-  await clickAndExpectDelete(page, deckId, deckPanel.getByRole("button", { name: `Diminuir ${bolt}` }));
+  await clickAndExpectDelete(page, deckId, boltMenu.getByRole("menuitem", { name: `Diminuir ${bolt}` }));
   await expect(deckPanel.getByLabel(`Quantidade de ${bolt}`)).toHaveText(/^2/);
   expect(await placesOf(page, deckId, "Lightning Bolt")).toEqual(["main:2"]);
 
   // Diminuir a última cópia remove a carta.
-  await clickAndExpectDelete(page, deckId, deckPanel.getByRole("button", { name: `Diminuir ${solRing}` }));
-  await expect(page.getByRole("button", { name: `Diminuir ${solRing}` })).toHaveCount(0);
+  const ringMenu = await openRowMenu(deckPanel, solRing);
+  await clickAndExpectDelete(page, deckId, ringMenu.getByRole("menuitem", { name: `Diminuir ${solRing}` }));
+  await expect(page.getByRole("menuitem", { name: `Diminuir ${solRing}` })).toHaveCount(0);
   expect(await placesOf(page, deckId, "Sol Ring")).toEqual([]);
 
   // Lixeira remove todas as cópias.
-  await clickAndExpectDelete(
-    page,
-    deckId,
-    deckPanel.getByRole("button", { name: `Remover todas as cópias de ${bolt}` }),
-  );
-  await expect(page.getByRole("button", { name: `Diminuir ${bolt}` })).toHaveCount(0);
+  const boltRemove = await openRowMenu(deckPanel, bolt);
+  await clickAndExpectDelete(page, deckId, boltRemove.getByRole("menuitem", { name: `Remover todas as cópias de ${bolt}` }));
+  await expect(page.getByRole("menuitem", { name: `Diminuir ${bolt}` })).toHaveCount(0);
   expect(await placesOf(page, deckId, "Lightning Bolt")).toEqual([]);
 
   // Remover do deck mantém as cópias de outro lugar.
-  await clickAndExpectDelete(
-    page,
-    deckId,
-    deckPanel.getByRole("button", { name: `Remover todas as cópias de ${tower}` }),
-  );
-  await expect(deckPanel.getByRole("button", { name: `Diminuir ${tower}` })).toHaveCount(0);
-  await expect(outPanel.getByRole("button", { name: `Diminuir ${tower}` })).toBeVisible();
+  const towerMenu = await openRowMenu(deckPanel, tower);
+  await clickAndExpectDelete(page, deckId, towerMenu.getByRole("menuitem", { name: `Remover todas as cópias de ${tower}` }));
+  await expect(deckPanel.getByRole("menuitem", { name: `Diminuir ${tower}` })).toHaveCount(0);
+  const outTower = await openRowMenu(outPanel, tower);
+  await expect(outTower.getByRole("menuitem", { name: `Diminuir ${tower}` })).toBeVisible();
   expect(await placesOf(page, deckId, "Command Tower")).toEqual(["out:1"]);
 
   // Persistiu: recarregar não traz as cartas de volta.
   await page.reload();
   await expect(deckPanel.getByText("Nenhuma carta incluída.")).toBeVisible();
-  await expect(outPanel.getByRole("button", { name: `Diminuir ${tower}` })).toBeVisible();
+  const outTowerAgain = await openRowMenu(outPanel, tower);
+  await expect(outTowerAgain.getByRole("menuitem", { name: `Diminuir ${tower}` })).toBeVisible();
 });

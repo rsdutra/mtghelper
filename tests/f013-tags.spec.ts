@@ -12,7 +12,12 @@ async function addDeckList(page: Page, text: string, nameEn: string) {
   await page.getByRole("button", { name: "Adicionar lista" }).click();
   await page.getByLabel("Lista no deck").fill(text);
   await page.getByRole("dialog").getByRole("button", { name: "Salvar" }).click();
-  await expect(page.getByText(nameEn).first()).toBeVisible();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  const deckId = page.url().split("/decks/")[1]?.split("/")[0];
+  const response = await page.request.get(`/api/decks/${deckId}`);
+  const data = (await response.json()) as { cards: { name_en: string; name_pt: string | null }[] };
+  const card = data.cards.find((item) => item.name_en === nameEn);
+  await expect(page.getByText(card?.name_pt ?? nameEn, { exact: true }).first()).toBeVisible();
   await page.getByRole("button", { name: "Busca", exact: true }).click();
 }
 
@@ -38,8 +43,15 @@ test("deck e coleção marcam a carta com bolinha da tag", async ({ page }) => {
   await addDeckList(page, "1 Lightning Bolt", "Lightning Bolt");
 
   const textView = page.getByTestId("deck-view-texto").first();
-  const ringRow = textView.locator("li").filter({ hasText: "Sol Ring" });
-  await ringRow.getByRole("button", { name: /Tags de / }).click();
+  const deckId = page.url().split("/decks/")[1].split("/")[0];
+  const names = await page.request.get(`/api/decks/${deckId}`).then((response) => response.json()) as {
+    cards: { name_en: string; name_pt: string | null }[];
+  };
+  const ringName = names.cards.find((item) => item.name_en === "Sol Ring");
+  const ringLabel = ringName?.name_pt ?? "Sol Ring";
+  const ringRow = textView.locator("li").filter({ hasText: ringLabel });
+  await ringRow.hover();
+  await ringRow.getByRole("button", { name: `Opções de ${ringLabel}` }).click();
   await createTag(page, "Ramp");
   await expect(ringRow.getByTitle("Ramp")).toBeVisible();
 

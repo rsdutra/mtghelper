@@ -30,8 +30,16 @@ test("cadastro, busca Scryfall, deck e coleção", async ({ page }) => {
   await page.getByRole("button", { name: "Adicionar lista" }).click();
   await page.getByLabel("Lista no deck").fill("1 Sol Ring");
   await page.getByRole("dialog").getByRole("button", { name: "Salvar" }).click();
-  await expect(page.getByText("Sol Ring").first()).toBeVisible();
-  await expect(page.getByLabel(/Mover /).first()).toBeVisible();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  const deckId = page.url().split("/decks/")[1].split("/")[0];
+  const added = (await (await page.request.get(`/api/decks/${deckId}`)).json()) as {
+    cards: { name_en: string; name_pt: string | null }[];
+  };
+  const ring = added.cards.find((item) => item.name_en === "Sol Ring");
+  await expect(page.getByText(ring?.name_pt ?? "Sol Ring", { exact: true }).first()).toBeVisible();
+  const addedRow = page.getByTestId("deck-card-text").first();
+  await addedRow.hover();
+  await expect(addedRow.getByRole("button", { name: /Opções de / })).toBeVisible();
 
   await page.getByRole("button", { name: "Incluir na coleção" }).click();
   await page.getByRole("button", { name: "Verificar" }).click();

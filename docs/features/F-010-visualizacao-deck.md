@@ -92,7 +92,7 @@ Critérios de aceite:
 
 ## Superfície
 
-- UI: modo Lista de `/decks/[id]` e `/decks/[id]/edit` (na visualização, Texto vira colunas condensadas e as ações somem — F-011); componentes em `src/components/deck-views/` (`DeckCardView`, `DeckCardActions`), preview em `src/components/card-hover-preview.tsx`
+- UI: modo Lista de `/decks/[id]` e `/decks/[id]/edit` (na visualização, Texto vira colunas condensadas e as ações somem — F-011). Na edição, a view Texto segue F-017: colunas por nome, preview fixo ao lado e sem preview ao pairar. Componentes em `src/components/deck-views/` (`DeckCardView`, `DeckCardActions`), preview em `src/components/card-hover-preview.tsx`
 - Teste: `tests/f010-deck-views.spec.ts`
 - API: nenhuma nova.
 - Dados: nenhum novo (preferência em `localStorage`).

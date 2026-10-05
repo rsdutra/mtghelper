@@ -44,13 +44,17 @@ async function addDeckList(page: Page, text: string, nameEn: string) {
   await page.getByRole("button", { name: "Adicionar lista" }).click();
   await page.getByLabel("Lista no deck").fill(text);
   await page.getByRole("dialog").getByRole("button", { name: "Salvar" }).click();
-  await expect(page.getByText(nameEn).first()).toBeVisible();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  const deckId = page.url().split("/decks/")[1]?.split("/")[0];
+  const label = await cardLabel(page, deckId, nameEn);
+  await expect(page.getByText(label, { exact: true }).first()).toBeVisible();
   await page.getByRole("button", { name: "Busca", exact: true }).click();
 }
 
 async function tagCard(page: Page, label: string, tag: string, color: string) {
   const row = page.getByTestId("deck-view-texto").first().locator("li").filter({ hasText: label });
-  await row.getByRole("button", { name: /Tags de / }).click();
+  await row.hover();
+  await row.getByRole("button", { name: /Opções de / }).click();
   await page.getByRole("menuitem", { name: "Nova tag…" }).click();
   const dialog = page.getByRole("dialog", { name: "Nova tag" });
   await dialog.getByLabel("Nome", { exact: true }).fill(tag);

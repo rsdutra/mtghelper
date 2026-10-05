@@ -25,7 +25,13 @@ async function addToDeck(page: Page, text: string, nameEn: string) {
   await page.getByRole("button", { name: "Adicionar lista" }).click();
   await page.getByLabel("Lista no deck").fill(text);
   await page.getByRole("dialog").getByRole("button", { name: "Salvar" }).click();
-  await expect(page.getByText(nameEn).first()).toBeVisible();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  const addedId = page.url().split("/decks/")[1]?.split("/")[0];
+  const added = (await (await page.request.get(`/api/decks/${addedId}`)).json()) as {
+    cards: DeckCard[];
+  };
+  const addedCard = added.cards.find((item) => item.name_en === nameEn);
+  await expect(page.getByText(addedCard?.name_pt ?? nameEn, { exact: true }).first()).toBeVisible();
   await page.getByRole("button", { name: "Busca", exact: true }).click();
 }
 
@@ -46,22 +52,26 @@ test("visualizações: texto, grid visual e grid visual agrupada", async ({ page
   await addToDeck(page, "1 Island", "Island");
   const names = await cardLabels(page, deckId);
 
-  // Texto é o default, com miniatura na edição.
+  // Texto é o default. Na edição a lista é por nome, com preview ao lado (F-017).
   const viewSelect = page.getByLabel("Visualização");
   await expect(viewSelect).toHaveValue("texto");
   const textView = page.getByTestId("deck-view-texto").first();
-  await expect(textView.locator("img")).toHaveCount(3);
+  await expect(textView.locator("img")).toHaveCount(0);
+  await expect(page.getByTestId("deck-side-preview")).toBeVisible();
 
-  // Island vai para "Fora do deck" pelo seletor da linha.
-  const islandRow = textView.locator("li").filter({ hasText: "Island" });
-  await islandRow.getByLabel(`Mover ${names.island}`).selectOption("out");
+  // Island vai para "Fora do deck" pelo menu da linha.
+  const islandRow = textView.locator("li").filter({ hasText: names.island });
+  await islandRow.hover();
+  await islandRow.getByRole("button", { name: `Opções de ${names.island}` }).click();
+  await page.getByRole("menuitem", { name: "Fora do deck" }).click();
   await expect(page.getByTestId("deck-view-texto")).toHaveCount(2);
 
-  // US-010-05: preview só ao pairar sobre o texto.
+  // F-017: a view Texto da edição não abre o preview flutuante; a imagem fica no painel.
   const preview = page.getByTestId("card-hover-preview");
-  await textView.getByTestId("deck-card-text").filter({ hasText: names.bolt }).hover();
-  await expect(preview).toBeVisible();
-  await expect(preview.locator("img")).toHaveAttribute("alt", names.bolt);
+  const boltRow = textView.getByTestId("deck-card-text").filter({ hasText: names.bolt });
+  await boltRow.hover();
+  await expect(preview).toHaveCount(0);
+  await expect(page.getByTestId("deck-side-preview").getByRole("img", { name: names.bolt })).toBeVisible();
   await page.mouse.move(5, 5);
   await expect(preview).toHaveCount(0);
 

@@ -57,7 +57,11 @@ test("modais ficam por cima dos painéis abertos do deck", async ({ page }) => {
   await listDialog.getByLabel("Lista no deck").fill("1 Shock");
   await listDialog.getByRole("button", { name: "Salvar" }).click();
   await expect(listDialog).toHaveCount(0);
-  await expect(page.getByText("Shock").first()).toBeVisible();
+  const shock = (await (await page.request.get(`/api/decks/${deck.id}`)).json()) as {
+    cards: { name_en: string; name_pt: string | null }[];
+  };
+  const shockName = shock.cards.find((item) => item.name_en === "Shock")?.name_pt ?? "Shock";
+  await expect(page.getByText(shockName, { exact: true }).first()).toBeVisible();
 
   // Modal de exportar (F-016) com os mesmos painéis abertos. O painel de exportação fica sob os
   // outros nesta largura, então a opção é acionada pelo teclado.
