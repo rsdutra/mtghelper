@@ -38,7 +38,7 @@ export default function SearchPage() {
   return (
     <AppShell>
       <div className="space-y-8">
-        <div className="flex flex-wrap items-end justify-between gap-4">
+        <div data-page-hero className="flex flex-wrap items-end justify-between gap-4">
           <div className="space-y-1">
             <h1 className="ui-headline">Busca</h1>
             <p className="max-w-xl text-[13px] leading-5 text-secondary">
@@ -55,7 +55,7 @@ export default function SearchPage() {
         </div>
 
         {picked ? (
-          <article className="flex max-w-2xl gap-4 border border-ink bg-surface-container-lowest p-4">
+          <article className="flex max-w-2xl gap-4 border border-ink bg-surface-container-lowest p-4 shadow-panel">
             {picked.imageSmall ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={picked.imageSmall} alt="" className="h-28 w-20 rounded-[3px] object-cover" />
@@ -76,7 +76,7 @@ export default function SearchPage() {
             </p>
           </div>
           <ListImport onResolved={importList} />
-          <ul className="border border-ink bg-surface-container-lowest">
+          <ul className="border border-ink bg-surface-container-lowest shadow-panel">
             {resolved.map((item) => (
               <li key={`${item.card.id}-${item.quantity}`} className="ui-row justify-between text-[13px]">
                 <span>

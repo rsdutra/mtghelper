@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Decks - Gerenciamento (Variante Stone Quente)</title>
+<!-- Google Fonts: Geist & JetBrains Mono -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS with Forms & Container Queries -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-primary-fixed": "#1c1b1d",
+            "inverse-on-surface": "#f0f1f2",
+            "on-primary-container": "#78716c",
+            "surface-container-highest": "#e7e5e4",
+            "on-primary-fixed-variant": "#44403c",
+            "on-secondary-fixed-variant": "#44403c",
+            "inverse-primary": "#c8c6c8",
+            "surface-container-high": "#eae8e4",
+            "on-tertiary": "#ffffff",
+            "secondary-fixed": "#e7e5e4",
+            "on-surface-variant": "#57534e",
+            "tertiary-container": "#1c1917",
+            "surface-tint": "#292524",
+            "primary-fixed": "#e7e5e4",
+            "background": "#e5e3df",
+            "inverse-surface": "#1c1917",
+            "on-primary": "#ffffff",
+            "on-tertiary-fixed": "#1c1917",
+            "secondary": "#57534e",
+            "primary-container": "#1c1917",
+            "surface-container-lowest": "#ffffff",
+            "primary": "#09090b",
+            "surface-bright": "#fafaf9",
+            "on-tertiary-container": "#78716c",
+            "error-container": "#ffdad6",
+            "surface-container-low": "#f5f5f4",
+            "primary-fixed-dim": "#d6d3d1",
+            "tertiary-fixed": "#e7e5e4",
+            "outline-variant": "#d6d3d1",
+            "surface-dim": "#d6d3d1",
+            "secondary-container": "#e7e5e4",
+            "on-secondary-fixed": "#1c1917",
+            "secondary-fixed-dim": "#d6d3d1",
+            "on-secondary-container": "#57534e",
+            "tertiary": "#09090b",
+            "on-surface": "#1c1917",
+            "on-error": "#ffffff",
+            "error": "#ba1a1a",
+            "tertiary-fixed-dim": "#d6d3d1",
+            "on-tertiary-fixed-variant": "#44403c",
+            "outline": "#a8a29e",
+            "on-error-container": "#93000a",
+            "on-background": "#1c1917",
+            "surface-variant": "#eae8e4",
+            "on-secondary": "#ffffff",
+            "surface": "#ffffff",
+            "surface-container": "#f5f5f4"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "margin": "1rem",
+            "space-xl": "1.5rem",
+            "gutter": "0.75rem",
+            "space-xs": "0.25rem",
+            "space-sm": "0.5rem",
+            "space-md": "0.75rem",
+            "space-lg": "1rem",
+            "space-2xl": "2rem",
+            "gutter-desktop": "1rem",
+            "margin-desktop": "1.5rem"
+          },
+          "fontFamily": {
+            "headline-xl": ["Geist", "sans-serif"],
+            "body-md": ["Geist", "sans-serif"],
+            "headline-sm": ["Geist", "sans-serif"],
+            "body-sm": ["Geist", "sans-serif"],
+            "label-md": ["JetBrains Mono", "monospace"],
+            "code-num": ["JetBrains Mono", "monospace"],
+            "headline-lg": ["Geist", "sans-serif"],
+            "body-lg": ["Geist", "sans-serif"],
+            "label-sm": ["JetBrains Mono", "monospace"]
+          },
+          "fontSize": {
+            "headline-xl": ["28px", { "lineHeight": "34px", "letterSpacing": "-0.03em", "fontWeight": "600" }],
+            "body-md": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+            "headline-sm": ["15px", { "lineHeight": "20px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "code-num": ["13px", { "lineHeight": "16px", "fontWeight": "600" }],
+            "headline-lg": ["20px", { "lineHeight": "26px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+            "body-lg": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "label-sm": ["10px", { "lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "500" }]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+      font-size: 18px;
+      line-height: 1;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    /* Architectural 1px hairline aesthetics */
+    * {
+      border-color: #d6d3d1;
+    }
+    input, select, textarea {
+      outline: none !important;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: #09090b !important;
+      box-shadow: none !important;
+    }
+    /* Warm stone canvas micro-dot grid */
+    body {
+      background-color: #e5e3df;
+      background-image: radial-gradient(#a8a29e 0.75px, transparent 0.75px);
+      background-size: 16px 16px;
+    }
+  </style>
+</head>
+<body class="text-on-surface antialiased selection:bg-primary selection:text-on-primary min-h-screen flex flex-col font-body-md">
+<!-- TOP NAV BAR (Warm tone #f5f5f4) -->
+<header class="fixed top-0 left-0 w-full z-50 flex items-center justify-between px-space-md h-12 bg-[#f5f5f4] border-b border-[#d6d3d1]">
+<div class="flex items-center space-x-space-lg">
+<!-- Brand Logo -->
+<a class="text-headline-sm font-headline-sm tracking-tight text-primary uppercase font-bold flex items-center gap-space-xs" href="#">
+<span class="w-2.5 h-2.5 bg-primary inline-block"></span>
+        ARCHIVIST // MTG
+      </a>
+<!-- Navigation Links -->
+<nav class="hidden md:flex items-center space-x-space-md pt-3">
+<!-- Decks (ACTIVE) -->
+<a class="text-primary border-b-2 border-primary font-headline-sm text-body-md font-semibold pb-3" href="#">
+          Decks
+        </a>
+<!-- Coleção -->
+<a class="text-on-surface-variant hover:text-primary text-body-md pb-3 transition-colors" href="#">
+          Coleção
+        </a>
+<!-- Formatos -->
+<a class="text-on-surface-variant hover:text-primary text-body-md pb-3 transition-colors" href="#">
+          Formatos
+        </a>
+<!-- Estatísticas -->
+<a class="text-on-surface-variant hover:text-primary text-body-md pb-3 transition-colors" href="#">
+          Estatísticas
+        </a>
+</nav>
+</div>
+<!-- Trailing Actions Cluster -->
+<div class="flex items-center space-x-space-sm">
+<!-- Command palette shortcut indicator -->
+<div class="hidden lg:flex items-center border border-[#d6d3d1] px-space-xs py-0.5 text-on-surface-variant font-label-sm text-label-sm bg-surface-container-lowest">
+<span>⌘K</span>
+</div>
+<!-- Secondary Action -->
+<button class="hidden sm:inline-flex items-center space-x-1 border border-[#d6d3d1] bg-surface-container-lowest hover:bg-stone-50 hover:border-primary text-on-surface font-body-sm text-body-sm px-space-sm py-1.5 transition-colors duration-150 active:translate-y-px">
+<span class="material-symbols-outlined text-[16px]">file_upload</span>
+<span>Importar Lista</span>
+</button>
+<!-- Primary Action -->
+<button class="inline-flex items-center space-x-1 bg-[#09090b] hover:bg-stone-800 text-white font-body-sm text-body-sm px-space-md py-1.5 transition-colors duration-150 active:translate-y-px">
+<span class="material-symbols-outlined text-[16px]">add</span>
+<span>Novo Deck</span>
+</button>
+<!-- Trailing Icon Actions -->
+<div class="flex items-center border-l border-[#d6d3d1] pl-space-sm space-x-1">
+<button class="p-1.5 text-on-surface-variant hover:text-primary hover:bg-[#eae8e4] transition-colors duration-150" title="Terminal CLI">
+<span class="material-symbols-outlined">terminal</span>
+</button>
+<button class="p-1.5 text-on-surface-variant hover:text-primary hover:bg-[#eae8e4] transition-colors duration-150" title="Configurações de Filtro">
+<span class="material-symbols-outlined">tune</span>
+</button>
+<button class="p-1.5 text-on-surface-variant hover:text-primary hover:bg-[#eae8e4] transition-colors duration-150 flex items-center space-x-1" title="Perfil do Usuário">
+<span class="material-symbols-outlined">account_circle</span>
+<span class="font-label-sm text-label-sm hidden xl:inline text-on-surface">rodrigo</span>
+</button>
+</div>
+</div>
+</header>
+<!-- MAIN VIEWPORT CONTAINER -->
+<main class="pt-12 flex-1 flex flex-col w-full max-w-[1600px] mx-auto px-space-md lg:px-space-lg py-space-lg">
+<!-- SUBHEADER / STATUS STRIP -->
+<div class="flex flex-col md:flex-row md:items-end justify-between border-b border-[#d6d3d1] pb-space-md mb-space-lg gap-space-sm">
+<div>
+<div class="flex items-center space-x-space-xs text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider mb-1">
+<span>ARCHIVE</span>
+<span>/</span>
+<span class="text-primary font-semibold">DECK MANAGER</span>
+</div>
+<h1 class="text-headline-xl font-headline-xl tracking-tight text-primary">
+          Gerenciamento de Decks
+        </h1>
+</div>
+<!-- Quick Metrics Bar -->
+<div class="flex items-center space-x-space-md font-label-sm text-label-sm text-on-surface-variant bg-surface-container-lowest border border-[#d6d3d1] px-space-md py-1.5">
+<div>TOTAL: <span class="font-code-num text-code-num text-primary">5</span></div>
+<div class="text-[#d6d3d1]">|</div>
+<div>COMMANDER: <span class="font-code-num text-code-num text-primary">4</span></div>
+<div class="text-[#d6d3d1]">|</div>
+<div>MODERN: <span class="font-code-num text-code-num text-primary">1</span></div>
+<div class="text-[#d6d3d1]">|</div>
+<div class="flex items-center gap-1 text-primary">
+<span class="w-1.5 h-1.5 rounded-full bg-primary inline-block"></span>
+<span>SYNC LOCAL</span>
+</div>
+</div>
+</div>
+<!-- TWO-COLUMN WORKBENCH GRID -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
+<!-- LEFT COLUMN: CREATION PANEL (NOVO DECK) -->
+<section class="lg:col-span-4 bg-[#ffffff] border border-[#d6d3d1] p-space-lg shadow-none">
+<div class="flex items-center justify-between border-b border-[#d6d3d1] pb-space-sm mb-space-md">
+<div class="flex items-center space-x-space-xs">
+<span class="material-symbols-outlined text-primary text-[18px]">add_box</span>
+<h2 class="text-headline-sm font-headline-sm text-primary uppercase tracking-tight">Novo deck</h2>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">V 2.4</span>
+</div>
+<form class="space-y-space-md" onsubmit="event.preventDefault();">
+<!-- Nome do Deck -->
+<div>
+<label class="block font-label-sm text-label-sm uppercase text-on-surface-variant mb-1.5" for="deck-name">
+              Nome do Deck <span class="text-primary">*</span>
+</label>
+<input class="w-full h-9 px-space-sm bg-[#ffffff] border border-[#d6d3d1] font-body-md text-body-md text-primary placeholder:text-on-primary-container focus:border-primary transition-colors" id="deck-name" placeholder="Ex: Olivia Voldaren Reanimator" required="" type="text"/>
+</div>
+<!-- Formato -->
+<div>
+<label class="block font-label-sm text-label-sm uppercase text-on-surface-variant mb-1.5" for="deck-format">
+              Formato
+            </label>
+<div class="relative">
+<select class="w-full h-9 px-space-sm pr-8 bg-[#ffffff] border border-[#d6d3d1] font-body-md text-body-md text-primary appearance-none cursor-pointer focus:border-primary transition-colors" id="deck-format">
+<option selected="" value="commander">Commander (EDH)</option>
+<option value="modern">Modern</option>
+<option value="pioneer">Pioneer</option>
+<option value="standard">Standard</option>
+<option value="pauper">Pauper</option>
+<option value="legacy">Legacy</option>
+<option value="vintage">Vintage</option>
+</select>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">unfold_more</span>
+</div>
+</div>
+</div>
+<!-- Comandante / Parceiro -->
+<div>
+<label class="block font-label-sm text-label-sm uppercase text-on-surface-variant mb-1.5" for="commander-name">
+              Comandante / Parceiro
+            </label>
+<div class="relative">
+<input class="w-full h-9 pl-space-sm pr-8 bg-[#ffffff] border border-[#d6d3d1] font-body-md text-body-md text-primary placeholder:text-on-primary-container focus:border-primary transition-colors" id="commander-name" placeholder="Ex: Olivia, Crimson Bride" type="text"/>
+<span class="material-symbols-outlined text-on-surface-variant absolute right-2.5 top-2.5 text-[16px]">search</span>
+</div>
+<span class="block mt-1 text-[11px] text-on-surface-variant font-body-sm">
+              Preenchimento com autocompletar via base Scryfall local.
+            </span>
+</div>
+<!-- Identidade de Cor Seletor -->
+<div>
+<span class="block font-label-sm text-label-sm uppercase text-on-surface-variant mb-1.5">Identidade de Cor</span>
+<div class="grid grid-cols-5 gap-1.5">
+<label class="border border-[#d6d3d1] flex flex-col items-center justify-center p-1.5 cursor-pointer hover:bg-stone-50 select-none">
+<input class="sr-only peer" type="checkbox"/>
+<span class="font-label-sm text-label-sm font-code-num text-on-surface peer-checked:font-bold">W</span>
+<span class="text-[10px] text-on-surface-variant peer-checked:text-primary">Branco</span>
+</label>
+<label class="border border-[#d6d3d1] flex flex-col items-center justify-center p-1.5 cursor-pointer hover:bg-stone-50 select-none">
+<input class="sr-only peer" type="checkbox"/>
+<span class="font-label-sm text-label-sm font-code-num text-on-surface peer-checked:font-bold">U</span>
+<span class="text-[10px] text-on-surface-variant peer-checked:text-primary">Azul</span>
+</label>
+<label class="border border-[#d6d3d1] flex flex-col items-center justify-center p-1.5 cursor-pointer hover:bg-stone-100 select-none bg-stone-100">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<span class="font-label-sm text-label-sm font-code-num text-primary font-bold">B</span>
+<span class="text-[10px] text-primary">Preto</span>
+</label>
+<label class="border border-[#d6d3d1] flex flex-col items-center justify-center p-1.5 cursor-pointer hover:bg-stone-100 select-none bg-stone-100">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<span class="font-label-sm text-label-sm font-code-num text-primary font-bold">R</span>
+<span class="text-[10px] text-primary">Vermelho</span>
+</label>
+<label class="border border-[#d6d3d1] flex flex-col items-center justify-center p-1.5 cursor-pointer hover:bg-stone-50 select-none">
+<input class="sr-only peer" type="checkbox"/>
+<span class="font-label-sm text-label-sm font-code-num text-on-surface peer-checked:font-bold">G</span>
+<span class="text-[10px] text-on-surface-variant peer-checked:text-primary">Verde</span>
+</label>
+</div>
+</div>
+<!-- Tags Iniciais -->
+<div>
+<label class="block font-label-sm text-label-sm uppercase text-on-surface-variant mb-1.5">Tags Operacionais</label>
+<div class="flex flex-wrap gap-1.5 mb-2">
+<span class="px-2 py-0.5 border border-[#09090b] bg-[#09090b] text-white font-label-sm text-[11px]">Reanimator</span>
+<span class="px-2 py-0.5 border border-[#d6d3d1] bg-[#ffffff] text-on-surface-variant font-label-sm text-[11px]">+ Tag</span>
+</div>
+</div>
+<!-- Botão Submeter -->
+<div class="pt-space-sm border-t border-[#d6d3d1]">
+<button class="w-full h-10 bg-[#09090b] hover:bg-stone-800 text-white font-headline-sm text-body-md font-semibold tracking-wide uppercase transition-colors duration-150 active:translate-y-px flex items-center justify-center space-x-2" type="submit">
+<span class="material-symbols-outlined text-[18px]">add_circle</span>
+<span>Criar Deck</span>
+</button>
+</div>
+</form>
+<!-- Quick Tips Footnote -->
+<div class="mt-space-lg p-space-sm bg-[#ffffff] border border-[#d6d3d1] font-body-sm text-[11px] text-on-surface-variant space-y-1">
+<div class="font-label-sm text-primary font-semibold uppercase tracking-wider">Atalhos do Teclado</div>
+<div class="flex justify-between">
+<span>Salvar / Submeter</span>
+<kbd class="font-label-sm text-primary">Ctrl + Enter</kbd>
+</div>
+<div class="flex justify-between">
+<span>Importação rápida</span>
+<kbd class="font-label-sm text-primary">⌘ + I</kbd>
+</div>
+</div>
+</section>
+<!-- RIGHT COLUMN: REGISTERED DECKS LIST -->
+<section class="lg:col-span-8 space-y-space-md">
+<!-- Controls Toolbar & Filters -->
+<div class="bg-[#ffffff] border border-[#d6d3d1] p-space-sm flex flex-col sm:flex-row items-center justify-between gap-space-sm">
+<!-- Search in List -->
+<div class="relative w-full sm:w-72">
+<input class="w-full h-8 pl-8 pr-space-sm bg-[#ffffff] border border-[#d6d3d1] font-body-sm text-body-sm text-primary placeholder:text-on-primary-container focus:border-primary transition-colors" placeholder="Filtrar por nome, cor ou formato..." type="text"/>
+<span class="material-symbols-outlined text-on-surface-variant absolute left-2 top-2 text-[16px]">search</span>
+</div>
+<!-- Status & View Filters -->
+<div class="flex items-center space-x-space-sm w-full sm:w-auto justify-between sm:justify-end">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">
+<strong class="text-primary font-code-num">5</strong> Decks cadastrados
+            </span>
+<div class="flex border border-[#d6d3d1] divide-x divide-[#d6d3d1]">
+<button class="px-2 py-1 bg-stone-100 text-primary font-label-sm text-label-sm flex items-center" title="Visualização em Lista">
+<span class="material-symbols-outlined text-[16px]">format_list_bulleted</span>
+</button>
+<button class="px-2 py-1 bg-[#ffffff] hover:bg-stone-50 text-on-surface-variant hover:text-primary font-label-sm text-label-sm flex items-center" title="Visualização em Colunas/Canvas">
+<span class="material-symbols-outlined text-[16px]">view_column</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Decks Structured Table Container -->
+<div class="bg-[#ffffff] border border-[#d6d3d1] divide-y divide-[#d6d3d1]">
+<!-- TABLE HEADER -->
+<div class="hidden md:grid grid-cols-12 px-space-md py-2 text-on-surface-variant font-label-sm text-label-sm uppercase bg-[#f5f5f4] border-b border-[#d6d3d1]">
+<div class="col-span-4">Deck &amp; Arquétipo</div>
+<div class="col-span-2 text-center">Formato</div>
+<div class="col-span-2 text-center">Contagem</div>
+<div class="col-span-1 text-center">Identidade</div>
+<div class="col-span-3 text-right">Ações Técnicas</div>
+</div>
+<!-- DECK ROW 1: Olivia V3 -->
+<div class="group p-space-md hover:bg-stone-50 transition-colors duration-100 flex flex-col md:grid md:grid-cols-12 items-start md:items-center gap-2">
+<!-- Deck Name & Commander -->
+<div class="md:col-span-4 flex items-start space-x-space-sm w-full">
+<span class="w-1.5 h-10 bg-primary mt-0.5 shrink-0 hidden md:block"></span>
+<div>
+<div class="flex items-center space-x-2">
+<span class="font-headline-sm text-headline-sm text-primary font-semibold tracking-tight">Olivia V3</span>
+<span class="border border-[#d6d3d1] text-[10px] font-label-sm px-1.5 py-0.2 bg-[#ffffff] text-on-surface-variant">v3.1</span>
+</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1.5 mt-0.5">
+<span class="material-symbols-outlined text-[14px]">stars</span>
+<span>Olivia, Crimson Bride</span>
+</div>
+</div>
+</div>
+<!-- Formato Badge -->
+<div class="md:col-span-2 md:text-center w-full md:w-auto flex items-center justify-between md:justify-center">
+<span class="md:hidden font-label-sm text-label-sm text-on-surface-variant uppercase">Formato:</span>
+<span class="border border-primary text-primary font-label-sm text-[11px] px-2 py-0.5 tracking-wider uppercase font-semibold">
+                COMMANDER
+              </span>
+</div>
+<!-- Contagem de Cartas -->
+<div class="md:col-span-2 md:text-center w-full md:w-auto flex items-center justify-between md:justify-center">
+<span class="md:hidden font-label-sm text-label-sm text-on-surface-variant uppercase">Contagem:</span>
+<div class="font-code-num text-body-md text-primary flex items-center gap-1">
+<span class="font-semibold">100/100</span>
+<span class="material-symbols-outlined text-primary text-[15px]" title="Lista Legal Completa">check_circle</span>
+</div>
+</div>
+<!-- Identidade de Cores -->
+<div class="md:col-span-1 md:text-center w-full md:w-auto flex items-center justify-between md:justify-center">
+<span class="md:hidden font-label-sm text-label-sm text-on-surface-variant uppercase">Cores:</span>
+<div class="flex items-center space-x-1">
+<span class="w-4 h-4 rounded-full border border-primary bg-primary text-white text-[9px] font-label-sm flex items-center justify-center font-bold" title="Preto">B</span>
+<span class="w-4 h-4 rounded-full border border-primary bg-stone-100 text-primary text-[9px] font-label-sm flex items-center justify-center font-bold" title="Vermelho">R</span>
+</div>
+</div>
+<!-- Ações -->
+<div class="md:col-span-3 w-full flex items-center justify-end space-x-1 pt-2 md:pt-0 border-t border-[#d6d3d1] md:border-none">
+<button class="px-2 py-1 border border-[#d6d3d1] hover:border-primary bg-[#ffffff] hover:bg-stone-50 text-primary font-body-sm text-[12px] transition-colors">
+                Editar
+              </button>
+<button class="px-2 py-1 border border-[#d6d3d1] hover:border-primary bg-[#ffffff] hover:bg-stone-50 text-primary font-body-sm text-[12px] transition-colors flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[13px]">view_column</span>
+<span>Canvas</span>
+</button>
+<button class="p-1 border border-[#d6d3d1] hover:border-primary bg-[#ffffff] hover:bg-stone-50 text-on-surface-variant hover:text-primary transition-colors" title="Duplicar">
+<span class="material-symbols-outlined text-[15px]">content_copy</span>
+</button>
+<button class="px-2 py-1 border border-[#d6d3d1] hover:border-primary bg-[#ffffff] hover:bg-primary hover:text-white text-primary font-body-sm text-[12px] transition-colors" title="Excluir Deck">
+                Excluir
+              </button>
+</div>
+</div>
+<!-- DECK ROW 2: Olivia V2 -->
+<div class="group p-space-md hover:bg-stone-50 transition-colors duration-100 flex flex-col md:grid md:grid-cols-12 items-start md:items-center gap-2">
+<!-- Deck Name & Commander -->
+<div class="md:col-span-4 flex items-start space-x-space-sm w-full">
+<span class="w-1.5 h-10 bg-[#d6d3d1] mt-0.5 shrink-0 hidden md:block"></span>
+<div>
+<div class="flex items-center space-x-2">
+<span class="font-headline-sm text-headline-sm text-primary font-semibold tracking-tight">Olivia V2</span>
+<span class="border border-[#d6d3d1] text-[10px] font-label-sm px-1.5 py-0.2 bg-stone-100 text-on-surface-variant">Rascunho</span>
+</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1.5 mt-0.5">
+<span class="material-symbols-outlined text-[14px]">stars</span>
+<span>Olivia Mobilized for War</span>
+</div>
+</div>
+</div>
+<!-- Formato Badge -->
+<div class="md:col-span-2 md:text-center w-full md:w-auto flex items-center justify-between md:justify-center">
+<span class="md:hidden font-label-sm text-label-sm text-on-surface-variant uppercase">Formato:</span>
+<span class="border border-primary text-primary font-label-sm text-[11px] px-2 py-0.5 tracking-wider uppercase font-semibold">
+                COMMANDER
+              </span>
+</div>
+<!-- Contagem de Cartas -->
+<div class="md:col-span-2 md:text-center w-full md:w-auto flex items-center justify-between md:justify-center">
+<span class="md:hidden font-label-sm text-label-sm text-on-surface-variant uppercase">Contagem:</span>
+<div class="font-code-num text-body-md text-on-surface-variant flex items-center gap-1">
+<span>98/100</span>
+<span class="font-label-sm text-[10px] text-on-surface-variant italic">(-2 vagas)</span>
+</div>
+</div>
+<!-- Identidade de Cores -->
+<div class="md:col-span-1 md:text-center w-full md:w-auto flex items-center justify-between md:justify-center">
+<span class="md:hidden font-label-sm text-label-sm text-on-surface-variant uppercase">Cores:</span>
+<div class="flex items-center space-x-1">
+<span class="w-4 h-4 rounded-full border border-primary bg-primary text-white text-[9px] font-label-sm flex items-center justify-center font-bold">B</span>
+<span class="w-4 h-4 rounded-full border border-primary bg-stone-100 text-primary text-[9px] font-label-sm flex items-center justify-center font-bold">R</span>
+</div>
+</div>
+<!-- Ações -->
+<div class="md:col-span-3 w-full flex items-center justify-end space-x-1 pt-2 md:pt-0 border-t border-[#d6d3d1] md:border-none">
+<button class="px-2 py-1 border border-[#d6d3d1] hover:border-primary bg-[#ffffff] hover:bg-stone-50 text-primary font-body-sm text-[12px] transition-colors">
+                Editar
+              </button>
+<button class="px-2 py-1 border border-[#d6d3d1] hover:border-primary bg-[#ffffff] hover:bg-stone-50 text-primary font-body-sm text-[12px] transition-colors flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[13px]">view_column</span>
+<span>Canvas</span>
+</button>
+<button class="px-2 py-1 border border-[#d6d3d1] hover:border-primary bg-[#ffffff] hover:bg-primary hover:text-white text-primary font-body-sm text-[12px] transition-colors" title="Excluir Deck">
+                Excluir
+              </button>
+</div>
+</div>
+<!-- DECK ROW 3: Olivia (Original) -->
+<div class="group p-space-md hover:bg-stone-50 transition-colors duration-100 flex flex-col md:grid md:grid-cols-12 items-start md:items-center gap-2">
+<!-- Deck Name & Commander -->
+<div class="md:col-span-4 flex items-start space-x-space-sm w-full">
+<span class="w-1.5 h-10 bg-[#d6d3d1] mt-0.5 shrink-0 hidden md:block"></span>
+<div>
+<div class="flex items-center space-x-2">
+<span class="font-headline-sm text-headline-sm text-primary font-semibold tracking-tight">Olivia</span>
+<span class="border border-[#d6d3d1] text-[10px] font-label-sm px-1.5 py-0.2 bg-[#ffffff] text-on-surface-variant">Arquivado</span>
+</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1.5 mt-0.5">
+<span class="material-symbols-outlined text-[14px]">stars</span>
+<span>Olivia Voldaren (Innistrad 2011)</span>
+</div>
+</div>
+</div>
+<!-- Formato Badge -->
+<div class="md:col-span-2 md:text-center w-full md:w-auto flex items-center justify-between md:justify-center">
+<span class="md:hidden font-label-sm text-label-sm text-on-surface-variant uppercase">Formato:</span>
+<span class="border border-primary text-primary font-label-sm text-[11px] px-2 py-0.5 tracking-wider uppercase font-semibold">
+                COMMANDER
+              </span>
+</div>
+<!-- Contagem de Cartas -->
+<div class="md:col-span-2 md:text-center w-full md:w-auto flex items-center justify-between md:justify-center">
+<span class="md:hidden font-label-sm text-label-sm text-on-surface-variant uppercase">Contagem:</span>
+<div class="font-code-num text-body-md text-primary flex items-center gap-1">
+<span>100/100</span>
+<span class="material-symbols-outlined text-primary text-[15px]">check_circle</span>
+</div>
+</div>
+<!-- Identidade de Cores -->
+<div class="md:col-span-1 md:text-center w-full md:w-auto flex items-center justify-between md:justify-center">
+<span class="md:hidden font-label-sm text-label-sm text-on-surface-variant uppercase">Cores:</span>
+<div class="flex items-center space-x-1">
+<span class="w-4 h-4 rounded-full border border-primary bg-primary text-white text-[9px] font-label-sm flex items-center justify-center font-bold">B</span>
+<span class="w-4 h-4 rounded-full border border-primary bg-stone-100 text-primary text-[9px] font-label-sm flex items-center justify-center font-bold">R</span>
+</div>
+</div>
+<!-- Ações -->
+<div class="md:col-span-3 w-full flex items-center justify-end space-x-1 pt-2 md:pt-0 border-t border-[#d6d3d1] md:border-none">
+<button class="px-2 py-1 border border-[#d6d3d1] hover:border-primary bg-[#ffffff] hover:bg-stone-50 text-primary font-body-sm text-[12px] transition-colors">
+                Editar
+              </button>
+<button class="px-2 py-1 border border-[#d6d3d1] hover:border-primary bg-[#ffffff] hover:bg-stone-50 text-primary font-body-sm text-[12px] transition-colors flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[13px]">view_column</span>
+<span>Canvas</span>
+</button>
+<button class="px-2 py-1 border border-[#d6d3d1] hover:border-primary bg-[#ffffff] hover:bg-primary hover:text-white text-primary font-body-sm text-[12px] transition-colors" title="Excluir Deck">
+                Excluir
+              </button>
+</div>
+</div>
+<!-- DECK ROW 4: Atraxa Proliferate -->
+<div class="group p-space-md hover:bg-stone-50 transition-colors duration-100 flex flex-col md:grid md:grid-cols-12 items-start md:items-center gap-2">
+<!-- Deck Name & Commander -->
+<div class="md:col-span-4 flex items-start space-x-space-sm w-full">
+<span class="w-1.5 h-10 bg-primary mt-0.5 shrink-0 hidden md:block"></span>
+<div>
+<div class="flex items-center space-x-2">
+<span class="font-headline-sm text-headline-sm text-primary font-semibold tracking-tight">Atraxa Proliferate</span>
+<span class="border border-[#d6d3d1] text-[10px] font-label-sm px-1.5 py-0.2 bg-[#ffffff] text-on-surface-variant">Competitivo</span>
+</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1.5 mt-0.5">
+<span class="material-symbols-outlined text-[14px]">stars</span>
+<span>Atraxa, Praetors' Voice</span>
+</div>
+</div>
+</div>
+<!-- Formato Badge -->
+<div class="md:col-span-2 md:text-center w-full md:w-auto flex items-center justify-between md:justify-center">
+<span class="md:hidden font-label-sm text-label-sm text-on-surface-variant uppercase">Formato:</span>
+<span class="border border-primary text-primary font-label-sm text-[11px] px-2 py-0.5 tracking-wider uppercase font-semibold">
+                COMMANDER
+              </span>
+</div>
+<!-- Contagem de Cartas -->
+<div class="md:col-span-2 md:text-center w-full md:w-auto flex items-center justify-between md:justify-center">
+<span class="md:hidden font-label-sm text-label-sm text-on-surface-variant uppercase">Contagem:</span>
+<div class="font-code-num text-body-md text-primary flex items-center gap-1">
+<span class="font-semibold">100/100</span>
+<span class="material-symbols-outlined text-primary text-[15px]">check_circle</span>
+</div>
+</div>
+<!-- Identidade de Cores (WUBG) -->
+<div class="md:col-span-1 md:text-center w-full md:w-auto flex items-center justify-between md:justify-center">
+<span class="md:hidden font-label-sm text-label-sm text-on-surface-variant uppercase">Cores:</span>
+<div class="flex items-center space-x-0.5">
+<span class="w-3.5 h-3.5 rounded-full border border-stone-400 text-[8px] font-label-sm flex items-center justify-center font-bold">W</span>
+<span class="w-3.5 h-3.5 rounded-full border border-stone-400 text-[8px] font-label-sm flex items-center justify-center font-bold">U</span>
+<span class="w-3.5 h-3.5 rounded-full border border-primary bg-primary text-white text-[8px] font-label-sm flex items-center justify-center font-bold">B</span>
+<span class="w-3.5 h-3.5 rounded-full border border-stone-400 text-[8px] font-label-sm flex items-center justify-center font-bold">G</span>
+</div>
+</div>
+<!-- Ações -->
+<div class="md:col-span-3 w-full flex items-center justify-end space-x-1 pt-2 md:pt-0 border-t border-[#d6d3d1] md:border-none">
+<button class="px-2 py-1 border border-[#d6d3d1] hover:border-primary bg-[#ffffff] hover:bg-stone-50 text-primary font-body-sm text-[12px] transition-colors">
+                Editar
+              </button>
+<button class="px-2 py-1 border border-[#d6d3d1] hover:border-primary bg-[#ffffff] hover:bg-stone-50 text-primary font-body-sm text-[12px] transition-colors flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[13px]">view_column</span>
+<span>Canvas</span>
+</button>
+<button class="px-2 py-1 border border-[#d6d3d1] hover:border-primary bg-[#ffffff] hover:bg-primary hover:text-white text-primary font-body-sm text-[12px] transition-colors" title="Excluir Deck">
+                Excluir
+              </button>
+</div>
+</div>
+<!-- DECK ROW 5: Mono Red Burn -->
+<div class="group p-space-md hover:bg-stone-50 transition-colors duration-100 flex flex-col md:grid md:grid-cols-12 items-start md:items-center gap-2">
+<!-- Deck Name & Commander -->
+<div class="md:col-span-4 flex items-start space-x-space-sm w-full">
+<span class="w-1.5 h-10 bg-primary mt-0.5 shrink-0 hidden md:block"></span>
+<div>
+<div class="flex items-center space-x-2">
+<span class="font-headline-sm text-headline-sm text-primary font-semibold tracking-tight">Mono Red Burn</span>
+<span class="border border-[#d6d3d1] text-[10px] font-label-sm px-1.5 py-0.2 bg-[#ffffff] text-on-surface-variant">Tier 1.5</span>
+</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1.5 mt-0.5">
+<span class="material-symbols-outlined text-[14px]">bolt</span>
+<span>Sem comandante (60 cartas + 15 side)</span>
+</div>
+</div>
+</div>
+<!-- Formato Badge -->
+<div class="md:col-span-2 md:text-center w-full md:w-auto flex items-center justify-between md:justify-center">
+<span class="md:hidden font-label-sm text-label-sm text-on-surface-variant uppercase">Formato:</span>
+<span class="border border-stone-500 text-on-surface font-label-sm text-[11px] px-2 py-0.5 tracking-wider uppercase font-semibold">
+                MODERN
+              </span>
+</div>
+<!-- Contagem de Cartas -->
+<div class="md:col-span-2 md:text-center w-full md:w-auto flex items-center justify-between md:justify-center">
+<span class="md:hidden font-label-sm text-label-sm text-on-surface-variant uppercase">Contagem:</span>
+<div class="font-code-num text-body-md text-primary flex items-center gap-1">
+<span class="font-semibold">60/60</span>
+<span class="font-label-sm text-[11px] text-on-surface-variant font-normal">(+15 SB)</span>
+</div>
+</div>
+<!-- Identidade de Cores (R) -->
+<div class="md:col-span-1 md:text-center w-full md:w-auto flex items-center justify-between md:justify-center">
+<span class="md:hidden font-label-sm text-label-sm text-on-surface-variant uppercase">Cores:</span>
+<div class="flex items-center space-x-1">
+<span class="w-4 h-4 rounded-full border border-primary bg-stone-100 text-primary text-[9px] font-label-sm flex items-center justify-center font-bold" title="Mono Red">R</span>
+</div>
+</div>
+<!-- Ações -->
+<div class="md:col-span-3 w-full flex items-center justify-end space-x-1 pt-2 md:pt-0 border-t border-[#d6d3d1] md:border-none">
+<button class="px-2 py-1 border border-[#d6d3d1] hover:border-primary bg-[#ffffff] hover:bg-stone-50 text-primary font-body-sm text-[12px] transition-colors">
+                Editar
+              </button>
+<button class="px-2 py-1 border border-[#d6d3d1] hover:border-primary bg-[#ffffff] hover:bg-stone-50 text-primary font-body-sm text-[12px] transition-colors flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[13px]">view_column</span>
+<span>Canvas</span>
+</button>
+<button class="px-2 py-1 border border-[#d6d3d1] hover:border-primary bg-[#ffffff] hover:bg-primary hover:text-white text-primary font-body-sm text-[12px] transition-colors" title="Excluir Deck">
+                Excluir
+              </button>
+</div>
+</div>
+</div>
+<!-- Pagination & List Footer -->
+<div class="border border-[#d6d3d1] bg-[#ffffff] p-space-sm flex flex-col sm:flex-row items-center justify-between gap-space-sm">
+<div class="flex items-center space-x-space-sm font-label-sm text-label-sm text-on-surface-variant">
+<span>MOSTRANDO 1–5 DE 5 DECKS</span>
+<span class="text-[#d6d3d1]">|</span>
+<button class="hover:text-primary underline">Exportar todos (.txt / .csv)</button>
+</div>
+<div class="flex items-center space-x-1 font-label-sm text-label-sm">
+<button class="px-2.5 py-1 border border-[#d6d3d1] text-[#a8a29e] cursor-not-allowed" disabled="">Anterior</button>
+<button class="px-2.5 py-1 border border-primary bg-primary text-white font-semibold">1</button>
+<button class="px-2.5 py-1 border border-[#d6d3d1] text-[#a8a29e] cursor-not-allowed" disabled="">Próxima</button>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- BOTTOM STATUS WIRE (Architectural Grid Footer) -->
+<footer class="mt-auto border-t border-[#d6d3d1] bg-[#f5f5f4] px-space-md py-2 text-on-surface-variant font-label-sm text-label-sm flex flex-col sm:flex-row items-center justify-between gap-2">
+<div class="flex items-center space-x-space-md">
+<span class="flex items-center gap-1 text-primary">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+        DATABASE: ORACLE 2026.09
+      </span>
+<span>INDEX: 31,420 CARDS</span>
+<span>LATENCY: 12ms</span>
+</div>
+<div class="flex items-center space-x-space-md">
+<a class="hover:text-primary transition-colors" href="#">DOCUMENTAÇÃO</a>
+<a class="hover:text-primary transition-colors" href="#">ATALHOS (HUD)</a>
+<span>USUÁRIO: RODRIGO // ATIVO</span>
+</div>
+</footer>
+</body></html>

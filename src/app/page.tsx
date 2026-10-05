@@ -7,7 +7,7 @@ export default async function Home() {
 
   return (
     <AppShell>
-      <section className="max-w-xl space-y-5 border border-ink bg-surface-container-lowest p-8">
+      <section className="max-w-xl space-y-5 border border-ink bg-surface-container-lowest p-8 shadow-panel">
         <p className="ui-label">Magic: The Gathering</p>
         <h1 className="ui-headline">Coleção, decks e upgrades no mesmo quadro.</h1>
         <p className="text-[14px] leading-5 text-secondary">

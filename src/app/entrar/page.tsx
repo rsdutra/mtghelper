@@ -13,7 +13,7 @@ function LoginForm() {
   const [state, formAction, pending] = useActionState(loginAction, initialState);
 
   return (
-    <form action={formAction} className="mx-auto max-w-sm space-y-4 border border-ink bg-surface-container-lowest p-6">
+    <form action={formAction} className="mx-auto max-w-sm space-y-4 border border-ink bg-surface-container-lowest p-6 shadow-panel">
       <div>
         <p className="ui-label mb-1">Auth</p>
         <h1 className="ui-headline-lg">Entrar</h1>

@@ -923,7 +923,7 @@ function ListPanel({
 }) {
   return (
     <section
-      className={`border bg-surface-container-lowest ${
+      className={`border bg-surface-container-lowest shadow-panel ${
         dashed ? "border-dashed border-neutral-400" : "border-outline-variant"
       }`}
     >

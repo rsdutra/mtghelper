@@ -12,7 +12,7 @@ export function RegisterForm() {
 
   return (
     <AppShell>
-      <form action={formAction} className="mx-auto max-w-sm space-y-4 border border-ink bg-surface-container-lowest p-6">
+      <form action={formAction} className="mx-auto max-w-sm space-y-4 border border-ink bg-surface-container-lowest p-6 shadow-panel">
         <div>
           <p className="ui-label mb-1">Auth</p>
           <h1 className="ui-headline-lg">Criar conta</h1>
