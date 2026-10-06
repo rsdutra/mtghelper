@@ -1,4 +1,4 @@
-/** Preview fixo da view Texto na edição (F-017 / US-017-01). */
+/** Preview fixo da view Texto, na edição (F-017 / US-017-01) e na visualização (US-011-06). */
 export function DeckSidePreview({ card }: { card: { label: string; imageSrc: string | null } | null }) {
   return (
     <aside data-testid="deck-side-preview" className="sticky top-16 w-full shrink-0 self-start sm:w-56">

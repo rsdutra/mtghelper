@@ -12,8 +12,12 @@ export const DECK_LIST_VIEWS: Array<{ id: DeckListView; label: string }> = [
 
 export const DECK_LIST_VIEW_STORAGE_KEY = "mtghelper.deck.listView";
 
-/** F-017 — itens opcionais da view Texto na edição. */
-export const TEXT_LIST_OPTIONS = [{ id: "mana", label: "Custo de mana" }] as const;
+/** Itens opcionais da view Texto: custo de mana (F-017), tags e preço estimado (F-019). Todos começam desligados. */
+export const TEXT_LIST_OPTIONS = [
+  { id: "mana", label: "Custo de mana" },
+  { id: "tags", label: "Tags" },
+  { id: "price", label: "Preço estimado" },
+] as const;
 
 export type TextListOption = (typeof TEXT_LIST_OPTIONS)[number]["id"];
 
@@ -47,8 +51,10 @@ export type DeckViewItem = {
   setCode: string | null;
   tags: CardTag[];
   priceLabel: string | null;
-  /** Custo Scryfall (`{2}{R}`). A view Texto da edição só desenha se “Custo de mana” estiver ligado (F-017). */
+  /** Custo Scryfall (`{2}{R}`). A view Texto só desenha se “Custo de mana” estiver ligado (F-017). */
   manaCost: string | null;
+  /** Total estimado da linha em R$ (F-019); `null` quando a carta não tem preço. */
+  estimatedPriceLabel: string | null;
   imageSrc: string | null;
   thumbSrc: string | null;
   renderActions: (layout: ActionsLayout) => ReactNode;

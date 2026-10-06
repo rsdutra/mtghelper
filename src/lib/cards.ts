@@ -5,6 +5,7 @@ import {
   scryfallAutocomplete,
   scryfallCollection,
   scryfallCollectionByIds,
+  scryfallCollectionByPrints,
   scryfallNamed,
   scryfallSearch,
   scryfallSearchPage,
@@ -60,9 +61,60 @@ function toSuggestion(row: CatalogRow): CardSuggestion {
   };
 }
 
+function isEnglish(card: ScryfallCard) {
+  return !card.lang || card.lang === "en";
+}
+
+function printKey(set: string, collectorNumber: string) {
+  return `${set.toLowerCase()}#${collectorNumber.toLowerCase()}`;
+}
+
+export type EnglishPrinting = { card: ScryfallCard; namePt: string | null };
+
+/**
+ * US-006-04: a Scryfall não dá preço para impressões em português. Troca cada impressão em outro idioma
+ * pela impressão em inglês do mesmo set e número (ou, sem ela, pela que a Scryfall devolve pelo nome).
+ * O nome impresso em português vira `namePt`.
+ */
+export async function toEnglishPrintings(cards: ScryfallCard[]): Promise<EnglishPrinting[]> {
+  const foreign = cards.filter((card) => !isEnglish(card) && card.collector_number);
+  const english = new Map<string, ScryfallCard>();
+  for (let index = 0; index < foreign.length; index += 75) {
+    const prints = foreign
+      .slice(index, index + 75)
+      .map((card) => ({ set: card.set, collector_number: card.collector_number as string }));
+    for (const card of await scryfallCollectionByPrints(prints)) {
+      if (card.collector_number && isEnglish(card)) english.set(printKey(card.set, card.collector_number), card);
+    }
+  }
+
+  const result: EnglishPrinting[] = [];
+  for (const card of cards) {
+    if (isEnglish(card)) {
+      result.push({ card, namePt: null });
+      continue;
+    }
+    const namePt = card.lang === "pt" ? (card.printed_name ?? null) : null;
+    let match = card.collector_number ? english.get(printKey(card.set, card.collector_number)) : undefined;
+    if (!match) {
+      const named = await scryfallNamed(card.name);
+      if (named && isEnglish(named)) match = named;
+    }
+    result.push({ card: match ?? card, namePt });
+  }
+  return result;
+}
+
+/** Grava a impressão; em outro idioma, grava a impressão em inglês equivalente (US-006-04). */
 export async function upsertScryfallCard(card: ScryfallCard, namePt?: string | null) {
+  if (isEnglish(card)) return saveCatalogCard(card, namePt);
+  const [english] = await toEnglishPrintings([card]);
+  return saveCatalogCard(english.card, namePt ?? english.namePt);
+}
+
+async function saveCatalogCard(card: ScryfallCard, namePt?: string | null) {
   const images = imageFromCard(card);
-  const printed = namePt ?? (card.lang && card.lang !== "en" ? card.printed_name ?? null : null);
+  const printed = namePt ?? (card.lang === "pt" ? (card.printed_name ?? null) : null);
   const filters = extractCardFilters(card);
   if (printed) filters.name_pt = printed;
   const [row] = await sql<CatalogRow[]>`
@@ -108,7 +160,7 @@ export async function hydrateMissingFilters(scryfallIds: string[]) {
   try {
     for (let index = 0; index < scryfallIds.length; index += 75) {
       const cards = await scryfallCollectionByIds(scryfallIds.slice(index, index + 75));
-      for (const card of cards) await upsertScryfallCard(card);
+      for (const card of cards) await saveCatalogCard(card);
     }
     return true;
   } catch {
@@ -121,8 +173,11 @@ async function searchLocal(query: string, limit = 8) {
   return sql<CatalogRow[]>`
     SELECT DISTINCT ON (COALESCE(oracle_id, scryfall_id)) *
     FROM catalog_cards
-    WHERE lower(name_en) LIKE lower(${term}) ESCAPE '\\'
-       OR lower(COALESCE(name_pt, '')) LIKE lower(${term}) ESCAPE '\\'
+    WHERE (
+        lower(name_en) LIKE lower(${term}) ESCAPE '\\'
+        OR lower(COALESCE(name_pt, '')) LIKE lower(${term}) ESCAPE '\\'
+      )
+      AND COALESCE(lang, 'en') = 'en'
     ORDER BY COALESCE(oracle_id, scryfall_id), released_at DESC NULLS LAST
     LIMIT ${limit}
   `;
@@ -146,12 +201,14 @@ export async function suggestCards(query: string): Promise<CardSuggestion[]> {
   const merged = [...local];
 
   const englishNames = await scryfallAutocomplete(q);
-  const portuguese = await scryfallSearch(`lang:pt ${scryfallTerm(q)}`);
+  const portuguese = (await scryfallSearch(`lang:pt ${scryfallTerm(q)}`))
+    .slice(0, 8)
+    .filter((card) => !seen.has(card.oracle_id ?? card.id));
 
-  for (const card of portuguese.slice(0, 8)) {
+  for (const { card, namePt } of await toEnglishPrintings(portuguese)) {
     const key = card.oracle_id ?? card.id;
     if (seen.has(key)) continue;
-    const saved = await upsertScryfallCard(card, card.printed_name);
+    const saved = await saveCatalogCard(card, namePt);
     seen.add(key);
     merged.push(saved);
   }
@@ -211,6 +268,7 @@ async function uniqueLocal(name: string, preferSet?: string | null) {
         lower(name_en) = lower(${name})
         OR lower(COALESCE(name_pt, '')) = lower(${name})
       )
+      AND COALESCE(lang, 'en') = 'en'
       ${preferSet ? sql`AND lower(set_code) = lower(${preferSet})` : sql``}
     ORDER BY released_at DESC NULLS LAST
   `;
@@ -262,7 +320,7 @@ export async function resolveCardName(name: string, preferSet?: string | null) {
 export async function latestPrinting(oracleId: string) {
   const [local] = await sql<CatalogRow[]>`
     SELECT * FROM catalog_cards
-    WHERE oracle_id = ${oracleId}
+    WHERE oracle_id = ${oracleId} AND COALESCE(lang, 'en') = 'en'
     ORDER BY released_at DESC NULLS LAST
     LIMIT 1
   `;

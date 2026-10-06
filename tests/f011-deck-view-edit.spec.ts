@@ -92,10 +92,37 @@ test("visualização somente leitura, colunas condensadas e ida/volta da ediçã
   await instants.click();
   await expect(boltRow).toBeVisible();
 
-  // Preview ao pairar no nome (F-010 / US-010-05).
+  // US-011-06: preview fixo à esquerda, do mesmo tamanho da edição; sem preview flutuante no texto.
+  const sidePreview = page.getByTestId("deck-side-preview");
+  await expect(sidePreview).toContainText("Passe o cursor sobre uma carta");
+  const listBox = (await textView.boundingBox())!;
+  const previewBox = (await sidePreview.boundingBox())!;
+  expect(previewBox.x + previewBox.width).toBeLessThan(listBox.x);
+  expect(previewBox.width).toBe(224);
   await boltRow.hover();
+  await expect(sidePreview.getByRole("img", { name: bolt })).toBeVisible();
+  await expect(page.getByTestId("card-hover-preview")).toHaveCount(0);
+  await page.mouse.move(5, 5);
+
+  // US-011-06: gráficos no botão da coluna de ícones, com toggle exclusivo.
+  const chartsButton = page.getByRole("button", { name: "Gráficos", exact: true });
+  const curve = page.getByRole("img", { name: "Curva de mana" });
+  await expect(curve).toHaveCount(0);
+  await chartsButton.click();
+  await expect(chartsButton).toHaveAttribute("aria-pressed", "true");
+  await expect(curve).toBeVisible();
+  await page.getByRole("button", { name: "Exportar", exact: true }).click();
+  await expect(chartsButton).toHaveAttribute("aria-pressed", "false");
+  await page.getByRole("button", { name: "Exportar", exact: true }).click();
+
+  // Grid continua com o preview ao pairar (F-010 / US-010-05).
+  await page.getByLabel("Visualização").selectOption("grid");
+  await expect(sidePreview).toHaveCount(0);
+  const tile = page.getByTestId("deck-card-tile").filter({ has: page.getByRole("img", { name: bolt }) });
+  await tile.getByRole("img", { name: bolt }).hover();
   await expect(page.getByTestId("card-hover-preview")).toBeVisible();
   await page.mouse.move(5, 5);
+  await page.getByLabel("Visualização").selectOption("texto");
 
   // US-011-01: sem overflow horizontal no mobile.
   await page.setViewportSize({ width: 390, height: 844 });

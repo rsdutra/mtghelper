@@ -3,6 +3,13 @@ import { expect, test, type Page } from "@playwright/test";
 /** F-013 / US-013-05 — agrupar a lista “No deck” por tag, com Multitag e Sem tag. */
 const stamp = Date.now();
 
+/** F-019: as bolinhas de tag da view Texto dependem de “Tags” no Exibir. */
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    if (!localStorage.getItem("mtghelper.deck.textOptions")) localStorage.setItem("mtghelper.deck.textOptions", '["tags"]');
+  });
+});
+
 type DeckCard = { name_en: string; name_pt: string | null };
 
 async function cardLabel(page: Page, deckId: string, nameEn: string) {

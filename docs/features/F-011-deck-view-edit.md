@@ -43,6 +43,7 @@ Critérios de aceite:
 - [x] Sem painel de busca/lista/seções/tags/coleção à direita.
 - [x] Botão **Editar** leva à rota de edição.
 - [x] Mantém: exportar (painel à direita, F-016), cobertura da coleção, gráficos, agrupamento, seletor de visualização (F-010), preview ao pairar.
+- [x] Menu “Exibir” da view Texto (custo de mana, tags, preço estimado), com a mesma preferência da edição — F-019 / US-019-03.
 
 ### US-011-03 — Texto condensado em colunas
 
@@ -77,13 +78,27 @@ Critérios de aceite:
 - [x] Um componente base (carregamento, cabeçalho, lista, agrupamento, gráficos) usado pelas duas rotas com `mode: "view" | "edit"`.
 - [x] Componentes exclusivos da edição (painel de ferramentas, ações de linha, campos editáveis) ficam em arquivos próprios.
 
+### US-011-06 — Visualização no mesmo padrão da edição
+
+**Como** jogador **quero** ver a carta grande ao lado da lista também na visualização **para** ler o deck do mesmo jeito que na edição.
+
+Critérios de aceite:
+
+- [x] Na visualização, com a view Texto, o painel de preview fica à esquerda da lista, do mesmo tamanho da edição (F-017 / US-017-01). Ele troca quando o cursor entra na linha e não há preview flutuante nessa view.
+- [x] Grid e grid agrupada continuam com o preview ao pairar.
+- [x] Os gráficos saem da coluna fixa à direita e passam para o botão “Gráficos” na coluna de ícones, como na edição, com o mesmo toggle exclusivo dos outros painéis.
+
+Decisões (confirmadas com o usuário): user story na F-011; gráficos no botão, como na edição.
+
+Teste: `tests/f011-deck-view-edit.spec.ts`.
+
 ## Decisões (confirmadas com o usuário)
 
 1. Feature nova F-011.
 2. URL da edição: `/decks/[id]/edit`.
 3. Canvas nas duas telas; na visualização é **somente leitura** (pan, zoom, preview e copiar; sem arrastar, redimensionar, deletar, editar preço/nota nem salvar layout).
 4. Linha do Texto condensado: só quantidade + nome (Moxfield); o resto fica no preview.
-5. Na visualização, gráficos ficam num painel lateral à direita (onde estava a busca); a lista em colunas fica à esquerda.
+5. Na visualização, gráficos ficam num painel lateral à direita (onde estava a busca); a lista em colunas fica à esquerda. Substituída pela US-011-06: gráficos no botão “Gráficos” e preview à esquerda.
 6. Não incluir números extras do Stitch (CMC médio, preço estimado); só aplicar o layout. O total por seção continua no título “No deck (N)” / “Em trabalho (N)”.
 7. Largura de até 1720 px só nas telas de deck.
 

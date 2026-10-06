@@ -41,6 +41,7 @@ import {
 import { groupCardsByType } from "@/lib/card-types";
 import type { DeckCoverageSummary } from "@/lib/deck-coverage";
 import { evaluateDeckSize } from "@/lib/deck-size";
+import { estimatedLineLabel } from "@/lib/estimated-price";
 import { FORMATS, sideboardLimit } from "@/lib/formats";
 import { groupCardsByManaCost } from "@/lib/mana-cost-groups";
 import { formatBRLFromCents } from "@/lib/money-br";
@@ -289,6 +290,7 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
       tags: card.tags ?? [],
       priceLabel: formatBRLFromCents(card.price_cents ?? null) || null,
       manaCost: card.mana_cost || card.front_mana_cost || null,
+      estimatedPriceLabel: estimatedLineLabel(card.usd, card.quantity),
       imageSrc: card.image_normal ?? card.image_small,
       thumbSrc: card.image_small ?? card.image_normal,
       renderActions: (layout) =>
@@ -367,9 +369,7 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
         </button>
       ) : null}
       {listViewSelect}
-      {editing ? (
-        <TextListOptions value={textOptions ?? []} disabled={textOptions === null} onChange={changeTextOptions} />
-      ) : null}
+      <TextListOptions value={textOptions ?? []} disabled={textOptions === null} onChange={changeTextOptions} />
     </div>
   );
 
@@ -543,8 +543,10 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
   ) : null;
 
   const showManaCost = textOptions?.includes("mana") ?? false;
+  const showTags = textOptions?.includes("tags") ?? false;
+  const showPrice = textOptions?.includes("price") ?? false;
   const previewSource = previewCardId ? (cards.find((card) => card.id === previewCardId) ?? null) : null;
-  const showSidePreview = editing && listView === "texto";
+  const showSidePreview = listView === "texto";
 
   function renderCardView(groups: DeckViewGroup[]) {
     if (!listView) return null;
@@ -554,11 +556,12 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
         groups={groups}
         collapsedGroups={collapsedGroups}
         onToggleGroup={toggleCollapsedGroup}
-        readOnly={!editing}
-        sidePreview={editing}
+        sidePreview
         previewCardId={previewCardId}
         onPreviewCard={setPreviewCardId}
         showManaCost={showManaCost}
+        showTags={showTags}
+        showPrice={showPrice}
       />
     );
   }
@@ -730,44 +733,37 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
           {listToolbar}
         </div>
 
-        {editing ? (
-          <div className={showSidePreview ? "flex flex-col gap-5 sm:flex-row sm:items-start" : "relative min-w-0 space-y-5"}>
-            {showSidePreview ? (
-              <DeckSidePreview
-                card={
-                  previewSource
-                    ? {
-                        label: previewSource.name_pt ?? previewSource.name_en,
-                        imageSrc: previewSource.image_normal ?? previewSource.image_small,
-                      }
-                    : null
-                }
-              />
-            ) : null}
-            <div className="relative min-w-0 flex-1 space-y-5">
+        <div className={showSidePreview ? "flex flex-col gap-5 sm:flex-row sm:items-start" : "relative min-w-0 space-y-5"}>
+          {showSidePreview ? (
+            <DeckSidePreview
+              card={
+                previewSource
+                  ? {
+                      label: previewSource.name_pt ?? previewSource.name_en,
+                      imageSrc: previewSource.image_normal ?? previewSource.image_small,
+                    }
+                  : null
+              }
+            />
+          ) : null}
+          <div className="relative min-w-0 flex-1 space-y-5">
             {deckPanel}
             {sideboardPanel}
             {workingPanel}
             <div className="fixed top-20 right-4 z-40 flex flex-col gap-2">
-              <ToggleIconButton
-                label="Busca"
-                pressed={toolsOpen}
-                onClick={() => togglePanel("busca")}
-              >
-                <SearchIcon />
-              </ToggleIconButton>
-              <ToggleIconButton
-                label="Gráficos"
-                pressed={chartsOpen}
-                onClick={() => togglePanel("graficos")}
-              >
+              {editing ? (
+                <ToggleIconButton label="Busca" pressed={toolsOpen} onClick={() => togglePanel("busca")}>
+                  <SearchIcon />
+                </ToggleIconButton>
+              ) : null}
+              <ToggleIconButton label="Gráficos" pressed={chartsOpen} onClick={() => togglePanel("graficos")}>
                 <ChartIcon />
               </ToggleIconButton>
               {tagsButton}
               {buildToolsButton}
               {exportButton}
             </div>
-            {toolsOpen ? (
+            {editing && toolsOpen ? (
               <aside className="fixed top-20 right-16 z-40 max-h-[calc(100vh-6rem)] w-80 overflow-auto border border-ink bg-surface-container-lowest p-4 shadow-[4px_4px_0_#09090b]">
                 {tools}
               </aside>
@@ -780,28 +776,8 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
             {tagsPanel}
             {buildToolsPanel}
             {exportPanel}
-            </div>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
-            <div className="min-w-0 space-y-5">
-              {deckPanel}
-              {sideboardPanel}
-              {workingPanel}
-            </div>
-            <aside className="min-w-0">
-              <DeckStatsCharts cards={includedCards} stacked />
-            </aside>
-            <div className="fixed top-20 right-4 z-40 flex flex-col gap-2">
-              {tagsButton}
-              {buildToolsButton}
-              {exportButton}
-            </div>
-            {tagsPanel}
-            {buildToolsPanel}
-            {exportPanel}
-          </div>
-        )}
+        </div>
       </div>
       {metaModal}
       {missingModal}

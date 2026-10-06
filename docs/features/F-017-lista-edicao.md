@@ -52,6 +52,8 @@ Critérios de aceite:
 - [x] A escolha fica salva no navegador.
 - [x] A opção vale para a view Texto. A visualização não ganha esse dropdown.
 
+> Atualizada pela F-019: o “Exibir” ganhou “Tags” e “Preço estimado” (todas começam desligadas) e passou a existir também na visualização.
+
 ### US-017-04 — Indicador de tags
 
 **Como** jogador **quero** ver as tags na lista compacta **para** reconhecer a função da carta sem abrir o menu.
@@ -59,6 +61,8 @@ Critérios de aceite:
 Critérios de aceite:
 
 - [x] Cada tag da carta aparece como bolinha da cor dela, à esquerda da quantidade. A coluna da quantidade e a do custo de mana ficam alinhadas entre as linhas.
+
+> Atualizada pela F-019 / US-019-02: as bolinhas só aparecem com “Tags” ligado no “Exibir”, numa coluna mais estreita (1.75rem).
 
 ## Decisões
 

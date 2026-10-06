@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth";
 import { hasStoredFilters, hydrateMissingFilters } from "@/lib/cards";
 import { sql } from "@/lib/db";
+import { normalizeCollectionPrintings } from "@/lib/english-printings";
 import { parseTags } from "@/lib/tags";
 
 type Params = { params: Promise<{ id: string }> };
@@ -27,6 +28,7 @@ export async function GET(_request: Request, { params }: Params) {
   `;
   if (!collection) return NextResponse.json({ error: "Coleção não encontrada." }, { status: 404 });
 
+  await normalizeCollectionPrintings(id);
   let items = await loadItems(id);
   const missing = items
     .filter((item) => !hasStoredFilters(item.filters) && item.scryfall_id)

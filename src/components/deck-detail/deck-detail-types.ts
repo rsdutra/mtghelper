@@ -25,6 +25,8 @@ export type CardRow = {
   front_mana_cost?: string | null;
   produced_mana?: string[] | null;
   price_cents?: number | null;
+  /** Preço Scryfall de uma cópia (F-019). */
+  usd?: number | null;
   note?: string | null;
   tags?: CardTag[];
   image_normal: string | null;

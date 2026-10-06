@@ -5,6 +5,13 @@ import { expect, test, type Page } from "@playwright/test";
  * F-013 / US-013-04 — renomear e excluir a tag pelo painel.
  */
 const stamp = Date.now();
+
+/** F-019: as bolinhas de tag da view Texto dependem de “Tags” no Exibir. */
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    if (!localStorage.getItem("mtghelper.deck.textOptions")) localStorage.setItem("mtghelper.deck.textOptions", '["tags"]');
+  });
+});
 const password = "senha123";
 
 type DeckCard = { name_en: string; name_pt: string | null; tags: { name: string; color: string }[] };
@@ -130,10 +137,11 @@ test("filtra o deck por tag e limpa o filtro", async ({ page }) => {
   await expectShown(page, [ring, bolt, island], []);
   await tagsButton.click();
 
-  // Visualização: mesma coluna, só com o botão “Tags”.
+  // Visualização: mesma coluna, sem “Busca”; “Gráficos” também aparece (US-011-06).
   await page.getByRole("link", { name: "Concluir edição" }).click();
   await expect(page).toHaveURL(new RegExp(`/decks/${deckId}$`));
-  await expect(chartsButton).toHaveCount(0);
+  await expect(chartsButton).toBeVisible();
+  await expect(page.getByRole("button", { name: "Busca", exact: true })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Canvas", exact: true })).toBeVisible();
   await tagsButton.click();
   await expect(page.getByRole("button", { name: /^(Editar|Excluir) tag / })).toHaveCount(0);

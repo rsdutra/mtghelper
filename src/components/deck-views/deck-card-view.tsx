@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { useCardHoverPreview } from "@/components/card-hover-preview";
 import { TagDots, TagQuantityFill } from "@/components/card-tags";
 import { ManaCost } from "@/components/mana-cost";
+import { ESTIMATED_PRICE_HINT } from "@/lib/estimated-price";
 import {
   LIST_PREVIEW_DELAY_MS,
   type DeckListView,
@@ -38,16 +39,17 @@ type Props = {
   groups: DeckViewGroup[];
   collapsedGroups: ReadonlySet<string>;
   onToggleGroup: (key: string) => void;
-  /** Visualização do deck (F-011): Texto condensado em colunas; o menu da carta vem de `renderActions`. */
-  readOnly?: boolean;
   /**
-   * View Texto da edição (F-017): mesmas colunas, sem preview flutuante.
+   * View Texto com preview fixo ao lado (F-017, e na visualização pela US-011-06): sem preview flutuante.
    * O painel ao lado recebe `onPreviewCard`.
    */
   sidePreview?: boolean;
   previewCardId?: string | null;
   onPreviewCard?: (id: string) => void;
+  /** Itens do menu “Exibir” (F-017 / F-019); valem só para a view Texto. */
   showManaCost?: boolean;
+  showTags?: boolean;
+  showPrice?: boolean;
 };
 
 /** Renderiza cartas do deck como Texto, Grid visual ou Grid visual agrupada (F-010). */
@@ -56,15 +58,16 @@ export function DeckCardView({
   groups,
   collapsedGroups,
   onToggleGroup,
-  readOnly = false,
   sidePreview = false,
   previewCardId = null,
   onPreviewCard,
   showManaCost = false,
+  showTags = false,
+  showPrice = false,
 }: Props) {
   const preview = useCardHoverPreview(LIST_PREVIEW_DELAY_MS);
   const grouped = groups.some((group) => group.label !== null);
-  const pinPreview = sidePreview && !readOnly && view === "texto";
+  const pinPreview = sidePreview && view === "texto";
 
   function body(items: DeckViewItem[]) {
     return <CardGrid items={items} preview={preview} />;
@@ -81,7 +84,7 @@ export function DeckCardView({
         preview={pinPreview ? null : preview}
         previewCardId={pinPreview ? previewCardId : null}
         onPreviewCard={pinPreview ? onPreviewCard : undefined}
-        showManaCost={pinPreview && showManaCost}
+        options={{ mana: showManaCost, tags: showTags, price: showPrice }}
         optionsPinned={false}
       />
     );
@@ -215,7 +218,7 @@ function CompactColumns({
   preview,
   previewCardId,
   onPreviewCard,
-  showManaCost,
+  options,
   optionsPinned,
 }: {
   groups: DeckViewGroup[];
@@ -225,10 +228,11 @@ function CompactColumns({
   preview: Preview | null;
   previewCardId: string | null;
   onPreviewCard?: (id: string) => void;
-  showManaCost: boolean;
+  options: RowOptions;
   optionsPinned: boolean;
 }) {
-  const columns = showManaCost ? "columns-[22rem]" : "columns-[15rem]";
+  const columnWidth = `${COLUMN_BASE_REM + (options.tags ? TAGS_COLUMN_REM : 0) + (options.mana ? MANA_COLUMN_REM : 0) + (options.price ? PRICE_COLUMN_REM : 0)}rem`;
+  const gridTemplateColumns = rowTemplate(options);
   function row(item: DeckViewItem) {
     return (
       <CompactRow
@@ -236,7 +240,8 @@ function CompactColumns({
         item={item}
         preview={preview}
         selected={previewCardId === item.id}
-        showManaCost={showManaCost}
+        options={options}
+        gridTemplateColumns={gridTemplateColumns}
         optionsPinned={optionsPinned}
         onActivate={onPreviewCard}
       />
@@ -244,13 +249,13 @@ function CompactColumns({
   }
   if (!grouped) {
     return (
-      <ul className={`${columns} gap-x-8 px-4 py-3`}>
+      <ul className="gap-x-8 px-4 py-3" style={{ columnWidth }}>
         {groups.flatMap((group) => group.items).map(row)}
       </ul>
     );
   }
   return (
-    <div className={`${columns} gap-x-8 px-4 py-3`}>
+    <div className="gap-x-8 px-4 py-3" style={{ columnWidth }}>
       {groups.map((group) => {
         const collapsed = collapsedGroups.has(group.key);
         return (
@@ -274,39 +279,62 @@ function CompactColumns({
   );
 }
 
+type RowOptions = { mana: boolean; tags: boolean; price: boolean };
+
+/** Largura mínima de cada coluna do texto condensado; cada item do “Exibir” soma a sua coluna. */
+const COLUMN_BASE_REM = 13.5;
+const TAGS_COLUMN_REM = 1.75;
+const MANA_COLUMN_REM = 7;
+const PRICE_COLUMN_REM = 5.25;
+
+function rowTemplate(options: RowOptions) {
+  return [
+    options.tags ? `${TAGS_COLUMN_REM}rem` : null,
+    "1.5rem",
+    "minmax(0,1fr)",
+    options.mana ? "6.5rem" : null,
+    options.price ? "4.75rem" : null,
+    "1rem",
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
 /** Os três pontos ficam fora da área do preview, para a imagem ampliada não cobrir o menu. */
 function CompactRow({
   item,
   preview,
   selected = false,
-  showManaCost = false,
+  options,
+  gridTemplateColumns,
   optionsPinned = false,
   onActivate,
 }: {
   item: DeckViewItem;
   preview: Preview | null;
   selected?: boolean;
-  showManaCost?: boolean;
+  options: RowOptions;
+  gridTemplateColumns: string;
   optionsPinned?: boolean;
   onActivate?: (id: string) => void;
 }) {
   const [open, setOpen] = useState(false);
-  const grid = showManaCost
-    ? "grid-cols-[2.25rem_1.5rem_minmax(0,1fr)_6.5rem_1rem]"
-    : "grid-cols-[2.25rem_1.5rem_minmax(0,1fr)_1rem]";
   return (
     <li
-      className={`group grid ${grid} items-center gap-x-1.5 break-inside-avoid px-1 py-[3px] text-[13px] leading-5 hover:bg-surface-container-low ${
+      className={`group grid items-center gap-x-1.5 break-inside-avoid px-1 py-[3px] text-[13px] leading-5 hover:bg-surface-container-low ${
         selected ? "bg-surface-container" : ""
       }`}
+      style={{ gridTemplateColumns }}
       data-testid="deck-card-text"
       data-active={selected ? "true" : undefined}
       onPointerEnter={() => onActivate?.(item.id)}
       onFocusCapture={() => onActivate?.(item.id)}
     >
-      <span className="flex justify-end">
-        <TagDots tags={item.tags} />
-      </span>
+      {options.tags ? (
+        <span className="flex justify-end overflow-hidden">
+          <TagDots tags={item.tags} />
+        </span>
+      ) : null}
       <span
         aria-label={`Quantidade de ${item.label}`}
         className="text-right font-mono text-[12px] tabular-nums text-muted"
@@ -319,8 +347,17 @@ function CompactRow({
       >
         {item.label}
       </span>
-      {showManaCost ? (
+      {options.mana ? (
         <span className="flex justify-end">{item.manaCost ? <ManaCost cost={item.manaCost} /> : null}</span>
+      ) : null}
+      {options.price ? (
+        <span
+          title={ESTIMATED_PRICE_HINT}
+          data-testid="deck-card-price"
+          className="text-right font-mono text-[12px] whitespace-nowrap tabular-nums text-muted"
+        >
+          {item.estimatedPriceLabel ?? "—"}
+        </span>
       ) : null}
       <CardOptionsMenu item={item} placement="row" open={open} onOpenChange={setOpen} pinned={optionsPinned} />
     </li>

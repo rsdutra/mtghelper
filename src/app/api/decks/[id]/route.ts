@@ -4,6 +4,7 @@ import { requireUser } from "@/lib/auth";
 import { hydrateMissingFilters } from "@/lib/cards";
 import { coverageByKey, coverageKey, summarizeCoverage } from "@/lib/deck-coverage";
 import { deckCoverageRows } from "@/lib/deck-coverage-db";
+import { normalizeDeckPrintings } from "@/lib/english-printings";
 import { isFormat, sideboardLimit } from "@/lib/formats";
 import { sql } from "@/lib/db";
 
@@ -37,13 +38,16 @@ export async function GET(_request: Request, { params }: Params) {
     name_pt: string | null;
     set_code: string;
     set_name: string | null;
+    lang: string | null;
     image_normal: string | null;
     image_small: string | null;
     mana_cost: string | null;
     type_line: string | null;
     front_mana_cost: string | null;
     produced_mana: string[] | null;
+    usd: string | null;
   };
+  await normalizeDeckPrintings(id);
   const missing = await sql<{ scryfall_id: string }[]>`
     SELECT c.scryfall_id
     FROM deck_cards dc
@@ -54,10 +58,20 @@ export async function GET(_request: Request, { params }: Params) {
   const stored = await sql<StoredCard[]>`
     SELECT dc.id AS deck_card_id, dc.quantity_main, dc.quantity_side, dc.quantity_out,
            dc.price_cents, dc.note, dc.tags,
-           c.id, c.oracle_id, c.name_en, c.name_pt, c.set_code, c.set_name,
+           c.id, c.oracle_id, c.name_en, c.name_pt, c.set_code, c.set_name, c.lang,
            c.image_normal, c.image_small, c.mana_cost, c.type_line,
            NULLIF(split_part(c.filters->>'mana_cost', E'\n', 1), '') AS front_mana_cost,
-           c.filters->'produced_mana' AS produced_mana
+           c.filters->'produced_mana' AS produced_mana,
+           COALESCE(
+             c.filters->>'usd',
+             (
+               SELECT o.filters->>'usd'
+               FROM catalog_cards o
+               WHERE c.oracle_id IS NOT NULL AND o.oracle_id = c.oracle_id AND o.filters->>'usd' IS NOT NULL
+               ORDER BY o.released_at DESC NULLS LAST
+               LIMIT 1
+             )
+           ) AS usd
     FROM deck_cards dc
     JOIN catalog_cards c ON c.id = dc.catalog_card_id
     WHERE dc.deck_id = ${id}
@@ -72,7 +86,7 @@ export async function GET(_request: Request, { params }: Params) {
     ] as const;
     return quantities
       .filter(([, quantity]) => quantity > 0)
-      .map(([place, quantity]) => ({ ...row, place, quantity }));
+      .map(([place, quantity]) => ({ ...row, usd: row.usd == null ? null : Number(row.usd), place, quantity }));
   });
   cards.sort(
     (a, b) => placeOrder[a.place] - placeOrder[b.place] || String(a.name_en).localeCompare(String(b.name_en)),
