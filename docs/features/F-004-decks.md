@@ -70,6 +70,8 @@ Critérios de aceite:
 - [x] O botão **Adicionar** fica onde estava “Escanear carta” e só habilita com uma carta selecionada.
 - [x] Clicar em **Adicionar** grava 1 cópia no destino do seletor (No deck, Sideboard ou Fora do deck) e limpa a seleção.
 - [x] O botão “Escanear carta” sai da edição do deck. O escaneamento continua na coleção (F-007).
+- [x] O seletor de destino (Deck / Side / Fora) fica ao lado do botão **Adicionar**, não mais colado ao campo de busca, porque é o botão que usa o destino. A funcionalidade não muda.
+- [x] **Adicionar** e o seletor formam um botão dividido (sem espaço entre eles, borda contínua). O seletor mostra uma seta para baixo que vira para cima com o menu aberto.
 
 Testes: `tests/f004-busca-adicionar.spec.ts`; `tests/f007-scan.spec.ts` confere que o deck não tem mais o botão e que a coleção ainda abre o scanner.
 

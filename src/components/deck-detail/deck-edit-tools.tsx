@@ -71,9 +71,10 @@ function DestinationMenu({
         aria-expanded={open}
         title={current.label}
         onClick={() => setOpen((next) => !next)}
-        className="ui-input h-11 w-[4.25rem] border-ink px-2 text-[12px]"
+        className="flex h-8 w-[4.75rem] items-center justify-between gap-1 rounded-r-[2px] border border-l-0 border-ink bg-surface-container-lowest px-2 text-[12px] text-ink hover:bg-surface-container"
       >
         {current.short}
+        <ChevronIcon up={open} />
       </button>
       {open ? (
         <ul
@@ -100,6 +101,21 @@ function DestinationMenu({
         </ul>
       ) : null}
     </div>
+  );
+}
+
+function ChevronIcon({ up }: { up: boolean }) {
+  return (
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+      className={`shrink-0 transition-transform ${up ? "rotate-180" : ""}`}
+    >
+      <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="square" />
+    </svg>
   );
 }
 
@@ -234,16 +250,7 @@ export function DeckEditTools({ deckId, allowsSideboard, status, setStatus, addT
   return (
     <div className="space-y-5">
       <Module title="Busca">
-        <div className="flex">
-          <div className="min-w-0 flex-1 [&_input]:border-r-0">
-            <CardSearch onSelect={setSelected} />
-          </div>
-          <DestinationMenu
-            value={destination}
-            allowsSideboard={allowsSideboard}
-            onChange={setPlace}
-          />
-        </div>
+        <CardSearch onSelect={setSelected} />
         {selected ? (
           <div
             className="flex items-center gap-3 border border-outline-variant px-2 py-1.5"
@@ -270,14 +277,21 @@ export function DeckEditTools({ deckId, allowsSideboard, status, setStatus, addT
             </button>
           </div>
         ) : null}
-        <button
-          type="button"
-          className="ui-btn h-8 w-full disabled:opacity-50"
-          disabled={!selected || adding}
-          onClick={() => void addSelected()}
-        >
-          Adicionar
-        </button>
+        <div className="flex">
+          <button
+            type="button"
+            className="ui-btn h-8 min-w-0 flex-1 rounded-r-none! disabled:opacity-50"
+            disabled={!selected || adding}
+            onClick={() => void addSelected()}
+          >
+            Adicionar
+          </button>
+          <DestinationMenu
+            value={destination}
+            allowsSideboard={allowsSideboard}
+            onChange={setPlace}
+          />
+        </div>
       </Module>
       <Module title="Lista">
         <button type="button" className="ui-btn-outline h-8 w-full" onClick={() => setListOpen(true)}>

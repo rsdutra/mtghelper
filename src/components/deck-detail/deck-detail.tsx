@@ -47,6 +47,7 @@ import { addTag, collectTags, groupCardsByTag, sameTag, toggleTag, type CardTag 
 
 /** Agrupamentos exclusivos da lista “No deck”: tipo (US-004-07), custo (US-004-11), tag (US-013-05). */
 type GroupMode = "none" | "type" | "cost" | "tag";
+type SidePanel = "busca" | "graficos" | "tags" | "ferramentas" | "exportar";
 const GROUP_MODES = ["type", "cost", "tag"] as const;
 const GROUP_STORAGE_KEYS: Record<(typeof GROUP_MODES)[number], string> = {
   type: "mtghelper.deck.groupByType",
@@ -84,11 +85,14 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
   const [textOptions, setTextOptions] = useState<TextListOption[] | null>(null);
   const [previewCardId, setPreviewCardId] = useState<string | null>(null);
   const [canvasToolsOpen, setCanvasToolsOpen] = useState(false);
-  const [toolsOpen, setToolsOpen] = useState(false);
-  const [chartsOpen, setChartsOpen] = useState(false);
-  const [tagsOpen, setTagsOpen] = useState(false);
-  const [buildToolsOpen, setBuildToolsOpen] = useState(false);
-  const [exportOpen, setExportOpen] = useState(false);
+  /** Painéis da lateral direita: só um aberto por vez. */
+  const [openPanel, setOpenPanel] = useState<SidePanel | null>(null);
+  const togglePanel = (panel: SidePanel) => setOpenPanel((current) => (current === panel ? null : panel));
+  const toolsOpen = openPanel === "busca";
+  const chartsOpen = openPanel === "graficos";
+  const tagsOpen = openPanel === "tags";
+  const buildToolsOpen = openPanel === "ferramentas";
+  const exportOpen = openPanel === "exportar";
   const [missingOpen, setMissingOpen] = useState(false);
   const closeMissing = useCallback(() => setMissingOpen(false), []);
   const [tagFilter, setTagFilter] = useState<string | null>(null);
@@ -596,17 +600,13 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
     ) : null;
 
   const tagsButton = (
-    <ToggleIconButton label="Tags" pressed={tagsOpen} onClick={() => setTagsOpen((open) => !open)}>
+    <ToggleIconButton label="Tags" pressed={tagsOpen} onClick={() => togglePanel("tags")}>
       <TagIcon />
     </ToggleIconButton>
   );
-  const tagsPanelRight = 4.5 + (editing && toolsOpen ? 20.5 : 0) + (editing && chartsOpen ? 26.5 : 0);
   const tagsPanel = tagsOpen ? (
     <>
-      <aside
-        className="fixed top-20 z-40 max-h-[calc(100vh-6rem)] w-72 overflow-auto border border-ink bg-surface-container-lowest p-4 shadow-[4px_4px_0_#09090b]"
-        style={{ right: `${tagsPanelRight}rem` }}
-      >
+      <aside className="fixed top-20 right-16 z-40 max-h-[calc(100vh-6rem)] w-72 overflow-auto border border-ink bg-surface-container-lowest p-4 shadow-[4px_4px_0_#09090b]">
         <DeckTagFilterPanel
           tags={knownTags}
           active={activeTag?.name ?? null}
@@ -646,31 +646,24 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
     <ToggleIconButton
       label="Ferramentas de construção"
       pressed={buildToolsOpen}
-      onClick={() => setBuildToolsOpen((open) => !open)}
+      onClick={() => togglePanel("ferramentas")}
     >
       <BuildToolsIcon />
     </ToggleIconButton>
   );
-  const buildToolsPanelRight = tagsPanelRight + (tagsOpen ? 18.5 : 0);
   const buildToolsPanel = buildToolsOpen ? (
-    <aside
-      className="fixed top-20 z-40 max-h-[calc(100vh-6rem)] w-[24rem] overflow-auto border border-ink bg-surface-container-lowest p-4 shadow-[4px_4px_0_#09090b]"
-      style={{ right: `${buildToolsPanelRight}rem` }}
-    >
+    <aside className="fixed top-20 right-16 z-40 max-h-[calc(100vh-6rem)] w-[24rem] overflow-auto border border-ink bg-surface-container-lowest p-4 shadow-[4px_4px_0_#09090b]">
       <DeckBuildTools cards={includedCards} />
     </aside>
   ) : null;
 
   const exportButton = (
-    <ToggleIconButton label="Exportar" pressed={exportOpen} onClick={() => setExportOpen((open) => !open)}>
+    <ToggleIconButton label="Exportar" pressed={exportOpen} onClick={() => togglePanel("exportar")}>
       <ExportIcon />
     </ToggleIconButton>
   );
   const exportPanel = exportOpen ? (
-    <aside
-      className="fixed top-20 z-40 max-h-[calc(100vh-6rem)] w-64 overflow-auto border border-ink bg-surface-container-lowest p-4 shadow-[4px_4px_0_#09090b]"
-      style={{ right: `${buildToolsPanelRight + (buildToolsOpen ? 24.5 : 0)}rem` }}
-    >
+    <aside className="fixed top-20 right-16 z-40 max-h-[calc(100vh-6rem)] w-64 overflow-auto border border-ink bg-surface-container-lowest p-4 shadow-[4px_4px_0_#09090b]">
       <DeckExportPanel cards={cards} allowsSideboard={allowsSideboard} />
     </aside>
   ) : null;
@@ -745,14 +738,14 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
               <ToggleIconButton
                 label="Busca"
                 pressed={toolsOpen}
-                onClick={() => setToolsOpen((open) => !open)}
+                onClick={() => togglePanel("busca")}
               >
                 <SearchIcon />
               </ToggleIconButton>
               <ToggleIconButton
                 label="Gráficos"
                 pressed={chartsOpen}
-                onClick={() => setChartsOpen((open) => !open)}
+                onClick={() => togglePanel("graficos")}
               >
                 <ChartIcon />
               </ToggleIconButton>
@@ -766,10 +759,7 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
               </aside>
             ) : null}
             {chartsOpen ? (
-              <aside
-                className="fixed top-20 z-40 max-h-[calc(100vh-6rem)] w-[26rem] overflow-auto border border-ink bg-surface-container-lowest p-4 shadow-[4px_4px_0_#09090b]"
-                style={{ right: toolsOpen ? "25rem" : "4.5rem" }}
-              >
+              <aside className="fixed top-20 right-16 z-40 max-h-[calc(100vh-6rem)] w-[26rem] overflow-auto border border-ink bg-surface-container-lowest p-4 shadow-[4px_4px_0_#09090b]">
                 <DeckStatsCharts cards={includedCards} stacked />
               </aside>
             ) : null}
@@ -923,7 +913,7 @@ function ListPanel({
 }) {
   return (
     <section
-      className={`border bg-surface-container-lowest ${
+      className={`border bg-surface-container-lowest shadow-panel ${
         dashed ? "border-dashed border-neutral-400" : "border-outline-variant"
       }`}
     >

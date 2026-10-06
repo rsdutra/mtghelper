@@ -39,6 +39,7 @@ Critérios de aceite:
 
 - [x] Cada linha da view Texto na edição tem um ícone de opções, visível só com o cursor na linha (ou com o menu aberto).
 - [x] O menu traz as ações atuais: aumentar, diminuir, remover todas, detalhes, copiar nome, mover (fora do deck, no deck, sideboard quando o formato permite) e tags.
+- [x] Aumentar, diminuir e remover todas ficam numa única linha de ícones no topo do menu (+, − e lixeira), com dica ao passar o mouse e os mesmos rótulos acessíveis.
 
 ### US-017-03 — Itens opcionais da lista
 

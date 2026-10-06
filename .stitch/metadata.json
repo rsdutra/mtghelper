@@ -5,6 +5,38 @@
     "Last Sync Time":  "2026-09-11T17:36:45.2933187Z",
     "brand":  "ARCHIVIST // MTG",
     "screens":  {
+                    "197e1ac771824e149a2e77e8f435f1eb":  { "id": "197e1ac771824e149a2e77e8f435f1eb", "label": "Decks - Variante 1: Mid-Tone Gray + Soft Shadow", "slug": "decks-bg2-v1-cinza-medio-sombra", "route": null, "sourceScreen": "projects/15205195196080306830/screens/197e1ac771824e149a2e77e8f435f1eb", "deviceType": "DESKTOP", "hasHtml": true },
+                    "343729458fa943f59bb166578e55f8d1":  { "id": "343729458fa943f59bb166578e55f8d1", "label": "Decks - Variante 2: Charcoal Two-Tone Header", "slug": "decks-bg2-v2-faixa-carvao", "route": "todas as telas (US-009-05, aplicada)", "sourceScreen": "projects/15205195196080306830/screens/343729458fa943f59bb166578e55f8d1", "deviceType": "DESKTOP", "hasHtml": true },
+                    "add77a6377c54282978843c3820d18a3":  { "id": "add77a6377c54282978843c3820d18a3", "label": "Decks - Variante 3: Vertical Gradient & Vignette", "slug": "decks-bg2-v3-gradiente-vinheta", "route": null, "sourceScreen": "projects/15205195196080306830/screens/add77a6377c54282978843c3820d18a3", "deviceType": "DESKTOP", "hasHtml": true },
+                    "8f61f60335514aaa89be4b4f93ad37af":  { "id": "8f61f60335514aaa89be4b4f93ad37af", "label": "Decks - Variante 4: Dusty Blue-Gray Tinted Canvas", "slug": "decks-bg2-v4-azul-acinzentado", "route": null, "sourceScreen": "projects/15205195196080306830/screens/8f61f60335514aaa89be4b4f93ad37af", "deviceType": "DESKTOP", "hasHtml": true },
+                    "be7105e436e645e29aa5370a3ba2f679":  { "id": "be7105e436e645e29aa5370a3ba2f679", "label": "Decks - Variante 5: Warm Grain + Hard Offset Shadow", "slug": "decks-bg2-v5-papel-sombra-dura", "route": null, "sourceScreen": "projects/15205195196080306830/screens/be7105e436e645e29aa5370a3ba2f679", "deviceType": "DESKTOP", "hasHtml": true },
+                    "8a90c71615ca41e99a8d7dfe97a2631b":  {
+                                                             "id":  "8a90c71615ca41e99a8d7dfe97a2631b",
+                                                             "label":  "Decks - Gerenciamento (Variante Zinc Neutro)",
+                                                             "slug":  "decks-bg-zinc-neutro",
+                                                             "route":  null,
+                                                             "sourceScreen":  "projects/15205195196080306830/screens/8a90c71615ca41e99a8d7dfe97a2631b",
+                                                             "deviceType":  "DESKTOP",
+                                                             "hasHtml":  true
+                                                         },
+                    "913dfb13c200418fa5346cda3193d1fe":  {
+                                                             "id":  "913dfb13c200418fa5346cda3193d1fe",
+                                                             "label":  "Decks - Gerenciamento (Variante Slate Frio)",
+                                                             "slug":  "decks-bg-slate-frio",
+                                                             "route":  null,
+                                                             "sourceScreen":  "projects/15205195196080306830/screens/913dfb13c200418fa5346cda3193d1fe",
+                                                             "deviceType":  "DESKTOP",
+                                                             "hasHtml":  true
+                                                         },
+                    "c5c979d3928a491a95f14057aa81298b":  {
+                                                             "id":  "c5c979d3928a491a95f14057aa81298b",
+                                                             "label":  "Decks - Gerenciamento (Variante Stone Quente)",
+                                                             "slug":  "decks-bg-stone-quente",
+                                                             "route":  null,
+                                                             "sourceScreen":  "projects/15205195196080306830/screens/c5c979d3928a491a95f14057aa81298b",
+                                                             "deviceType":  "DESKTOP",
+                                                             "hasHtml":  true
+                                                         },
                     "9536435150df48ee8c5b41929b69761f":  {
                                                              "id":  "9536435150df48ee8c5b41929b69761f",
                                                              "label":  "Detalhes do Deck - Olivia V3",

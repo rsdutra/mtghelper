@@ -111,11 +111,11 @@ export function DeckStatsCharts({ cards, stacked = false }: Props) {
 
   return (
     <section className={`grid gap-4 ${stacked ? "" : "md:grid-cols-2"}`}>
-      <div className="border border-outline-variant bg-surface-container-lowest p-4">
+      <div className="border border-outline-variant bg-surface-container-lowest p-4 shadow-panel">
         <h2 className="mb-3 text-sm font-medium uppercase">Distribuição por tipo</h2>
         <TypePie slices={slices} stacked={stacked} />
       </div>
-      <div className="border border-outline-variant bg-surface-container-lowest p-4">
+      <div className="border border-outline-variant bg-surface-container-lowest p-4 shadow-panel">
         <h2 className="mb-3 text-sm font-medium uppercase">Curva de mana</h2>
         <p className="mb-2 text-xs text-neutral-500">Exclui terrenos.</p>
         <ManaBars buckets={curve} />

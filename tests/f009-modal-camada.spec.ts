@@ -43,13 +43,16 @@ test("modais ficam por cima dos painéis abertos do deck", async ({ page }) => {
   expect(added.ok()).toBeTruthy();
   await page.goto(`/decks/${deck.id}/edit`);
 
-  // Painéis abertos antes da Busca, em ordem diferente da coluna de botões.
+  // Um painel por vez: abrir outro fecha o anterior.
   await openPanel(page, "Ferramentas de construção");
   await openPanel(page, "Gráficos");
   await openPanel(page, "Tags");
   await openPanel(page, "Busca");
+  for (const label of ["Ferramentas de construção", "Gráficos", "Tags"]) {
+    await expect(page.getByRole("button", { name: label, exact: true })).toHaveAttribute("aria-pressed", "false");
+  }
 
-  // A modal nasce dentro do painel de Busca e mesmo assim cobre os outros painéis.
+  // A modal nasce dentro do painel de Busca e mesmo assim cobre o painel e a coluna de botões.
   await page.getByRole("button", { name: "Adicionar lista" }).click();
   const listDialog = page.getByRole("dialog", { name: "Adicionar lista" });
   await expect(listDialog).toBeVisible();
@@ -63,10 +66,10 @@ test("modais ficam por cima dos painéis abertos do deck", async ({ page }) => {
   const shockName = shock.cards.find((item) => item.name_en === "Shock")?.name_pt ?? "Shock";
   await expect(page.getByText(shockName, { exact: true }).first()).toBeVisible();
 
-  // Modal de exportar (F-016) com os mesmos painéis abertos. O painel de exportação fica sob os
-  // outros nesta largura, então a opção é acionada pelo teclado.
+  // Modal de exportar (F-016): abrir Exportar fecha a Busca.
   await openPanel(page, "Exportar");
-  await page.getByRole("button", { name: "Exportar tudo" }).press("Enter");
+  await expect(page.getByRole("button", { name: "Busca", exact: true })).toHaveAttribute("aria-pressed", "false");
+  await page.getByRole("button", { name: "Exportar tudo" }).click();
   const exportDialog = page.getByRole("dialog");
   await expect(exportDialog).toBeVisible();
   expect(await coveredPoints(exportDialog)).toBe(0);

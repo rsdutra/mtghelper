@@ -58,7 +58,7 @@ export default function CollectionsPage() {
 
   return (
     <AppShell>
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+      <div data-page-hero className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="ui-label mb-1">Archive / Collection</p>
           <h1 className="ui-headline">Gerenciamento de Acervo</h1>
@@ -78,7 +78,7 @@ export default function CollectionsPage() {
       <div className="grid gap-6 lg:grid-cols-[300px_1fr]">
         <form
           onSubmit={(event) => void createCollection(event)}
-          className="space-y-3 border border-ink bg-surface-container-lowest p-4"
+          className="space-y-3 border border-ink bg-surface-container-lowest p-4 shadow-panel"
         >
           <h2 className="ui-label text-ink">+ Nova Coleção</h2>
           <input
@@ -94,7 +94,7 @@ export default function CollectionsPage() {
           {status ? <p className="text-[12px] text-muted">{status}</p> : null}
         </form>
 
-        <div className="border border-ink bg-surface-container-lowest">
+        <div className="border border-ink bg-surface-container-lowest shadow-panel">
           <div className="flex items-center justify-between border-b border-border-line px-3 py-2">
             <p className="ui-label text-ink">Acervo</p>
           </div>

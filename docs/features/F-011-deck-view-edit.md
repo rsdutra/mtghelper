@@ -66,6 +66,7 @@ Critérios de aceite:
 - [x] Painel lateral (Stitch 4/12) com busca (botão Adicionar, US-004-18), lista, seção, tags, em trabalho + tag, coleção. O escanear saiu da edição do deck (US-004-18).
 - [x] Botão para voltar à visualização.
 - [x] Canvas (F-008) editável como hoje; na visualização, canvas somente leitura.
+- [x] Os botões da coluna à direita (Busca, Gráficos, Tags, Ferramentas, Exportar; na visualização, Tags, Ferramentas e Exportar) funcionam como toggle exclusivo: abrir um painel fecha o que estava aberto, e clicar de novo no botão ativo fecha o painel. Só um painel fica visível por vez, sempre na mesma posição ao lado da coluna. Testes: `tests/f009-modal-camada.spec.ts`, `tests/f015-mana-colors.spec.ts`.
 
 ### US-011-05 — Componente compartilhado
 

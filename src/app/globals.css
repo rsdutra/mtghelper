@@ -2,7 +2,12 @@
 
 /* F-009 / US-009-01 — tokens from Stitch Monochrome Studio */
 @theme {
-  --color-background: #f9f9fa;
+  /* US-009-05 — faixa carvão (Stitch 34372945…) */
+  --color-background: #d4d4d8;
+  --color-nav: #c8c8cc;
+  --color-band: #27272a;
+  --color-band-line: #3f3f46;
+  --shadow-panel: 0 8px 24px rgb(0 0 0 / 0.12);
   --color-surface: #f9f9fa;
   --color-surface-bright: #f9f9fa;
   --color-surface-dim: #dadadb;
@@ -24,7 +29,8 @@
   --color-error: #ba1a1a;
   --color-border-line: #e4e4e7;
   --color-ink: #09090b;
-  --color-muted: #71717a;
+  /* #47464a keeps AA contrast on the gray canvas */
+  --color-muted: #47464a;
   --color-zinc-800: #27272a;
   --color-danger: #dc2626;
 
@@ -61,11 +67,51 @@ body {
 }
 
 body {
-  background: var(--color-background);
+  background-color: var(--color-background);
   color: var(--color-on-surface);
   font-family: var(--font-sans);
   font-size: 13px;
   line-height: 18px;
+}
+
+/* US-009-05 — header e título da página sobre a faixa carvão */
+.ui-on-dark,
+[data-page-hero] {
+  color: #ffffff;
+  --color-ink: #ffffff;
+  --color-muted: #a1a1aa;
+  --color-secondary: #d4d4d8;
+  --color-border-line: var(--color-band-line);
+}
+
+:is(.ui-on-dark, [data-page-hero]) .ui-btn {
+  border-color: #ffffff;
+  background: #ffffff;
+  color: #09090b;
+}
+
+:is(.ui-on-dark, [data-page-hero]) .ui-btn:hover {
+  background: #e4e4e7;
+}
+
+:is(.ui-on-dark, [data-page-hero]) .ui-btn-outline {
+  border-color: var(--color-band-line);
+  background: var(--color-band);
+  color: #f4f4f5;
+}
+
+:is(.ui-on-dark, [data-page-hero]) .ui-btn-outline:hover {
+  border-color: #71717a;
+  background: var(--color-band-line);
+}
+
+/* Full-bleed band continuing the header behind the page title */
+[data-page-hero] {
+  margin-top: -1.5rem;
+  padding: 1.5rem 0;
+  background: var(--color-band);
+  box-shadow: 0 0 0 100vmax var(--color-band);
+  clip-path: inset(0 -100vmax);
 }
 
 button,
@@ -83,11 +129,13 @@ textarea {
 .ui-panel {
   border: 1px solid var(--color-ink);
   background: var(--color-surface-container-lowest);
+  box-shadow: var(--shadow-panel);
 }
 
 .ui-panel-soft {
-  border: 1px solid var(--color-border-line);
+  border: 1px solid var(--color-outline-variant);
   background: var(--color-surface-container-lowest);
+  box-shadow: var(--shadow-panel);
 }
 
 .ui-input {

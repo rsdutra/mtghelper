@@ -227,7 +227,7 @@ export default function CollectionPage() {
   return (
     <AppShell>
       <div className="space-y-6">
-        <div className="flex flex-wrap items-start justify-between gap-3">
+        <div data-page-hero className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="ui-label mb-1">Archive / Collection</p>
             <h1 className="ui-headline">{name}</h1>
@@ -279,7 +279,7 @@ export default function CollectionPage() {
           </div>
         </div>
 
-        <section className="border border-ink bg-surface-container-lowest">
+        <section className="border border-ink bg-surface-container-lowest shadow-panel">
           <button
             type="button"
             className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] font-semibold uppercase tracking-wide"
@@ -304,7 +304,7 @@ export default function CollectionPage() {
           ) : null}
         </section>
 
-        <section className="border border-ink bg-surface-container-lowest">
+        <section className="border border-ink bg-surface-container-lowest shadow-panel">
           <button
             type="button"
             className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] font-semibold uppercase tracking-wide"
@@ -405,7 +405,7 @@ export default function CollectionPage() {
             {visibleItems.map((item) => {
               const price = formatBRLFromCents(item.price_cents ?? null);
               return (
-                <article key={item.id} className="border border-ink bg-surface-container-lowest">
+                <article key={item.id} className="border border-ink bg-surface-container-lowest shadow-panel">
                   {item.image_normal ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={item.image_normal} alt={item.name_en} className="w-full" />

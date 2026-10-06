@@ -133,12 +133,15 @@ test("painel Ferramentas de construção na edição e na visualização", async
     .poll(() => legend(page, "Produção de mana dos terrenos"))
     .toEqual(["Preto: 4 (80%)", "Vermelho: 1 (20%)"]);
 
-  // Adicionar um terreno incolor atualiza o gráfico.
+  // Adicionar um terreno incolor atualiza o gráfico. Abrir a Busca fecha as Ferramentas (um painel por vez).
   await page.getByRole("button", { name: "Busca", exact: true }).click();
+  await expect(toolsButton).toHaveAttribute("aria-pressed", "false");
+  await expect(symbols).toHaveCount(0);
   await page.getByRole("button", { name: "Adicionar lista" }).click();
   await page.getByLabel("Lista no deck").fill("1 Wastes");
   await page.getByRole("dialog").getByRole("button", { name: "Salvar" }).click();
-  await page.getByRole("button", { name: "Busca", exact: true }).click();
+  await toolsButton.click();
+  await expect(page.getByRole("button", { name: "Busca", exact: true })).toHaveAttribute("aria-pressed", "false");
   await expect(lands.getByText("Total: 6 terrenos")).toBeVisible();
   await expect
     .poll(() => legend(page, "Produção de mana dos terrenos"))

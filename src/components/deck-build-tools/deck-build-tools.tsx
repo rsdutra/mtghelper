@@ -20,7 +20,7 @@ function toPieSlices(slices: ManaColorSlice[]) {
 function ToolSection({ title, summary, children }: { title: string; summary: string; children: ReactNode }) {
   const headingId = useId();
   return (
-    <section aria-labelledby={headingId} className="border border-outline-variant bg-surface-container-lowest p-4">
+    <section aria-labelledby={headingId} className="border border-outline-variant bg-surface-container-lowest p-4 shadow-panel">
       <h3 id={headingId} className="text-sm font-medium uppercase">
         {title}
       </h3>

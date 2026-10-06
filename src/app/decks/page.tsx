@@ -56,7 +56,7 @@ export default function DecksPage() {
 
   return (
     <AppShell>
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+      <div data-page-hero className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="ui-label mb-1">Archive / Deck Manager</p>
           <h1 className="ui-headline">Gerenciamento de Decks</h1>
@@ -67,7 +67,7 @@ export default function DecksPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[300px_1fr]">
-        <form onSubmit={(event) => void createDeck(event)} className="space-y-3 border border-ink bg-surface-container-lowest p-4">
+        <form onSubmit={(event) => void createDeck(event)} className="space-y-3 border border-ink bg-surface-container-lowest p-4 shadow-panel">
           <div className="flex items-center justify-between">
             <h2 className="ui-label text-ink">+ Novo Deck</h2>
           </div>
@@ -108,7 +108,7 @@ export default function DecksPage() {
           {status ? <p className="text-[12px] text-muted">{status}</p> : null}
         </form>
 
-        <div className="border border-ink bg-surface-container-lowest">
+        <div className="border border-ink bg-surface-container-lowest shadow-panel">
           <div className="flex items-center justify-between border-b border-border-line px-3 py-2">
             <p className="ui-label text-ink">{decks.length} Decks Cadastrados</p>
           </div>
