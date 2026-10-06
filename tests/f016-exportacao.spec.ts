@@ -2,7 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { deckExportOptions, formatDeckExportList, type DeckExportCard } from "../src/lib/deck-export";
 
 /**
- * F-016 / US-016-01 — painel de exportação (Deck, Sideboard, Fora do deck, Tudo).
+ * F-016 / US-016-01 — painel de exportação (Deck, Sideboard, Maybeboard, Tudo).
  * F-016 / US-016-02 — “Copiar nome” no menu da carta.
  */
 const stamp = Date.now();
@@ -30,8 +30,8 @@ test("monta cada conjunto exportável", () => {
     "2 Counterspell\n4 Lightning Bolt\n1 Lightning Bolt\n3 Pyroblast",
   );
   expect(formatDeckExportList(sample, "side", false)).toBe("");
-  expect(deckExportOptions(true).map((option) => option.label)).toEqual(["Deck", "Sideboard", "Fora do deck", "Tudo"]);
-  expect(deckExportOptions(false).map((option) => option.label)).toEqual(["Deck", "Fora do deck", "Tudo"]);
+  expect(deckExportOptions(true).map((option) => option.label)).toEqual(["Deck", "Sideboard", "Maybeboard", "Tudo"]);
+  expect(deckExportOptions(false).map((option) => option.label)).toEqual(["Deck", "Maybeboard", "Tudo"]);
 });
 
 async function register(page: Page, login: string) {
@@ -101,11 +101,11 @@ test("exporta cada lista pelo painel à direita", async ({ page }) => {
   await exportButton.click();
   await expect(exportButton).toHaveAttribute("aria-pressed", "true");
   const options = page.getByRole("list", { name: "Opções de exportação" });
-  await expect(options.getByRole("button")).toHaveText(["Deck", "Sideboard", "Fora do deck", "Tudo"]);
+  await expect(options.getByRole("button")).toHaveText(["Deck", "Sideboard", "Maybeboard", "Tudo"]);
 
   expect(await exportAndRead(page, "Exportar deck")).toBe("4 Lightning Bolt\n2 Mountain");
   expect(await exportAndRead(page, "Exportar sideboard")).toBe("3 Pyroblast");
-  expect(await exportAndRead(page, "Exportar fora do deck")).toBe("1 Shock");
+  expect(await exportAndRead(page, "Exportar maybeboard")).toBe("1 Shock");
   expect(await exportAndRead(page, "Exportar tudo")).toBe("4 Lightning Bolt\n2 Mountain\n3 Pyroblast\n1 Shock");
 
   await exportButton.click();
@@ -117,16 +117,16 @@ test("exporta cada lista pelo painel à direita", async ({ page }) => {
   await page.getByRole("button", { name: "Exportar", exact: true }).click();
   expect(await exportAndRead(page, "Exportar deck")).toBe("4 Lightning Bolt\n2 Mountain");
 
-  // Formato sem sideboard: sem a opção Sideboard; “Fora do deck” vazio avisa.
+  // Formato sem sideboard: sem a opção Sideboard; Maybeboard vazio avisa.
   const commanderId = await createDeck(page, "Exportar Commander", "commander", { main: "1 Sol Ring", side: "", out: "" });
   await page.goto(`/decks/${commanderId}`);
   await page.getByRole("button", { name: "Exportar", exact: true }).click();
   await expect(page.getByRole("list", { name: "Opções de exportação" }).getByRole("button")).toHaveText([
     "Deck",
-    "Fora do deck",
+    "Maybeboard",
     "Tudo",
   ]);
-  await page.getByRole("button", { name: "Exportar fora do deck", exact: true }).click();
+  await page.getByRole("button", { name: "Exportar maybeboard", exact: true }).click();
   await expect(page.getByRole("dialog").getByText("Nenhuma carta para exportar.")).toBeVisible();
 });
 

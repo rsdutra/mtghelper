@@ -7,7 +7,7 @@ const password = "senha123";
 
 type DeckCard = { name_en: string; quantity: number; place: string };
 
-test("lista fora do deck não move as cartas que já estão no deck", async ({ page }) => {
+test("lista do maybeboard não move as cartas que já estão no deck", async ({ page }) => {
   await page.goto("/cadastro");
   await page.getByLabel("Login").fill(login);
   await page.getByLabel("Senha").fill(password);

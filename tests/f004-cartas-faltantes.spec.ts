@@ -65,7 +65,7 @@ test("adiciona à coleção as cartas faltantes marcadas", async ({ page }) => {
   }
   const names = await labels(page, deck.id);
 
-  // Edição: aviso clicável; deck + sideboard somam, “Fora do deck” e o que já tem ficam de fora.
+  // Edição: aviso clicável; deck + sideboard somam, o Maybeboard e o que já tem ficam de fora.
   await page.goto(`/decks/${deck.id}/edit`);
   const badge = page.getByRole("button", { name: "Faltam 6 cópias · 2 cartas" });
   await badge.click();

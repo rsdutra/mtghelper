@@ -10,7 +10,7 @@ export type DeckExportCard = {
 const DECK_EXPORT_OPTIONS: ReadonlyArray<{ scope: DeckExportScope; label: string; title: string }> = [
   { scope: "main", label: "Deck", title: "Exportar deck" },
   { scope: "side", label: "Sideboard", title: "Exportar sideboard" },
-  { scope: "out", label: "Fora do deck", title: "Exportar fora do deck" },
+  { scope: "out", label: "Maybeboard", title: "Exportar maybeboard" },
   { scope: "all", label: "Tudo", title: "Exportar tudo" },
 ];
 

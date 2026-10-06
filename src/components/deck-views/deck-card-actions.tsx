@@ -110,7 +110,7 @@ export function DeckCardActions({
         {copiedNotice}
         <p className="px-2 pt-2 font-mono text-[10px] tracking-wide text-muted uppercase">Mover para</p>
         <button type="button" role="menuitem" className={menuButton} onClick={() => onMove("out")}>
-          Fora do deck
+          Maybeboard
         </button>
         <button type="button" role="menuitem" className={menuButton} onClick={() => onMove("main")}>
           No deck
@@ -195,7 +195,7 @@ export function DeckCardActions({
           className="ui-input h-7 w-auto"
         >
           <option value="">Escolher…</option>
-          <option value="out">Fora do deck</option>
+          <option value="out">Maybeboard</option>
           <option value="main">No deck</option>
           {allowsSideboard ? <option value="side">Sideboard</option> : null}
         </select>

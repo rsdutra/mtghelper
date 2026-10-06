@@ -74,7 +74,7 @@ test("remover cópias e a carta inteira na lista de edição", async ({ page }) 
 
   await page.goto(`/decks/${deckId}/edit`);
   const deckPanel = panel(page, "No deck");
-  const outPanel = panel(page, "Fora do deck");
+  const outPanel = panel(page, "Maybeboard");
   const boltMenu = await openRowMenu(deckPanel, bolt);
   await expect(boltMenu.getByRole("menuitem", { name: `Diminuir ${bolt}` })).toBeVisible();
 

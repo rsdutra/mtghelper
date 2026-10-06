@@ -4,6 +4,8 @@
 
 Reunir num painel lateral próprio a exportação das listas do deck (Deck, Sideboard, Fora do deck e Tudo) e permitir copiar o nome de uma carta direto do menu dela.
 
+> Pela F-018 / US-018-03, “Fora do deck” passou a se chamar **Maybeboard** (opção “Maybeboard”, título “Exportar maybeboard”).
+
 ## Escopo
 
 - Novo botão de ícone “Exportar” na coluna de botões à direita da tela do deck, abrindo um painel lateral — US-016-01.

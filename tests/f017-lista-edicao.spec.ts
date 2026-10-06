@@ -52,7 +52,7 @@ test("edição em texto: preview ao lado, opções, custo de mana e tags", async
   await expect(menu.getByRole("menuitem", { name: `Remover todas as cópias de ${label}` })).toBeVisible();
   await expect(menu.getByRole("menuitem", { name: "Detalhes" })).toBeVisible();
   await expect(menu.getByRole("menuitem", { name: "Copiar nome" })).toBeVisible();
-  await expect(menu.getByRole("menuitem", { name: "Fora do deck" })).toBeVisible();
+  await expect(menu.getByRole("menuitem", { name: "Maybeboard" })).toBeVisible();
   await expect(menu.getByRole("menuitem", { name: "No deck" })).toBeVisible();
   await expect(menu.getByRole("menuitem", { name: "Sideboard" })).toBeVisible();
 

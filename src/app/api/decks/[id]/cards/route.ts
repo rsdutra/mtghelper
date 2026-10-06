@@ -2,6 +2,12 @@ import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth";
 import { resolveCardName } from "@/lib/cards";
 import { sql } from "@/lib/db";
+import {
+  addListQuantity,
+  matchDeckCard,
+  type DeckListExistingCard,
+  type DeckListQuantities,
+} from "@/lib/deck-list-edit";
 import { sideboardLimit } from "@/lib/formats";
 import { parseCardList } from "@/lib/lists";
 import { collectTags, parseTags, sanitizeTagList, serializeTags } from "@/lib/tags";
@@ -83,6 +89,71 @@ export async function POST(request: Request, { params }: Params) {
   }
 
   return NextResponse.json({ added, missing });
+}
+
+/** F-018 / US-018-02 — o deck passa a ter exatamente as cartas das listas de cada lugar. */
+export async function PUT(request: Request, { params }: Params) {
+  const user = await requireUser().catch(() => null);
+  if (!user) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const { id } = await params;
+  if (!(await ownedDeck(user.id, id))) {
+    return NextResponse.json({ error: "Deck não encontrado." }, { status: 404 });
+  }
+
+  const body = (await request.json()) as { lists?: Partial<Record<Place, unknown>> };
+  const places: Place[] = (await allowsSide(id)) ? ["main", "side", "out"] : ["main", "out"];
+
+  const rows = await sql<
+    (QuantityRow & { catalog_card_id: string; name_en: string; name_pt: string | null })[]
+  >`
+    SELECT dc.id, dc.catalog_card_id, dc.quantity_main, dc.quantity_side, dc.quantity_out, c.name_en, c.name_pt
+    FROM deck_cards dc
+    JOIN catalog_cards c ON c.id = dc.catalog_card_id
+    WHERE dc.deck_id = ${id}
+  `;
+  const existing: DeckListExistingCard[] = rows.map((row) => ({
+    catalogCardId: row.catalog_card_id,
+    name_en: row.name_en,
+    name_pt: row.name_pt,
+    quantities: { main: row.quantity_main, side: row.quantity_side, out: row.quantity_out },
+  }));
+
+  const totals: DeckListQuantities = new Map();
+  const missing: Array<{ place: Place; name: string; line: number }> = [];
+  for (const place of places) {
+    const text = body.lists?.[place];
+    for (const line of parseCardList(typeof text === "string" ? text : "")) {
+      const known = matchDeckCard(existing, line.name, place);
+      const card = known ? { id: known.catalogCardId } : await resolveCardName(line.name);
+      if (!card) {
+        missing.push({ place, name: line.name, line: line.line });
+        continue;
+      }
+      addListQuantity(totals, card.id, place, line.quantity);
+    }
+  }
+  if (missing.length) {
+    return NextResponse.json({ error: "Há cartas não reconhecidas.", missing }, { status: 422 });
+  }
+
+  await sql.begin(async (tx) => {
+    for (const row of rows) {
+      if (!totals.has(row.catalog_card_id)) await tx`DELETE FROM deck_cards WHERE id = ${row.id}`;
+    }
+    for (const [catalogCardId, qty] of totals) {
+      await tx`
+        INSERT INTO deck_cards (deck_id, catalog_card_id, quantity_main, quantity_side, quantity_out)
+        VALUES (${id}, ${catalogCardId}, ${qty.main}, ${qty.side}, ${qty.out})
+        ON CONFLICT (deck_id, catalog_card_id)
+        DO UPDATE SET
+          quantity_main = EXCLUDED.quantity_main,
+          quantity_side = EXCLUDED.quantity_side,
+          quantity_out = EXCLUDED.quantity_out
+      `;
+    }
+  });
+
+  return NextResponse.json({ ok: true });
 }
 
 export async function PATCH(request: Request, { params }: Params) {
