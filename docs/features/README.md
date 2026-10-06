@@ -22,6 +22,7 @@ Cada mudança de produto neste repositório deve referenciar uma **feature** (`F
 | F-016 | Exportação do deck (painel lateral) e copiar nome da carta | [F-016-exportacao.md](./F-016-exportacao.md) |
 | F-017 | Lista da edição no estilo Moxfield | [F-017-lista-edicao.md](./F-017-lista-edicao.md) |
 | F-018 | Editar o deck por lista (inclui Fora do deck → Maybeboard) | [F-018-editar-por-lista.md](./F-018-editar-por-lista.md) |
+| F-019 | Preço estimado na lista do deck (inclui tags opcionais no Exibir) | [F-019-preco-estimado.md](./F-019-preco-estimado.md) |
 
 ## Como criar uma feature
 

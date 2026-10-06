@@ -3,6 +3,13 @@ import { expect, test, type Page } from "@playwright/test";
 /** F-013 / US-013-01 / US-013-02 — tags no deck e na coleção. */
 const stamp = Date.now();
 const login = `tags${stamp}`;
+
+/** F-019: as bolinhas de tag da view Texto dependem de “Tags” no Exibir. */
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    if (!localStorage.getItem("mtghelper.deck.textOptions")) localStorage.setItem("mtghelper.deck.textOptions", '["tags"]');
+  });
+});
 const password = "senha123";
 
 async function addDeckList(page: Page, text: string, nameEn: string) {

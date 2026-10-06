@@ -50,9 +50,28 @@ Critérios de aceite:
 - [ ] Ordena por `released_at` desc no catálogo.
 - [ ] Se insuficiente, busca prints na Scryfall e upserta.
 
+### US-006-04 — Metadados sempre em inglês
+
+**Como** jogador **quero** que a carta encontrada pelo nome em português guarde os dados da impressão em inglês **para** ter preço (a Scryfall não dá preço para impressões em português) e o nome em português só na tela.
+
+Critérios de aceite:
+
+- [x] Sugestão da busca, resolução de nome (lista, scanner, busca) e impressão mais recente gravam a impressão em inglês do mesmo set e número, com `name_pt` vindo do nome impresso em português.
+- [x] Sem versão em inglês do mesmo set e número, usa a impressão em inglês que a Scryfall devolve pelo nome.
+- [x] A busca local só devolve impressões em inglês; uma impressão em português gravada antes não volta a entrar em deck ou coleção.
+- [x] Ao abrir um deck ou uma coleção, cartas ligadas a uma impressão em português passam para a impressão em inglês do mesmo set e número. Quantidades, tags, preço manual e nota continuam. Se a impressão em inglês já estiver na mesma lista, as duas linhas se juntam.
+- [x] No deck, o layout do canvas acompanha a troca.
+- [x] A tela continua mostrando o nome em português quando existe; a imagem passa a ser a da impressão em inglês.
+
+Decisões (confirmadas com o usuário): user story na F-006; converter as cartas antigas ao abrir o deck ou a coleção; mesma branch e PR da F-019, que depende do preço.
+
+Teste: `tests/f006-metadados-ingles.spec.ts`.
+
 ## Regras
 
 - Rate limit: search/named/collection ≤ ~2/s; autocomplete mais permissivo.
+- O catálogo guarda impressões em inglês (US-006-04). O português fica só em `name_pt`.
+- Converter ao abrir é manutenção de dados, não edição do jogador: vale também na visualização do deck (F-011).
 - JSON de carta pode/deve viver ≥ 24h; na prática fica até limpeza futura.
 - Dados Scryfall não podem ficar atrás de paywall.
 

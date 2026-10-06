@@ -60,10 +60,15 @@ test("edição em texto: preview ao lado, opções, custo de mana e tags", async
   const dialog = page.getByRole("dialog", { name: "Nova tag" });
   await dialog.getByLabel("Nome", { exact: true }).fill("Burn");
   await dialog.getByRole("button", { name: "Salvar" }).click();
-  await expect(row.getByTitle("Burn")).toBeVisible();
+  // F-019: as bolinhas de tag dependem de “Tags” no Exibir, desligado por padrão.
+  await expect(row.getByTitle("Burn")).toHaveCount(0);
 
   await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "Itens da lista" }).click();
+  const tags = page.getByRole("checkbox", { name: "Tags" });
+  await expect(tags).not.toBeChecked();
+  await tags.check();
+  await expect(row.getByTitle("Burn")).toBeVisible();
   const mana = page.getByRole("checkbox", { name: "Custo de mana" });
   await expect(mana).not.toBeChecked();
   await mana.check();

@@ -166,6 +166,18 @@ export async function scryfallCollectionByIds(ids: string[]) {
   return data?.data ?? [];
 }
 
+/** Sem `lang` no identificador, a Scryfall devolve a impressão em inglês do set e número (US-006-04). */
+export async function scryfallCollectionByPrints(prints: Array<{ set: string; collector_number: string }>) {
+  if (!prints.length) return [] as ScryfallCard[];
+  const data = (await scryfallFetch(`/cards/collection`, {
+    method: "POST",
+    body: JSON.stringify({
+      identifiers: prints.slice(0, 75).map((print) => ({ set: print.set, collector_number: print.collector_number })),
+    }),
+  })) as { data?: ScryfallCard[] } | null;
+  return data?.data ?? [];
+}
+
 export function imageFromCard(card: ScryfallCard) {
   const face = card.card_faces?.find((item) => item.image_uris?.normal);
   return {
