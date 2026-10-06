@@ -29,7 +29,7 @@ type FreshCard = { catalogCardId: string; name: string; quantity: number };
 const DESTINATION_OPTIONS: Array<{ id: DeckPlace; short: string; label: string }> = [
   { id: "main", short: "Deck", label: "Adicionar ao Deck" },
   { id: "side", short: "Side", label: "Adicionar ao Sideboard" },
-  { id: "out", short: "Fora", label: "Adicionar fora do deck" },
+  { id: "out", short: "Maybe", label: "Adicionar ao Maybeboard" },
 ];
 
 function DestinationMenu({
@@ -321,7 +321,7 @@ export function DeckEditTools({ deckId, allowsSideboard, status, setStatus, addT
                 >
                   <option value="main">No deck</option>
                   {allowsSideboard ? <option value="side">Sideboard</option> : null}
-                  <option value="out">Fora do Deck</option>
+                  <option value="out">Maybeboard</option>
                 </select>
               </label>
             </header>
@@ -343,7 +343,7 @@ export function DeckEditTools({ deckId, allowsSideboard, status, setStatus, addT
                 className="ui-textarea h-full font-mono text-[14px] leading-6"
               />
               <textarea
-                aria-label="Lista fora do deck"
+                aria-label="Lista no maybeboard"
                 value={lists.out}
                 onChange={(event) => setLists((current) => ({ ...current, out: event.target.value }))}
                 placeholder="1 Island"
@@ -428,7 +428,7 @@ export function DeckEditTools({ deckId, allowsSideboard, status, setStatus, addT
                   </label>
                   <label className="flex items-center gap-2">
                     <input type="checkbox" checked={includeOut} onChange={(event) => setIncludeOut(event.target.checked)} />
-                    Fora do deck
+                    Maybeboard
                   </label>
                 </div>
               )}

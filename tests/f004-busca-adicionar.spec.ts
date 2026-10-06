@@ -46,7 +46,7 @@ test("seleciona a carta na busca e adiciona pelo botão", async ({ page }) => {
   await page.getByLabel("Buscar carta").fill("Sol Ring");
   await page.getByRole("button").filter({ hasText: "Sol Ring" }).first().click();
   await page.getByRole("button", { name: "Destino da busca" }).click();
-  await page.getByRole("option", { name: "Adicionar fora do deck" }).click();
+  await page.getByRole("option", { name: "Adicionar ao Maybeboard" }).click();
   await addButton.click();
 
   await expect(selected).toHaveCount(0);

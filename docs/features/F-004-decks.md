@@ -7,6 +7,8 @@ Criar e editar decks por formato, adicionar cartas (individual ou lista), marcar
 ## Modelo de dados (atual)
 
 - Uma linha em `deck_cards` por carta (`UNIQUE (deck_id, catalog_card_id)`).
+- Na interface, o lugar `out` (antes “Fora do deck”) se chama **Maybeboard** (F-018 / US-018-03).
+- Editar Deck, Sideboard e Maybeboard de uma vez por texto: F-018.
 - `quantity_main`, `quantity_side` e `quantity_out` guardam as cópias de cada lugar. A mesma carta pode estar no deck, no sideboard e fora ao mesmo tempo.
 - Importar uma lista soma só a coluna do destino. Preço e nota são da carta. Tags também são da carta.
 - O spot (F-012) usa só as cópias de `quantity_main`.

@@ -10,6 +10,7 @@ import { DeckCanvas, type DeckCanvasHandle } from "@/components/deck-canvas";
 import { DeckCoverageBadge } from "@/components/deck-coverage-badge";
 import { DeckEditHeader } from "@/components/deck-detail/deck-edit-header";
 import { DeckEditTools } from "@/components/deck-detail/deck-edit-tools";
+import { DeckListEditor } from "@/components/deck-detail/deck-list-editor";
 import { DeckMissingCardsModal } from "@/components/deck-detail/deck-missing-cards";
 import { DeckTagFilterPanel, TagDeleteModal, TagEditModal } from "@/components/deck-detail/deck-tag-filter";
 import {
@@ -75,6 +76,7 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
   const [name, setName] = useState("");
   const [format, setFormat] = useState("commander");
   const [cards, setCards] = useState<CardRow[]>([]);
+  const [cardsLoaded, setCardsLoaded] = useState(false);
   const [coverage, setCoverage] = useState<DeckCoverageSummary | null>(null);
   const [view, setView] = useState<DeckView>(initialView);
   const isCanvasView = view !== "lista";
@@ -95,6 +97,7 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
   const exportOpen = openPanel === "exportar";
   const [missingOpen, setMissingOpen] = useState(false);
   const closeMissing = useCallback(() => setMissingOpen(false), []);
+  const [listEditorOpen, setListEditorOpen] = useState(false);
   const [tagFilter, setTagFilter] = useState<string | null>(null);
   const [editingTag, setEditingTag] = useState<CardTag | null>(null);
   const [deletingTag, setDeletingTag] = useState<CardTag | null>(null);
@@ -124,6 +127,7 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
       })),
     );
     setCoverage(data.coverage ?? null);
+    setCardsLoaded(true);
   }, [deckId]);
 
   useEffect(() => {
@@ -352,6 +356,16 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
 
   const listToolbar = (
     <div className="flex flex-wrap items-center justify-end gap-3">
+      {editing ? (
+        <button
+          type="button"
+          className="ui-btn-outline h-8 disabled:opacity-50"
+          disabled={!cardsLoaded}
+          onClick={() => setListEditorOpen(true)}
+        >
+          Editar por lista
+        </button>
+      ) : null}
       {listViewSelect}
       {editing ? (
         <TextListOptions value={textOptions ?? []} disabled={textOptions === null} onChange={changeTextOptions} />
@@ -584,13 +598,13 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
   const workingPanel =
     editing || workingCards.length ? (
       <ListPanel
-        title="Fora do deck"
+        title="Maybeboard"
         count={workingCount}
         dashed
         note="Cartas para upgrade, corte ou consideração — ainda não entram no deck."
       >
         {workingCards.length === 0 ? (
-          <p className="px-4 py-4 text-[13px] text-muted">Nenhuma carta fora do deck.</p>
+          <p className="px-4 py-4 text-[13px] text-muted">Nenhuma carta no Maybeboard.</p>
         ) : shownWorking.length === 0 ? (
           filteredOut
         ) : (
@@ -791,6 +805,15 @@ export function DeckDetail({ deckId, mode, initialView }: Props) {
       </div>
       {metaModal}
       {missingModal}
+      {editing && listEditorOpen ? (
+        <DeckListEditor
+          deckId={deckId}
+          cards={cards}
+          allowsSideboard={allowsSideboard}
+          onClose={() => setListEditorOpen(false)}
+          onSaved={load}
+        />
+      ) : null}
     </AppShell>
   );
 }

@@ -59,11 +59,11 @@ test("visualizações: texto, grid visual e grid visual agrupada", async ({ page
   await expect(textView.locator("img")).toHaveCount(0);
   await expect(page.getByTestId("deck-side-preview")).toBeVisible();
 
-  // Island vai para "Fora do deck" pelo menu da linha.
+  // Island vai para o Maybeboard pelo menu da linha.
   const islandRow = textView.locator("li").filter({ hasText: names.island });
   await islandRow.hover();
   await islandRow.getByRole("button", { name: `Opções de ${names.island}` }).click();
-  await page.getByRole("menuitem", { name: "Fora do deck" }).click();
+  await page.getByRole("menuitem", { name: "Maybeboard" }).click();
   await expect(page.getByTestId("deck-view-texto")).toHaveCount(2);
 
   // F-017: a view Texto da edição não abre o preview flutuante; a imagem fica no painel.

@@ -117,7 +117,7 @@ test("painel Ferramentas de construção na edição e na visualização", async
   await expect(toolsButton).toHaveAttribute("aria-pressed", "true");
 
   // US-015-01: Bolt 4 R; Doom Blade 2 B; Duress (sideboard) 2 B; Kitchen Finks {G/W}{G/W} = 2 G e 2 W.
-  // Counterspell está fora do deck e não conta.
+  // Counterspell está no Maybeboard e não conta.
   const symbols = page.getByRole("region", { name: "Símbolos de mana por cor" });
   await expect(symbols.getByText("Total: 12 símbolos.")).toBeVisible();
   await expect(symbols.getByRole("img", { name: "Símbolos de mana por cor" })).toBeVisible();
