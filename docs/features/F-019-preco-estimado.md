@@ -1,81 +1,81 @@
-# F-019 â€” PreÃ§o estimado na lista do deck
+# F-019 — Preço estimado na lista do deck
 
 ## Objetivo
 
-Mostrar na view Texto do deck um valor estimado em reais para cada linha, calculado a partir do preÃ§o em dÃ³lar da Scryfall, e deixar tags e preÃ§o como itens opcionais do menu â€œExibirâ€.
+Mostrar na view Texto do deck um valor estimado em reais para cada linha, calculado a partir do preço em dólar da Scryfall, e deixar tags e preço como itens opcionais do menu “Exibir”.
 
 ## Escopo
 
-- PreÃ§o estimado em R$ na linha da view Texto, opcional no menu â€œExibirâ€ â€” US-019-01.
-- Tags da linha passam a ser opcionais no menu â€œExibirâ€; a coluna das tags fica mais estreita â€” US-019-02.
-- O menu â€œExibirâ€ passa a existir tambÃ©m na visualizaÃ§Ã£o (`/decks/[id]`) â€” US-019-03.
+- Preço estimado em R$ na linha da view Texto, opcional no menu “Exibir” — US-019-01.
+- Tags da linha passam a ser opcionais no menu “Exibir”; a coluna das tags fica mais estreita — US-019-02.
+- O menu “Exibir” passa a existir também na visualização (`/decks/[id]`) — US-019-03.
 
 ## Fora de escopo
 
-- CotaÃ§Ã£o do dÃ³lar real (API de cÃ¢mbio). Nesta versÃ£o a taxa Ã© fixa: US$ 1 = R$ 5.
-- Atualizar o preÃ§o da Scryfall periodicamente. Vale o `usd` gravado no catÃ¡logo quando a carta foi baixada.
-- PreÃ§o nas views Grid visual e Grid visual agrupada, e no canvas.
+- Cotação do dólar real (API de câmbio). Nesta versão a taxa é fixa: US$ 1 = R$ 5.
+- Atualizar o preço da Scryfall periodicamente. Vale o `usd` gravado no catálogo quando a carta foi baixada.
+- Preço nas views Grid visual e Grid visual agrupada, e no canvas.
 - Total do deck.
-- PreÃ§o manual da carta (F-004 / US-004-10): continua no modal de detalhes, sem relaÃ§Ã£o com o estimado.
+- Preço manual da carta (F-004 / US-004-10): continua no modal de detalhes, sem relação com o estimado.
 
 ## User stories
 
-### US-019-01 â€” PreÃ§o estimado na linha
+### US-019-01 — Preço estimado na linha
 
 **Como** jogador **quero** ver quanto custa cada linha do deck **para** ter uma ideia do valor sem sair da lista.
 
-CritÃ©rios de aceite:
+Critérios de aceite:
 
-- [x] O menu â€œExibirâ€ tem a opÃ§Ã£o â€œPreÃ§o estimadoâ€, desligada por padrÃ£o.
-- [x] Ligada, cada linha da view Texto mostra, numa coluna Ã  direita, `quantidade Ã— US$ Ã— 5` no formato `R$ 0,00`.
-- [x] Passar o mouse sobre o valor mostra a dica â€œValor estimadoâ€.
-- [x] Sem preÃ§o em dÃ³lar para a carta, a linha mostra â€œâ€”â€, com a mesma dica.
+- [x] O menu “Exibir” tem a opção “Preço estimado”, desligada por padrão.
+- [x] Ligada, cada linha da view Texto mostra, numa coluna à direita, `quantidade × US$ × 5` no formato `R$ 0,00`.
+- [x] Passar o mouse sobre o valor mostra a dica “Valor estimado”.
+- [x] Sem preço em dólar para a carta, a linha mostra “—”, com a mesma dica.
 
-### US-019-02 â€” Tags opcionais e coluna menor
+### US-019-02 — Tags opcionais e coluna menor
 
-**Como** jogador **quero** ligar ou desligar as bolinhas de tag **para** abrir espaÃ§o na linha para o preÃ§o.
+**Como** jogador **quero** ligar ou desligar as bolinhas de tag **para** abrir espaço na linha para o preço.
 
-CritÃ©rios de aceite:
+Critérios de aceite:
 
-- [x] O menu â€œExibirâ€ tem a opÃ§Ã£o â€œTagsâ€, desligada por padrÃ£o.
-- [x] Ligada, as bolinhas aparecem Ã  esquerda da quantidade, como hoje; desligada, a coluna some.
+- [x] O menu “Exibir” tem a opção “Tags”, desligada por padrão.
+- [x] Ligada, as bolinhas aparecem à esquerda da quantidade, como hoje; desligada, a coluna some.
 - [x] A coluna das tags fica mais estreita que antes.
 
-### US-019-03 â€” Exibir na visualizaÃ§Ã£o
+### US-019-03 — Exibir na visualização
 
-**Como** jogador **quero** as mesmas opÃ§Ãµes na visualizaÃ§Ã£o **para** ler o deck com preÃ§o sem entrar na ediÃ§Ã£o.
+**Como** jogador **quero** as mesmas opções na visualização **para** ler o deck com preço sem entrar na edição.
 
-CritÃ©rios de aceite:
+Critérios de aceite:
 
-- [x] A visualizaÃ§Ã£o (`/decks/[id]`) tem o menu â€œExibirâ€ ao lado de â€œVisualizaÃ§Ã£oâ€, com Custo de mana, Tags e PreÃ§o estimado.
-- [x] A escolha Ã© a mesma nas duas rotas (salva no navegador).
+- [x] A visualização (`/decks/[id]`) tem o menu “Exibir” ao lado de “Visualização”, com Custo de mana, Tags e Preço estimado.
+- [x] A escolha é a mesma nas duas rotas (salva no navegador).
 
-## DecisÃµes (confirmadas com o usuÃ¡rio)
+## Decisões (confirmadas com o usuário)
 
 1. Feature nova F-019.
-2. Taxa fixa: US$ 1 = R$ 5, atÃ© existir uma soluÃ§Ã£o melhor.
-3. SÃ³ na view Texto, nas duas rotas (ediÃ§Ã£o e visualizaÃ§Ã£o). O â€œExibirâ€ passa a existir na visualizaÃ§Ã£o.
-4. Custo de mana, Tags e PreÃ§o estimado comeÃ§am desligados.
-5. O valor da linha Ã© o total: quantidade Ã— preÃ§o de uma cÃ³pia.
-6. ImpressÃ£o sem `usd` (comum em impressÃµes em portuguÃªs): usa o `usd` da impressÃ£o mais recente da mesma carta (`oracle_id`) que jÃ¡ estÃ¡ no catÃ¡logo. Sem nenhuma, mostra â€œâ€”â€.
+2. Taxa fixa: US$ 1 = R$ 5, até existir uma solução melhor.
+3. Só na view Texto, nas duas rotas (edição e visualização). O “Exibir” passa a existir na visualização.
+4. Custo de mana, Tags e Preço estimado começam desligados.
+5. O valor da linha é o total: quantidade × preço de uma cópia.
+6. Impressão sem `usd` (comum em impressões em português): usa o `usd` da impressão mais recente da mesma carta (`oracle_id`) que já está no catálogo. Sem nenhuma, mostra “—”.
 
 ## Regras
 
-- O preÃ§o vem de `catalog_cards.filters->>'usd'` (Scryfall `prices.usd`, nÃ£o foil).
-- O cÃ¡lculo Ã© feito em centavos: `round(usd Ã— 5 Ã— 100) Ã— quantidade`.
-- Nenhuma opÃ§Ã£o do â€œExibirâ€ grava no deck; sÃ³ muda o que a linha desenha.
+- O preço vem de `catalog_cards.filters->>'usd'` (Scryfall `prices.usd`, não foil).
+- O cálculo é feito em centavos: `round(usd × 5 × 100) × quantidade`.
+- Nenhuma opção do “Exibir” grava no deck; só muda o que a linha desenha.
 
-## SuperfÃ­cie
+## Superfície
 
-- API: `GET /api/decks/[id]` devolve `usd` por carta (com o fallback da decisÃ£o 6).
-- UI: `TextListOptions` (novas opÃ§Ãµes), `DeckCardView` (colunas da linha), `deck-detail.tsx` (Exibir nas duas rotas).
-- LÃ³gica: `src/lib/estimated-price.ts`.
-- Dados: preferÃªncia em `localStorage` (`mtghelper.deck.textOptions`), sem migration.
+- API: `GET /api/decks/[id]` devolve `usd` por carta (com o fallback da decisão 6).
+- UI: `TextListOptions` (novas opções), `DeckCardView` (colunas da linha), `deck-detail.tsx` (Exibir nas duas rotas).
+- Lógica: `src/lib/estimated-price.ts`.
+- Dados: preferência em `localStorage` (`mtghelper.deck.textOptions`), sem migration.
 - Teste: `tests/f019-preco-estimado.spec.ts`.
 
-## RelaÃ§Ã£o com outras features
+## Relação com outras features
 
-- F-006: catÃ¡logo local, de onde vem o `usd`.
-- F-011: a visualizaÃ§Ã£o ganha o â€œExibirâ€.
+- F-006: catálogo local, de onde vem o `usd`.
+- F-011: a visualização ganha o “Exibir”.
 - F-013: bolinhas de tag.
-- F-017: menu â€œExibirâ€ e colunas da linha; as tags deixam de ser fixas.
+- F-017: menu “Exibir” e colunas da linha; as tags deixam de ser fixas.
