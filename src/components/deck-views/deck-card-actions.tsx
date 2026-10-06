@@ -28,6 +28,7 @@ type Props = {
 
 const iconButton = "flex h-6 w-6 items-center justify-center leading-none text-muted";
 const menuButton = "w-full px-2 py-1 text-left text-[13px] hover:bg-surface-container";
+const menuIconButton = "flex h-7 flex-1 items-center justify-center leading-none text-muted hover:bg-surface-container";
 
 /** Ações de edição da carta. Na lista e nas grids ficam no menu (F-017 / F-010). */
 export function DeckCardActions({
@@ -68,21 +69,38 @@ export function DeckCardActions({
   if (layout === "menu") {
     return (
       <div className="flex flex-col" data-testid="deck-card-actions" role="menu">
-        <button type="button" role="menuitem" aria-label={`Aumentar ${label}`} className={menuButton} onClick={onIncrement}>
-          Aumentar
-        </button>
-        <button type="button" role="menuitem" aria-label={`Diminuir ${label}`} className={menuButton} onClick={onDecrement}>
-          Diminuir
-        </button>
-        <button
-          type="button"
-          role="menuitem"
-          aria-label={`Remover todas as cópias de ${label}`}
-          className={`${menuButton} hover:text-danger`}
-          onClick={onRemoveAll}
-        >
-          Remover todas
-        </button>
+        <div className="flex items-center gap-1 border-b border-outline-variant pb-1">
+          <button
+            type="button"
+            role="menuitem"
+            aria-label={`Aumentar ${label}`}
+            title="Aumentar"
+            className={`${menuIconButton} text-[15px] hover:text-ink`}
+            onClick={onIncrement}
+          >
+            +
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            aria-label={`Diminuir ${label}`}
+            title="Diminuir"
+            className={`${menuIconButton} text-[15px] hover:text-ink`}
+            onClick={onDecrement}
+          >
+            −
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            aria-label={`Remover todas as cópias de ${label}`}
+            title="Remover todas"
+            className={`${menuIconButton} hover:text-danger`}
+            onClick={onRemoveAll}
+          >
+            <TrashIcon />
+          </button>
+        </div>
         <button type="button" role="menuitem" className={menuButton} onClick={onInspect}>
           Detalhes
         </button>

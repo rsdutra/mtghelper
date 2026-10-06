@@ -61,7 +61,7 @@ Critérios de aceite:
 - [x] A modal é renderizada no `<body>` (portal), fora de qualquer painel `fixed`/`z-*` que a prenderia atrás de outros painéis.
 - [x] Todas as modais usam a mesma camada (`z-[1000]`), acima de painéis, menus e preview de carta.
 - [x] Independe da ordem de abertura: a modal aberta por último fica por cima, inclusive o carregamento sobre a modal de lista.
-- [x] “Adicionar lista” com os painéis Ferramentas, Gráficos, Tags e Busca abertos fica por cima de todos.
+- [x] “Adicionar lista” fica por cima do painel aberto e da coluna de botões. Antes vários painéis podiam ficar abertos juntos; desde F-011 / US-011-04 só um fica aberto por vez.
 
 Causa do bug: a modal “Adicionar lista” era filha do painel de Busca (`fixed z-40`), que cria um contexto de empilhamento; o `z-[160]` dela só valia dentro do painel, e os painéis `z-40` vindos depois no HTML a cobriam.
 
